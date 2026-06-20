@@ -5,119 +5,62 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        bg: "var(--color-bg)",
-        surface: "var(--color-surface)",
-        card: "var(--color-card)",
-        border: "var(--color-border)",
-        brand: {
-          50: "#fdf8f4",
-          100: "#f6f0ea",
-          200: "#e8d8cd",
-          300: "#d3b8a6",
-          400: "#d6a95f",
-          500: "#4a2c2a",
-          600: "#3b241b",
-          700: "#2a1811",
-          800: "#1e100c",
-          900: "#130907",
-          950: "#08131a",
-          primary: "var(--color-brand-primary)",
-          secondary: "var(--color-brand-secondary)",
-          accent: "var(--color-brand-accent)",
+        // Core palette
+        cafe: {
+          bg: "#E8E3D3",
+          surface: "#AEB59A",
+          accent: "#A16C3A",
+          dark: "#652304",
+          text: "#2A2118",
+          "text-secondary": "#6F6459",
+          border: "rgba(101,35,4,0.12)",
+          glass: "rgba(255,255,255,0.45)",
+          hover: "#B57B45",
+          shadow: "rgba(60,40,20,0.08)",
+          cream: "#F5F0E4",
+          warm: "#D4C9B5",
         },
-        surface_legacy: {
-          50: "#f1f5f9",
-          100: "#e2e8f0",
-          200: "#cbd5e1",
-          300: "#94a3b8",
-          400: "#64748b",
-          500: "#475569",
-          600: "#334155",
-          700: "#1e293b",
-          800: "#0f172a",
-          900: "#08131a",
-          950: "#04090d",
-        },
-        text: {
-          primary: "var(--color-text-primary)",
-          secondary: "var(--color-text-secondary)",
-          muted: "var(--color-text-muted)",
-        },
-        accent: {
-          blue: "#2cc8ff",
-          green: "#32d26b",
-          gold: "#d6a95f",
-          danger: "#ef4444",
-        }
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Manrope", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        display: ["'DM Serif Display'", "Georgia", "serif"],
         mono: ["'IBM Plex Mono'", "monospace"],
       },
       borderRadius: {
-        "2xl": "1rem",
-        "3xl": "1.5rem",
-        "4xl": "1.375rem", // 22px
+        card: "18px",
+        btn: "14px",
+        input: "14px",
       },
-      backdropBlur: {
-        xs: "2px",
-        "2xl": "40px",
+      spacing: {
+        "18": "4.5rem",
+        "22": "5.5rem",
       },
       boxShadow: {
-        glass: "0 8px 32px 0 rgba(0, 0, 0, 0.18)",
-        "glass-sm": "0 4px 16px 0 rgba(0, 0, 0, 0.12)",
-        "glass-lg": "0 12px 48px 0 rgba(0, 0, 0, 0.25)",
-        premium:
-          "0 20px 60px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)",
-        "premium-sm":
-          "0 10px 30px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05)",
-        glow: "0 0 40px rgba(214, 169, 95, 0.15)", // Gold glow
-        "glow-lg": "0 0 80px rgba(214, 169, 95, 0.25)",
+        card: "0 10px 30px rgba(60,40,20,0.08)",
+        "card-hover": "0 16px 40px rgba(60,40,20,0.12)",
+        soft: "0 4px 16px rgba(60,40,20,0.06)",
+        nav: "0 8px 24px rgba(60,40,20,0.06)",
       },
       animation: {
-        "fade-in": "fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        "fade-in-up": "fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        "fade-in-down": "fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        "slide-in-left": "slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        "slide-in-right": "slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        float: "float 6s ease-in-out infinite",
-        pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        shimmer: "shimmer 2s linear infinite",
-        "spin-slow": "spin 8s linear infinite",
+        "fade-in": "fadeIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "fade-up": "fadeUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "scale-in": "scaleIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
       keyframes: {
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
-        fadeInUp: {
-          "0%": { opacity: "0", transform: "translateY(30px)" },
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        fadeInDown: {
-          "0%": { opacity: "0", transform: "translateY(-30px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        slideInLeft: {
-          "0%": { opacity: "0", transform: "translateX(-30px)" },
-          "100%": { opacity: "1", transform: "translateX(0)" },
-        },
-        slideInRight: {
-          "0%": { opacity: "0", transform: "translateX(30px)" },
-          "100%": { opacity: "1", transform: "translateX(0)" },
-        },
-        float: {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-10px)" },
-        },
-        shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.98)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
       },
     },

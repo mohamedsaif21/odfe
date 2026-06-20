@@ -1,9 +1,4 @@
-import Link from "next/link";
-import {
-  HiOutlineUserGroup,
-  HiOutlineStar,
-  HiOutlineChatBubbleLeftRight,
-} from "react-icons/hi2";
+import { LuStar } from "react-icons/lu";
 
 const testimonials = [
   {
@@ -31,14 +26,14 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="relative section-padding">
-      <div className="mx-auto max-w-7xl">
+    <section className="section-padding">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-12 text-center">
-          <span className="glass mb-4 inline-block px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-400">
+          <span className="mb-4 inline-block rounded-full bg-cafe-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cafe-accent">
             Testimonials
           </span>
-          <h2 className="mt-4 text-3xl font-bold text-text-primary sm:text-4xl">
-            Loved by Restaurant Owners
+          <h2 className="mt-4 text-3xl sm:text-4xl">
+            Loved by Cafe Owners
           </h2>
         </div>
 
@@ -47,22 +42,23 @@ export default function Testimonials() {
             <div key={t.name} className="glass-card flex flex-col p-7">
               <div className="mb-4 flex gap-1">
                 {Array.from({ length: t.rating }).map((_, i) => (
-                  <HiOutlineStar
+                  <LuStar
                     key={i}
-                    className="h-5 w-5 fill-amber-400 text-amber-400"
+                    className="h-4 w-4 fill-cafe-accent text-cafe-accent"
+                    strokeWidth={1.5}
                   />
                 ))}
               </div>
-              <p className="flex-1 text-sm leading-relaxed text-text-secondary">
+              <p className="flex-1 text-sm leading-relaxed text-cafe-text-secondary font-sans">
                 &ldquo;{t.content}&rdquo;
               </p>
               <div className="mt-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500/20 text-sm font-bold text-brand-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cafe-accent/10 text-sm font-bold text-cafe-accent">
                   {t.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-text-primary">{t.name}</p>
-                  <p className="text-xs text-text-muted">{t.role}</p>
+                  <p className="text-sm font-semibold text-cafe-text font-sans">{t.name}</p>
+                  <p className="text-xs text-cafe-text-secondary font-sans">{t.role}</p>
                 </div>
               </div>
             </div>

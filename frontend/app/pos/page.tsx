@@ -3,24 +3,23 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  HiOutlineArrowLeft,
-  HiOutlineShoppingBag,
-  HiOutlineMagnifyingGlass,
-  HiOutlinePlus,
-  HiOutlineMinus,
-  HiOutlineTrash,
-  HiOutlineCreditCard,
-  HiOutlineCurrencyDollar,
-  HiOutlineDevicePhoneMobile,
-  HiOutlineBanknotes,
-} from "react-icons/hi2";
+  LuArrowLeft,
+  LuShoppingBag,
+  LuSearch,
+  LuPlus,
+  LuMinus,
+  LuTrash2,
+  LuCreditCard,
+  LuBanknote,
+  LuSmartphone,
+  LuSplit,
+} from "react-icons/lu";
 import { fetchApi } from "@/utils/api";
 
 interface Category {
   id: string;
   name: string;
   color?: string;
-  emoji?: string; // Optional if we want to map colors/ids to emojis
 }
 
 interface Product {
@@ -39,7 +38,6 @@ interface CartItem {
   image: string;
 }
 
-// Fallback mapping for emojis since DB might not have them
 const categoryEmojiMap: Record<string, string> = {
   all: "☕",
   espresso: "☕",
@@ -64,11 +62,7 @@ export default function POSPage() {
       try {
         const response = await fetchApi("/products");
         if (response.success && response.data) {
-          const fetchedCategories = response.data.categories;
-          setCategories([
-            { id: "all", name: "All" },
-            ...fetchedCategories
-          ]);
+          setCategories([{ id: "all", name: "All" }, ...response.data.categories]);
           setProducts(response.data.products);
         }
       } catch (error) {
@@ -119,23 +113,23 @@ export default function POSPage() {
   const handleCompleteSale = async () => {
     if (cart.length === 0) return;
     setSubmitting(true);
-    
+
     try {
       const payload = {
         total,
         paymentMethod,
-        items: cart.map(item => ({
+        items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
-          price: item.price
-        }))
+          price: item.price,
+        })),
       };
-      
+
       const response = await fetchApi("/orders", {
         method: "POST",
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
-      
+
       if (response.success) {
         alert(`Order ${response.data.orderNo} created successfully!`);
         setCart([]);
@@ -150,33 +144,41 @@ export default function POSPage() {
     }
   };
 
+  const paymentOptions = [
+    { key: "card", label: "Card", sub: "Credit / Debit", icon: LuCreditCard },
+    { key: "cash", label: "Cash", sub: "Pay with cash", icon: LuBanknote },
+    { key: "mobile", label: "Mobile Pay", sub: "UPI / Wallet", icon: LuSmartphone },
+    { key: "split", label: "Split", sub: "Split payment", icon: LuSplit },
+  ];
+
   return (
-    <div className="flex h-screen bg-surface-950 text-surface-200">
-      {/* Left Panel - Products */}
-      <div className="flex flex-1 flex-col border-r border-border">
-        <header className="flex items-center gap-4 border-b border-border px-6 py-4">
+    <div className="flex h-screen bg-cafe-bg">
+      {/* Left Panel — Products */}
+      <div className="flex flex-1 flex-col border-r border-cafe-border">
+        <header className="flex items-center gap-4 border-b border-cafe-border px-6 py-4 bg-cafe-cream/40">
           <Link
             href="/dashboard"
-            className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
+            className="rounded-btn p-2 text-cafe-text-secondary transition-colors hover:text-cafe-accent"
+            aria-label="Back to dashboard"
           >
-            <HiOutlineArrowLeft className="h-5 w-5" />
+            <LuArrowLeft className="h-5 w-5" strokeWidth={1.5} />
           </Link>
           <div className="flex items-center gap-2">
-            <HiOutlineShoppingBag className="h-5 w-5 text-brand-400" />
-            <h1 className="text-lg font-bold text-text-primary">POS</h1>
+            <LuShoppingBag className="h-5 w-5 text-cafe-accent" strokeWidth={1.5} />
+            <h1 className="text-lg text-cafe-text">POS</h1>
           </div>
         </header>
 
-        {/* Category Tabs */}
-        <div className="flex gap-2 border-b border-border px-6 py-3 overflow-x-auto">
+        {/* Category tabs */}
+        <div className="flex gap-2 border-b border-cafe-border px-6 py-3 overflow-x-auto">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-all ${
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-btn px-4 py-2 text-sm font-medium transition-all duration-220 ${
                 activeCategory === cat.id
-                  ? "bg-brand-500/20 text-brand-400"
-                  : "text-text-muted hover:bg-[var(--glass-border)] hover:text-brand-primary"
+                  ? "bg-cafe-accent/10 text-cafe-accent"
+                  : "text-cafe-text-secondary hover:bg-cafe-accent/5 hover:text-cafe-text"
               }`}
             >
               <span>{categoryEmojiMap[cat.id] || "🍽️"}</span>
@@ -188,13 +190,13 @@ export default function POSPage() {
         {/* Search */}
         <div className="px-6 py-3">
           <div className="relative">
-            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+            <LuSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cafe-text-secondary/50" strokeWidth={1.5} />
             <input
               type="text"
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-border bg-[var(--glass-secondary)] py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-surface-500 outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30"
+              className="input-field pl-10"
             />
           </div>
         </div>
@@ -202,24 +204,24 @@ export default function POSPage() {
         {/* Product Grid */}
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {loading ? (
-             <div className="flex items-center justify-center h-full">
-               <p className="text-text-muted">Loading products...</p>
-             </div>
+            <div className="flex items-center justify-center h-full">
+              <p className="text-cafe-text-secondary font-sans">Loading products...</p>
+            </div>
           ) : filtered.length === 0 ? (
-             <div className="flex items-center justify-center h-full">
-               <p className="text-text-muted">No products found.</p>
-             </div>
+            <div className="flex items-center justify-center h-full">
+              <p className="text-cafe-text-secondary font-sans">No products found.</p>
+            </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
               {filtered.map((product) => (
                 <button
                   key={product.id}
                   onClick={() => addToCart(product)}
-                  className="glass-card flex flex-col items-center p-4 text-center hover:border-brand-500/30"
+                  className="glass-card flex flex-col items-center p-5 text-center"
                 >
                   <span className="mb-2 text-3xl">{product.image || "☕"}</span>
-                  <p className="text-sm font-semibold text-text-primary">{product.name}</p>
-                  <p className="mt-1 text-sm font-bold text-brand-400">
+                  <p className="text-sm font-semibold text-cafe-text font-sans">{product.name}</p>
+                  <p className="mt-1 text-sm font-bold text-cafe-accent mono-nums">
                     ₹{product.price.toFixed(2)}
                   </p>
                 </button>
@@ -229,13 +231,13 @@ export default function POSPage() {
         </div>
       </div>
 
-      {/* Middle Panel - Cart */}
-      <div className="flex w-[380px] flex-col border-r border-border">
-        <header className="border-b border-border px-6 py-4">
-          <h2 className="text-base font-bold text-text-primary">
+      {/* Middle Panel — Cart */}
+      <div className="flex w-[380px] flex-col border-r border-cafe-border bg-cafe-cream/30">
+        <header className="border-b border-cafe-border px-6 py-4">
+          <h2 className="text-base font-semibold text-cafe-text font-sans">
             Current Order
             {cart.length > 0 && (
-              <span className="ml-2 rounded-full bg-brand-500/20 px-2 py-0.5 text-xs text-brand-400">
+              <span className="ml-2 badge badge-queued">
                 {cart.reduce((s, i) => s + i.quantity, 0)} items
               </span>
             )}
@@ -244,46 +246,49 @@ export default function POSPage() {
 
         <div className="flex-1 overflow-y-auto p-4">
           {cart.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center text-text-muted">
-              <HiOutlineShoppingBag className="mb-3 h-12 w-12 opacity-30" />
-              <p className="text-sm">Cart is empty</p>
-              <p className="text-xs">Tap a product to add it</p>
+            <div className="flex h-full flex-col items-center justify-center text-cafe-text-secondary">
+              <LuShoppingBag className="mb-3 h-12 w-12 opacity-20" strokeWidth={1} />
+              <p className="text-sm font-sans">Cart is empty</p>
+              <p className="text-xs font-sans mt-1">Tap a product to add it</p>
             </div>
           ) : (
             <div className="space-y-2">
               {cart.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-[var(--glass-secondary)] p-3"
+                  className="flex items-center gap-3 rounded-btn border border-cafe-border bg-white/40 p-3"
                 >
                   <span className="text-xl">{item.image || "☕"}</span>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-text-primary">{item.name}</p>
-                    <p className="text-xs text-brand-400">
+                    <p className="text-sm font-medium text-cafe-text font-sans">{item.name}</p>
+                    <p className="text-xs text-cafe-accent mono-nums">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => updateQuantity(item.id, -1)}
-                      className="rounded-lg bg-[var(--glass-secondary)] p-1 text-text-muted hover:bg-brand-primary/20 hover:text-brand-primary"
+                      className="rounded-lg bg-cafe-bg/60 p-1 text-cafe-text-secondary hover:bg-cafe-accent/10 hover:text-cafe-accent transition-colors"
+                      aria-label="Decrease quantity"
                     >
-                      <HiOutlineMinus className="h-3.5 w-3.5" />
+                      <LuMinus className="h-3.5 w-3.5" strokeWidth={1.5} />
                     </button>
-                    <span className="w-6 text-center text-sm font-medium text-text-primary">
+                    <span className="w-6 text-center text-sm font-medium text-cafe-text mono-nums">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => updateQuantity(item.id, 1)}
-                      className="rounded-lg bg-[var(--glass-secondary)] p-1 text-text-muted hover:bg-brand-primary/20 hover:text-brand-primary"
+                      className="rounded-lg bg-cafe-bg/60 p-1 text-cafe-text-secondary hover:bg-cafe-accent/10 hover:text-cafe-accent transition-colors"
+                      aria-label="Increase quantity"
                     >
-                      <HiOutlinePlus className="h-3.5 w-3.5" />
+                      <LuPlus className="h-3.5 w-3.5" strokeWidth={1.5} />
                     </button>
                     <button
                       onClick={() => removeFromCart(item.id)}
-                      className="ml-1 rounded-lg p-1 text-red-400/60 hover:bg-red-500/10 hover:text-red-400"
+                      className="ml-1 rounded-lg p-1 text-cafe-text-secondary/40 hover:bg-[rgba(180,60,30,0.06)] hover:text-[#B43C1E] transition-colors"
+                      aria-label="Remove item"
                     >
-                      <HiOutlineTrash className="h-3.5 w-3.5" />
+                      <LuTrash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
                     </button>
                   </div>
                 </div>
@@ -293,43 +298,34 @@ export default function POSPage() {
         </div>
 
         {/* Totals */}
-        <div className="border-t border-border p-4">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between text-text-muted">
+        <div className="border-t border-cafe-border p-4">
+          <div className="space-y-2 text-sm font-sans">
+            <div className="flex justify-between text-cafe-text-secondary">
               <span>Subtotal</span>
-              <span>₹{subtotal.toFixed(2)}</span>
+              <span className="mono-nums">₹{subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-text-muted">
+            <div className="flex justify-between text-cafe-text-secondary">
               <span>Tax (8%)</span>
-              <span>₹{tax.toFixed(2)}</span>
+              <span className="mono-nums">₹{tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between border-t border-border pt-2 text-lg font-bold text-text-primary">
+            <div className="flex justify-between border-t border-cafe-border pt-2 text-lg font-bold text-cafe-text">
               <span>Total</span>
-              <span className="gradient-text">₹{total.toFixed(2)}</span>
+              <span className="text-cafe-accent mono-nums">₹{total.toFixed(2)}</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2 mt-4">
-            <button
-              disabled={cart.length === 0}
-              className="btn-primary w-full py-2 px-0 text-sm flex items-center justify-center gap-2"
-            >
+            <button disabled={cart.length === 0} className="btn-primary w-full !py-2 !px-0 text-sm">
               Send to Brew Bar
             </button>
-            <button
-              disabled={cart.length === 0}
-              className="btn-secondary w-full py-2 px-0 text-sm"
-            >
+            <button disabled={cart.length === 0} className="btn-secondary w-full !py-2 !px-0 text-sm">
               Hold
             </button>
-            <button
-              disabled={cart.length === 0}
-              className="btn-secondary w-full py-2 px-0 text-sm"
-            >
+            <button disabled={cart.length === 0} className="btn-secondary w-full !py-2 !px-0 text-sm">
               Print
             </button>
             <button
               disabled={cart.length === 0}
-              className="btn-secondary w-full py-2 px-0 text-sm !bg-red-500/10 !text-red-400 !border-red-500/20 hover:!bg-red-500/20"
+              className="btn-secondary w-full !py-2 !px-0 text-sm !text-[#B43C1E] !border-[rgba(180,60,30,0.15)] hover:!bg-[rgba(180,60,30,0.06)]"
               onClick={() => setCart([])}
             >
               Cancel
@@ -338,58 +334,30 @@ export default function POSPage() {
         </div>
       </div>
 
-      {/* Right Panel - Payment */}
-      <div className="flex w-[320px] flex-col bg-surface-950/50 p-6">
-        <h2 className="mb-6 text-base font-bold text-text-primary">Payment</h2>
+      {/* Right Panel — Payment */}
+      <div className="flex w-[320px] flex-col bg-cafe-cream/40 p-6">
+        <h2 className="mb-6 text-base text-cafe-text">Payment</h2>
 
         <div className="space-y-3">
-          <button 
-            onClick={() => setPaymentMethod("card")}
-            className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${paymentMethod === 'card' ? 'border-brand-500 bg-brand-500/10' : 'border-border bg-[var(--glass-secondary)] hover:border-brand-500/30 hover:bg-brand-primary/20'}`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/20">
-              <HiOutlineCreditCard className="h-5 w-5 text-brand-400" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-text-primary">Card</p>
-              <p className="text-xs text-text-muted">Credit / Debit</p>
-            </div>
-          </button>
-
-          <button 
-            onClick={() => setPaymentMethod("cash")}
-            className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${paymentMethod === 'cash' ? 'border-emerald-500 bg-emerald-500/10' : 'border-border bg-[var(--glass-secondary)] hover:border-emerald-500/30 hover:bg-emerald-500/20'}`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20">
-              <HiOutlineCurrencyDollar className="h-5 w-5 text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-text-primary">Cash</p>
-              <p className="text-xs text-text-muted">Pay with cash</p>
-            </div>
-          </button>
-
-          <button 
-             onClick={() => setPaymentMethod("mobile")}
-             className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${paymentMethod === 'mobile' ? 'border-blue-500 bg-blue-500/10' : 'border-border bg-[var(--glass-secondary)] hover:border-blue-500/30 hover:bg-blue-500/20'}`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20">
-              <HiOutlineDevicePhoneMobile className="h-5 w-5 text-blue-400" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-text-primary">Mobile Pay</p>
-              <p className="text-xs text-text-muted">Apple Pay, Google Pay</p>
-            </div>
-          </button>
-
-          <button 
-             onClick={() => setPaymentMethod("split")}
-             className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${paymentMethod === 'split' ? 'border-violet-500 bg-violet-500/10' : 'border-border bg-[var(--glass-secondary)] hover:border-violet-500/30 hover:bg-violet-500/20'}`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/20">
-              <HiOutlineBanknotes className="h-5 w-5 text-violet-400" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-text-primary">Split</p>
-              <p className="text-xs text-text-muted">Split payment</p>
-            </div>
-          </button>
+          {paymentOptions.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setPaymentMethod(opt.key)}
+              className={`flex w-full items-center gap-3 rounded-card border p-4 text-left transition-all duration-220 ${
+                paymentMethod === opt.key
+                  ? "border-cafe-accent bg-cafe-accent/8"
+                  : "border-cafe-border bg-white/30 hover:border-cafe-accent/30 hover:bg-cafe-accent/5"
+              }`}
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-btn bg-cafe-accent/10">
+                <opt.icon className="h-5 w-5 text-cafe-accent" strokeWidth={1.5} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-cafe-text font-sans">{opt.label}</p>
+                <p className="text-xs text-cafe-text-secondary font-sans">{opt.sub}</p>
+              </div>
+            </button>
+          ))}
         </div>
 
         <div className="mt-auto">

@@ -1,16 +1,5 @@
 import Link from "next/link";
-import {
-  HiOutlineClipboardDocumentList,
-  HiOutlineCurrencyDollar,
-  HiOutlineUsers,
-  HiOutlineRectangleStack,
-  HiOutlineQueueList,
-  HiOutlineTv,
-  HiOutlineChartBar,
-  HiOutlineCog6Tooth,
-  HiOutlineQrCode,
-  HiOutlineBookOpen,
-} from "react-icons/hi2";
+import { LuCheck } from "react-icons/lu";
 
 const plans = [
   {
@@ -33,7 +22,7 @@ const plans = [
     name: "Professional",
     price: "$79",
     period: "/month",
-    description: "For growing restaurants with multiple terminals.",
+    description: "For growing cafes with multiple terminals.",
     features: [
       "5 Terminals",
       "Full POS Suite",
@@ -51,12 +40,12 @@ const plans = [
   {
     name: "Enterprise",
     price: "Custom",
-    description: "For restaurant chains and franchises.",
+    description: "For cafe chains and franchises.",
     features: [
       "Unlimited Terminals",
       "Everything in Pro",
       "Multi-Location",
-      "Advanced Reports (PDF/XLSX)",
+      "Advanced Reports",
       "API Access",
       "Custom Integrations",
       "Dedicated Support",
@@ -68,76 +57,53 @@ const plans = [
   },
 ];
 
-const moduleIcons = [
-  HiOutlineClipboardDocumentList,
-  HiOutlineCurrencyDollar,
-  HiOutlineUsers,
-  HiOutlineRectangleStack,
-  HiOutlineQueueList,
-  HiOutlineTv,
-  HiOutlineChartBar,
-  HiOutlineCog6Tooth,
-  HiOutlineQrCode,
-  HiOutlineBookOpen,
-];
-
 export default function Pricing() {
   return (
-    <section id="pricing" className="relative section-padding">
-      <div className="mx-auto max-w-7xl">
+    <section id="pricing" className="section-padding">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
         <div className="mb-16 text-center">
-          <span className="glass mb-4 inline-block px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-400">
+          <span className="mb-4 inline-block rounded-full bg-cafe-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cafe-accent">
             Pricing
           </span>
-          <h2 className="mt-4 text-3xl font-bold text-text-primary sm:text-4xl md:text-5xl">
+          <h2 className="mt-4 text-3xl sm:text-4xl md:text-5xl">
             Simple, Transparent Pricing
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-text-secondary">
+          <p className="mx-auto mt-4 max-w-2xl text-cafe-text-secondary font-sans">
             Start free, upgrade when you need. No hidden fees.
           </p>
         </div>
 
+        {/* Plans */}
         <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.name}
               className={`glass-card relative flex flex-col p-8 ${
                 plan.popular
-                  ? "!border-brand-500/40 ring-1 ring-brand-500/20"
+                  ? "!border-cafe-accent/30 ring-1 ring-cafe-accent/15"
                   : ""
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-1 text-xs font-bold text-text-primary">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-cafe-dark px-4 py-1 text-xs font-bold text-white">
                   Most Popular
                 </div>
               )}
-              <h3 className="text-lg font-bold text-text-primary">{plan.name}</h3>
+              <h3 className="text-lg text-cafe-text font-display">{plan.name}</h3>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-text-primary">
+                <span className="text-4xl font-bold text-cafe-text font-display">
                   {plan.price}
                 </span>
                 {plan.period && (
-                  <span className="text-sm text-text-muted">{plan.period}</span>
+                  <span className="text-sm text-cafe-text-secondary font-sans">{plan.period}</span>
                 )}
               </div>
-              <p className="mt-3 text-sm text-text-secondary">{plan.description}</p>
+              <p className="mt-3 text-sm text-cafe-text-secondary font-sans">{plan.description}</p>
               <ul className="mt-8 flex-1 space-y-3">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-text-secondary">
-                    <svg
-                      className="h-4 w-4 shrink-0 text-brand-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                  <li key={f} className="flex items-center gap-3 text-sm text-cafe-text-secondary font-sans">
+                    <LuCheck className="h-4 w-4 shrink-0 text-cafe-accent" strokeWidth={2} />
                     {f}
                   </li>
                 ))}
@@ -152,44 +118,6 @@ export default function Pricing() {
               </Link>
             </div>
           ))}
-        </div>
-
-        <div className="mt-20">
-          <h3 className="mb-8 text-center text-xl font-bold text-text-primary">
-            All 15 Modules Included
-          </h3>
-          <div className="mx-auto grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-5">
-            {[
-              "Base",
-              "Auth",
-              "Product",
-              "Payment",
-              "Floor",
-              "Customer",
-              "Coupon",
-              "Booking",
-              "POS",
-              "KDS",
-              "Display",
-              "Self-Order",
-              "Dashboard",
-              "Reports",
-              "Realtime",
-            ].map((mod, i) => (
-              <div
-                key={mod}
-                className="glass-card flex flex-col items-center p-4"
-              >
-                {(() => {
-                  const Icon = moduleIcons[i % moduleIcons.length];
-                  return <Icon className="mb-2 h-5 w-5 text-brand-400" />;
-                })()}
-                <span className="text-xs font-medium text-text-muted">
-                  odfe_{mod.toLowerCase().replace("-", "_")}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>

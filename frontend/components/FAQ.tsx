@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { HiOutlineChevronDown } from "react-icons/hi2";
+import { LuChevronDown } from "react-icons/lu";
 
 const faqs = [
   {
     q: "What is ODFE?",
-    a: "ODFE (Odoo Food Experience) is a full-stack restaurant management platform built on Odoo 19. It includes POS, kitchen display, self-ordering, payments, analytics, and more.",
+    a: "ODFE (Odoo Food Experience) is a full-stack cafe management platform built on Odoo 19. It includes POS, kitchen display, self-ordering, payments, analytics, and more.",
   },
   {
     q: "Is ODFE open source?",
@@ -34,13 +34,13 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="relative section-padding">
+    <section className="section-padding">
       <div className="mx-auto max-w-3xl">
         <div className="mb-12 text-center">
-          <span className="glass mb-4 inline-block px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-400">
+          <span className="mb-4 inline-block rounded-full bg-cafe-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cafe-accent">
             FAQ
           </span>
-          <h2 className="mt-4 text-3xl font-bold text-text-primary sm:text-4xl">
+          <h2 className="mt-4 text-3xl sm:text-4xl">
             Frequently Asked Questions
           </h2>
         </div>
@@ -51,19 +51,21 @@ export default function FAQ() {
               <button
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                 className="flex w-full items-center justify-between p-6 text-left"
+                aria-expanded={openIndex === i}
               >
-                <span className="text-sm font-semibold text-text-primary">
+                <span className="text-sm font-semibold text-cafe-text font-sans">
                   {faq.q}
                 </span>
-                <HiOutlineChevronDown
-                  className={`h-5 w-5 shrink-0 text-text-muted transition-transform ${
+                <LuChevronDown
+                  className={`h-5 w-5 shrink-0 text-cafe-text-secondary transition-transform duration-280 ${
                     openIndex === i ? "rotate-180" : ""
                   }`}
+                  strokeWidth={1.5}
                 />
               </button>
               {openIndex === i && (
-                <div className="px-6 pb-6">
-                  <p className="text-sm leading-relaxed text-text-secondary">
+                <div className="px-6 pb-6 animate-fade-in">
+                  <p className="text-sm leading-relaxed text-cafe-text-secondary font-sans">
                     {faq.a}
                   </p>
                 </div>

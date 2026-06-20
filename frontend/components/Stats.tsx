@@ -36,7 +36,7 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
   }, [target]);
 
   return (
-    <span className="text-4xl font-extrabold text-text-primary sm:text-5xl">
+    <span className="text-4xl font-bold text-cafe-text font-display sm:text-5xl">
       {formatNumber(count)}
       {suffix}
     </span>
@@ -45,14 +45,14 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
 
 export default function Stats() {
   return (
-    <section id="about" className="relative section-padding">
-      <div className="mx-auto max-w-7xl">
-        <div className="glass-strong mx-auto max-w-4xl p-10 sm:p-16">
+    <section id="about" className="section-padding">
+      <div className="mx-auto max-w-6xl">
+        <div className="glass-panel mx-auto max-w-4xl p-10 sm:p-16">
           <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
             {stats.map((s) => (
               <div key={s.label} className="text-center">
                 <CountUp target={s.value} suffix={s.suffix} />
-                <p className="mt-2 text-sm text-text-muted">{s.label}</p>
+                <p className="mt-2 text-sm text-cafe-text-secondary font-sans">{s.label}</p>
               </div>
             ))}
           </div>

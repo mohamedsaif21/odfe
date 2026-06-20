@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  HiOutlineArrowLeft,
-  HiOutlineTv,
-  HiOutlineClock,
-  HiOutlineCheckCircle,
-} from "react-icons/hi2";
+  LuArrowLeft,
+  LuMonitor,
+  LuClock,
+} from "react-icons/lu";
 import { fetchApi } from "@/utils/api";
 
 interface TicketItem {
@@ -28,10 +27,26 @@ interface Ticket {
 }
 
 const columnConfig = {
-  new: { label: "Queued", color: "border-blue-500/30", headerColor: "text-blue-400", dotColor: "bg-blue-400" },
-  preparing: { label: "Brewing", color: "border-amber-500/30", headerColor: "text-amber-400", dotColor: "bg-amber-400" },
-  ready: { label: "Ready", color: "border-emerald-500/30", headerColor: "text-emerald-400", dotColor: "bg-emerald-400" },
-  done: { label: "Served", color: "border-surface-500/30", headerColor: "text-text-muted", dotColor: "bg-surface-400" },
+  new: {
+    label: "Queued",
+    dotClass: "bg-cafe-accent",
+    headerClass: "text-cafe-accent",
+  },
+  preparing: {
+    label: "Brewing",
+    dotClass: "bg-cafe-dark",
+    headerClass: "text-cafe-dark",
+  },
+  ready: {
+    label: "Ready",
+    dotClass: "bg-cafe-surface",
+    headerClass: "text-[#5A6448]",
+  },
+  done: {
+    label: "Served",
+    dotClass: "bg-cafe-text-secondary/40",
+    headerClass: "text-cafe-text-secondary",
+  },
 };
 
 export default function KitchenPage() {
@@ -53,11 +68,12 @@ export default function KitchenPage() {
             createdAt: order.createdAt,
             time: createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             elapsed: `${elapsedMins}m`,
-            items: order.items?.map((i: any) => ({
-              name: i.product?.name || "Item",
-              qty: i.quantity,
-              notes: i.notes
-            })) || []
+            items:
+              order.items?.map((i: any) => ({
+                name: i.product?.name || "Item",
+                qty: i.quantity,
+                notes: i.notes,
+              })) || [],
           };
         });
         setTickets(formattedTickets);
@@ -71,7 +87,6 @@ export default function KitchenPage() {
 
   useEffect(() => {
     fetchOrders();
-    // Poll every 10 seconds for real-time feel until socket is added
     const interval = setInterval(fetchOrders, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -80,16 +95,16 @@ export default function KitchenPage() {
     let nextStatus = "";
     if (currentStatus === "PENDING" || currentStatus === "QUEUED") nextStatus = "BREWING";
     else if (currentStatus === "BREWING") nextStatus = "SERVED";
-    else if (currentStatus === "SERVED") nextStatus = "PAID"; // Assuming POS handles PAID mostly, KDS might clear it.
+    else if (currentStatus === "SERVED") nextStatus = "PAID";
     else return;
 
     try {
       const response = await fetchApi(`/orders/${id}/status`, {
         method: "PUT",
-        body: JSON.stringify({ status: nextStatus })
+        body: JSON.stringify({ status: nextStatus }),
       });
       if (response.success) {
-        fetchOrders(); // Refresh
+        fetchOrders();
       }
     } catch (error) {
       console.error("Failed to update status", error);
@@ -97,38 +112,36 @@ export default function KitchenPage() {
   };
 
   const columns = {
-    new: tickets.filter(t => t.status === "PENDING" || t.status === "QUEUED"),
-    preparing: tickets.filter(t => t.status === "BREWING"),
-    ready: tickets.filter(t => t.status === "SERVED"),
-    done: tickets.filter(t => t.status === "PAID").slice(0, 5), // show only last 5 paid
+    new: tickets.filter((t) => t.status === "PENDING" || t.status === "QUEUED"),
+    preparing: tickets.filter((t) => t.status === "BREWING"),
+    ready: tickets.filter((t) => t.status === "SERVED"),
+    done: tickets.filter((t) => t.status === "PAID").slice(0, 5),
   };
 
   const TicketCard = ({ ticket }: { ticket: Ticket }) => (
     <div className="glass-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-base font-bold text-text-primary">{ticket.id}</span>
-        <span className="rounded-lg bg-[var(--glass-border)] px-2 py-0.5 text-xs font-medium text-text-secondary">
-          {ticket.table}
-        </span>
+        <span className="text-base font-bold text-cafe-text font-display">{ticket.id}</span>
+        <span className="badge badge-queued text-xs">{ticket.table}</span>
       </div>
-      <p className="mb-2 text-xs text-text-muted">Server: {ticket.server}</p>
+      <p className="mb-2 text-xs text-cafe-text-secondary font-sans">Server: {ticket.server}</p>
       <div className="space-y-1.5">
         {ticket.items.map((item, i) => (
-          <div key={i} className="flex items-center justify-between text-sm">
-            <span className="text-text-secondary">{item.name}</span>
-            <span className="font-medium text-text-primary">×{item.qty}</span>
+          <div key={i} className="flex items-center justify-between text-sm font-sans">
+            <span className="text-cafe-text-secondary">{item.name}</span>
+            <span className="font-medium text-cafe-text mono-nums">×{item.qty}</span>
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-        <span className="flex items-center gap-1 text-xs text-text-muted">
-          <HiOutlineClock className="h-3 w-3" />
+      <div className="mt-3 flex items-center justify-between border-t border-cafe-border pt-3">
+        <span className="flex items-center gap-1 text-xs text-cafe-text-secondary font-sans">
+          <LuClock className="h-3 w-3" strokeWidth={1.5} />
           {ticket.elapsed}
         </span>
         {ticket.status !== "PAID" && (
-          <button 
+          <button
             onClick={() => advanceTicket(ticket.id, ticket.status)}
-            className="rounded-lg bg-[var(--glass-secondary)] px-3 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-brand-primary/20 hover:text-brand-primary"
+            className="btn-secondary !px-3 !py-1 !text-xs"
           >
             Advance
           </button>
@@ -138,24 +151,25 @@ export default function KitchenPage() {
   );
 
   return (
-    <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
+    <div className="min-h-screen bg-cafe-bg">
+      <header className="flex items-center gap-4 border-b border-cafe-border px-6 py-4 bg-cafe-cream/40">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
+          className="rounded-btn p-2 text-cafe-text-secondary transition-colors hover:text-cafe-accent"
+          aria-label="Back to dashboard"
         >
-          <HiOutlineArrowLeft className="h-5 w-5" />
+          <LuArrowLeft className="h-5 w-5" strokeWidth={1.5} />
         </Link>
         <div className="flex items-center gap-2">
-          <HiOutlineTv className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-text-primary">Brew Bar</h1>
+          <LuMonitor className="h-5 w-5 text-cafe-accent" strokeWidth={1.5} />
+          <h1 className="text-lg text-cafe-text">Brew Bar</h1>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-lg bg-blue-500/15 px-3 py-1.5 text-xs font-medium text-blue-400">
-            <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+          <span className="badge badge-queued">
+            <span className="h-1.5 w-1.5 rounded-full bg-cafe-accent animate-pulse" />
             {columns.new.length} Queued
           </span>
-          <span className="flex items-center gap-1.5 rounded-lg bg-amber-500/15 px-3 py-1.5 text-xs font-medium text-amber-400">
+          <span className="badge badge-brewing">
             {columns.preparing.length} Brewing
           </span>
         </div>
@@ -168,19 +182,19 @@ export default function KitchenPage() {
             return (
               <div key={colKey}>
                 <div className="mb-4 flex items-center gap-2">
-                  <span className={`h-2.5 w-2.5 rounded-full ${cfg.dotColor}`} />
-                  <h2 className={`text-sm font-semibold ${cfg.headerColor}`}>
+                  <span className={`h-2.5 w-2.5 rounded-full ${cfg.dotClass}`} />
+                  <h2 className={`text-sm font-semibold font-sans ${cfg.headerClass}`}>
                     {cfg.label}
                   </h2>
-                  <span className="ml-auto rounded-full bg-[var(--glass-secondary)] px-2 py-0.5 text-xs text-text-muted">
+                  <span className="ml-auto badge badge-paid text-xs">
                     {columns[colKey].length}
                   </span>
                 </div>
                 <div className="space-y-3">
                   {loading && tickets.length === 0 ? (
-                    <div className="text-sm text-text-muted p-4 text-center">Loading...</div>
+                    <div className="text-sm text-cafe-text-secondary p-4 text-center font-sans">Loading...</div>
                   ) : columns[colKey].length === 0 ? (
-                    <div className="glass-card flex items-center justify-center p-6 text-sm text-text-muted">
+                    <div className="glass-card flex items-center justify-center p-6 text-sm text-cafe-text-secondary font-sans">
                       Empty
                     </div>
                   ) : (
