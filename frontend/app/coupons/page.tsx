@@ -23,16 +23,16 @@ const coupons = [
 export default function CouponsPage() {
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineTicket className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Coupons</h1>
+          <h1 className="text-lg font-bold text-text-primary">Coupons</h1>
         </div>
         <button className="btn-primary ml-auto flex items-center gap-2 text-sm">
           <HiOutlinePlus className="h-4 w-4" />
@@ -52,33 +52,33 @@ export default function CouponsPage() {
                   className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                     coupon.active
                       ? "bg-brand-500/15 text-brand-400"
-                      : "bg-surface-500/15 text-surface-400"
+                      : "bg-surface-500/15 text-text-muted"
                   }`}
                 >
                   {coupon.active ? "Active" : "Expired"}
                 </span>
               </div>
 
-              <h3 className="font-mono text-lg font-bold tracking-wider text-white">
+              <h3 className="font-mono text-lg font-bold tracking-wider text-text-primary">
                 {coupon.code}
               </h3>
               <p className="mt-1 text-2xl font-bold gradient-text">
                 {coupon.type === "Percent" ? `${coupon.discount}%` : `$${coupon.discount}`}
-                <span className="ml-1 text-xs text-surface-500">off</span>
+                <span className="ml-1 text-xs text-text-muted">off</span>
               </p>
 
-              <div className="mt-4 space-y-2 text-xs text-surface-400">
+              <div className="mt-4 space-y-2 text-xs text-text-muted">
                 <div className="flex items-center gap-2">
                   <HiOutlineClock className="h-3.5 w-3.5" />
                   Expires {coupon.expiry}
                 </div>
                 <div className="flex justify-between">
                   <span>Usage</span>
-                  <span className="text-surface-300">
+                  <span className="text-text-secondary">
                     {coupon.usageCount}/{coupon.maxUsage}
                   </span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+                <div className="h-1.5 overflow-hidden rounded-full bg-[var(--glass-secondary)]">
                   <div
                     className="h-full rounded-full bg-brand-500"
                     style={{

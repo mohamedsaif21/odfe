@@ -18,25 +18,23 @@ export default function Hero() {
         <div className="flex flex-col items-center text-center">
           <div className="glass mb-8 inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-brand-300">
             <span className="h-2 w-2 rounded-full bg-brand-400 animate-pulse" />
-            Built on Odoo 19 &middot; OWL 2 &middot; WebSocket Realtime
+            Built with Odoo 19 • OWL • PostgreSQL • WebSocket
           </div>
 
-          <h1 className="max-w-4xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-            The Future of{" "}
-            <span className="gradient-text">Restaurant POS</span>
+          <h1 className="max-w-4xl text-4xl font-extrabold leading-tight tracking-tight text-text-primary sm:text-5xl md:text-6xl lg:text-7xl">
+            Everything Your{" "}
+            <span className="gradient-text">Cafe</span>
             <br />
-            is Here
+            Needs in One Platform
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base text-surface-400 sm:text-lg md:text-xl">
-            ODFE is a premium, full-stack restaurant management platform. From
-            point-of-sale to kitchen display, from self-ordering to analytics
-            &mdash; everything you need in one beautiful experience.
+          <p className="mt-6 max-w-2xl text-base text-text-secondary sm:text-lg md:text-xl">
+            ODFE is a complete Odoo 19 powered Cafe Point of Sale platform that simplifies daily operations through integrated POS, Kitchen Display, Customer Display, QR Self Ordering, Employee Management, Payments, Promotions, and Real-time Analytics.
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
             <Link href="/dashboard" className="btn-primary flex items-center gap-2 text-base">
-              Open Dashboard
+              Launch POS
               <svg
                 className="h-4 w-4"
                 fill="none"
@@ -52,7 +50,7 @@ export default function Hero() {
               </svg>
             </Link>
             <Link href="/login" className="btn-secondary text-base">
-              Sign In
+              Explore Features
             </Link>
           </div>
 
@@ -60,38 +58,38 @@ export default function Hero() {
             {[
               {
                 icon: HiOutlineBolt,
-                label: "Lightning Fast",
-                sub: "< 50ms POS",
+                label: "Smart POS",
+                sub: "Fast billing and order management.",
               },
               {
                 icon: HiOutlineShieldCheck,
-                label: "Enterprise Security",
-                sub: "Role-based access",
+                label: "Kitchen Display",
+                sub: "Track every order in real time.",
               },
               {
                 icon: HiOutlineDevicePhoneMobile,
-                label: "Self-Order Kiosk",
-                sub: "QR menu scanning",
+                label: "QR Self Ordering",
+                sub: "Customers order directly from their table.",
               },
               {
                 icon: HiOutlineCubeTransparent,
-                label: "Realtime Sync",
-                sub: "WebSocket powered",
+                label: "Business Analytics",
+                sub: "Monitor sales, revenue, and performance.",
               },
             ].map((item) => (
               <div key={item.label} className="glass-card flex flex-col items-center p-5">
                 <item.icon className="mb-2 h-7 w-7 text-brand-400" />
-                <span className="text-sm font-semibold text-white">
+                <span className="text-sm font-semibold text-text-primary">
                   {item.label}
                 </span>
-                <span className="mt-1 text-xs text-surface-400">{item.sub}</span>
+                <span className="mt-1 text-xs text-text-muted">{item.sub}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-surface-950 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg to-transparent" />
     </section>
   );
 }

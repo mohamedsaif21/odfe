@@ -9,20 +9,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        bg: "var(--color-bg)",
+        surface: "var(--color-surface)",
+        card: "var(--color-card)",
+        border: "var(--color-border)",
         brand: {
           50: "#fdf8f4",
-          100: "#f6f0ea", // Cream
+          100: "#f6f0ea",
           200: "#e8d8cd",
           300: "#d3b8a6",
-          400: "#d6a95f", // Gold
-          500: "#4a2c2a", // Coffee Brown
-          600: "#3b241b", // Espresso
+          400: "#d6a95f",
+          500: "#4a2c2a",
+          600: "#3b241b",
           700: "#2a1811",
           800: "#1e100c",
           900: "#130907",
-          950: "#08131a", // Background
+          950: "#08131a",
+          primary: "var(--color-brand-primary)",
+          secondary: "var(--color-brand-secondary)",
+          accent: "var(--color-brand-accent)",
         },
-        surface: {
+        surface_legacy: {
           50: "#f1f5f9",
           100: "#e2e8f0",
           200: "#cbd5e1",
@@ -32,8 +39,13 @@ const config: Config = {
           600: "#334155",
           700: "#1e293b",
           800: "#0f172a",
-          900: "#08131a", // Background
+          900: "#08131a",
           950: "#04090d",
+        },
+        text: {
+          primary: "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
+          muted: "var(--color-text-muted)",
         },
         accent: {
           blue: "#2cc8ff",

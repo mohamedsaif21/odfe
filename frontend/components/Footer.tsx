@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HiOutlineHeart } from "react-icons/hi2";
+import Logo from "./Logo";
 
 const footerLinks = {
   Product: [
@@ -29,24 +30,22 @@ const footerLinks = {
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-white/5 bg-surface-950">
+    <footer className="relative border-t border-border bg-bg">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700">
-                <span className="text-sm font-extrabold text-white">O</span>
-              </div>
-              <span className="text-lg font-bold text-white">ODFE</span>
+              <Logo size={36} linked={false} />
+              <span className="text-lg font-bold text-text-primary">ODFE</span>
             </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-surface-500">
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-text-muted">
               The premium restaurant management platform built on Odoo 19.
             </p>
           </div>
 
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-surface-400">
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-muted">
                 {category}
               </h3>
               <ul className="space-y-3">
@@ -54,7 +53,7 @@ export default function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-surface-500 transition-colors hover:text-white"
+                      className="text-sm text-text-muted transition-colors hover:text-text-primary"
                     >
                       {link.label}
                     </Link>
@@ -65,11 +64,11 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 sm:flex-row">
-          <p className="text-xs text-surface-600">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
+          <p className="text-xs text-text-muted">
             &copy; {new Date().getFullYear()} ODFE. All rights reserved.
           </p>
-          <p className="flex items-center gap-1 text-xs text-surface-600">
+          <p className="flex items-center gap-1 text-xs text-text-muted">
             Built with <HiOutlineHeart className="h-3 w-3 text-rose-500" /> on
             Odoo 19
           </p>

@@ -89,10 +89,10 @@ export default function Pricing() {
           <span className="glass mb-4 inline-block px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-400">
             Pricing
           </span>
-          <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl md:text-5xl">
+          <h2 className="mt-4 text-3xl font-bold text-text-primary sm:text-4xl md:text-5xl">
             Simple, Transparent Pricing
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-surface-400">
+          <p className="mx-auto mt-4 max-w-2xl text-text-secondary">
             Start free, upgrade when you need. No hidden fees.
           </p>
         </div>
@@ -108,23 +108,23 @@ export default function Pricing() {
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-1 text-xs font-bold text-white">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-1 text-xs font-bold text-text-primary">
                   Most Popular
                 </div>
               )}
-              <h3 className="text-lg font-bold text-white">{plan.name}</h3>
+              <h3 className="text-lg font-bold text-text-primary">{plan.name}</h3>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-white">
+                <span className="text-4xl font-extrabold text-text-primary">
                   {plan.price}
                 </span>
                 {plan.period && (
-                  <span className="text-sm text-surface-400">{plan.period}</span>
+                  <span className="text-sm text-text-muted">{plan.period}</span>
                 )}
               </div>
-              <p className="mt-3 text-sm text-surface-400">{plan.description}</p>
+              <p className="mt-3 text-sm text-text-secondary">{plan.description}</p>
               <ul className="mt-8 flex-1 space-y-3">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-surface-300">
+                  <li key={f} className="flex items-center gap-3 text-sm text-text-secondary">
                     <svg
                       className="h-4 w-4 shrink-0 text-brand-400"
                       fill="none"
@@ -155,7 +155,7 @@ export default function Pricing() {
         </div>
 
         <div className="mt-20">
-          <h3 className="mb-8 text-center text-xl font-bold text-white">
+          <h3 className="mb-8 text-center text-xl font-bold text-text-primary">
             All 15 Modules Included
           </h3>
           <div className="mx-auto grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-5">
@@ -184,7 +184,7 @@ export default function Pricing() {
                   const Icon = moduleIcons[i % moduleIcons.length];
                   return <Icon className="mb-2 h-5 w-5 text-brand-400" />;
                 })()}
-                <span className="text-xs font-medium text-surface-300">
+                <span className="text-xs font-medium text-text-muted">
                   odfe_{mod.toLowerCase().replace("-", "_")}
                 </span>
               </div>

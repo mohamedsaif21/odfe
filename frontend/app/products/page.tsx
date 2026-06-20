@@ -64,16 +64,16 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineQueueList className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Products</h1>
+          <h1 className="text-lg font-bold text-text-primary">Products</h1>
         </div>
         <button className="btn-primary ml-auto flex items-center gap-2 text-sm">
           <HiOutlinePlus className="h-4 w-4" />
@@ -83,7 +83,7 @@ export default function ProductsPage() {
 
       <div className="p-6">
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <div className="flex gap-1.5 overflow-x-auto rounded-xl bg-white/5 p-1">
+          <div className="flex gap-1.5 overflow-x-auto rounded-xl bg-[var(--glass-secondary)] p-1">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -91,7 +91,7 @@ export default function ProductsPage() {
                 className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
                   activeCategory === cat
                     ? "bg-brand-500/20 text-brand-400"
-                    : "text-surface-400 hover:text-white"
+                    : "text-text-muted hover:text-brand-primary"
                 }`}
               >
                 {cat}
@@ -99,13 +99,13 @@ export default function ProductsPage() {
             ))}
           </div>
           <div className="relative ml-auto">
-            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-500" />
+            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="rounded-xl border border-white/10 bg-white/5 py-2 pl-10 pr-4 text-sm text-white placeholder-surface-500 outline-none focus:border-brand-500/50"
+              className="rounded-xl border border-border bg-[var(--glass-secondary)] py-2 pl-10 pr-4 text-sm text-text-primary placeholder-surface-500 outline-none focus:border-brand-500/50"
             />
           </div>
         </div>
@@ -122,11 +122,11 @@ export default function ProductsPage() {
                 <span className="text-4xl">{product.image}</span>
                 {getStockBadge(product.stock)}
               </div>
-              <h3 className="text-base font-semibold text-white">{product.name}</h3>
-              <p className="mt-1 text-xs text-surface-500">{product.category}</p>
+              <h3 className="text-base font-semibold text-text-primary">{product.name}</h3>
+              <p className="mt-1 text-xs text-text-muted">{product.category}</p>
               <div className="mt-3 flex items-center justify-between">
                 <p className="text-lg font-bold text-brand-400">₹{product.price.toFixed(2)}</p>
-                <button className="rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-surface-300 transition-colors hover:bg-white/10 hover:text-white">
+                <button className="rounded-lg bg-[var(--glass-secondary)] px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-brand-primary/20 hover:text-brand-primary">
                   Edit
                 </button>
               </div>

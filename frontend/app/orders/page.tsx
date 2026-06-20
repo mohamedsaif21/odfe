@@ -46,23 +46,23 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineClipboardDocumentList className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Orders</h1>
+          <h1 className="text-lg font-bold text-text-primary">Orders</h1>
         </div>
       </header>
 
       <div className="p-6">
         {/* Filters */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <div className="flex gap-1.5 overflow-x-auto rounded-xl bg-white/5 p-1">
+          <div className="flex gap-1.5 overflow-x-auto rounded-xl bg-[var(--glass-secondary)] p-1">
             {filters.map((f) => (
               <button
                 key={f}
@@ -70,7 +70,7 @@ export default function OrdersPage() {
                 className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
                   activeFilter === f
                     ? "bg-brand-500/20 text-brand-400"
-                    : "text-surface-400 hover:text-white"
+                    : "text-text-muted hover:text-brand-primary"
                 }`}
               >
                 {f}
@@ -78,13 +78,13 @@ export default function OrdersPage() {
             ))}
           </div>
           <div className="relative ml-auto">
-            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-500" />
+            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Search orders..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="rounded-xl border border-white/10 bg-white/5 py-2 pl-10 pr-4 text-sm text-white placeholder-surface-500 outline-none focus:border-brand-500/50"
+              className="rounded-xl border border-border bg-[var(--glass-secondary)] py-2 pl-10 pr-4 text-sm text-text-primary placeholder-surface-500 outline-none focus:border-brand-500/50"
             />
           </div>
         </div>
@@ -94,41 +94,41 @@ export default function OrdersPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/5">
-                  <th className="px-5 py-4 font-medium text-surface-400">Order</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Table</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Server</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Items</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Total</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Status</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Time</th>
+                <tr className="border-b border-border">
+                  <th className="px-5 py-4 font-medium text-text-muted">Order</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Table</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Server</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Items</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Total</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Status</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Time</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filtered.map((order) => (
-                  <tr key={order.id} className="text-surface-300 transition-colors hover:bg-white/5">
-                    <td className="px-5 py-4 font-medium text-white">{order.id}</td>
+                  <tr key={order.id} className="text-text-secondary transition-colors hover:bg-[var(--glass-border)]">
+                    <td className="px-5 py-4 font-medium text-text-primary">{order.id}</td>
                     <td className="px-5 py-4">{order.table}</td>
                     <td className="px-5 py-4">{order.server}</td>
                     <td className="px-5 py-4">{order.items} items</td>
-                    <td className="px-5 py-4 font-medium text-white">{order.total}</td>
+                    <td className="px-5 py-4 font-medium text-text-primary">{order.total}</td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          statusColors[order.status] || "bg-surface-500/15 text-surface-400"
+                          statusColors[order.status] || "bg-surface-500/15 text-text-muted"
                         }`}
                       >
                         {order.status}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-surface-500">{order.time}</td>
+                    <td className="px-5 py-4 text-text-muted">{order.time}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           {filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-surface-500">
+            <div className="flex flex-col items-center justify-center py-12 text-text-muted">
               <HiOutlineClipboardDocumentList className="mb-3 h-10 w-10 opacity-30" />
               <p className="text-sm">No orders found</p>
             </div>

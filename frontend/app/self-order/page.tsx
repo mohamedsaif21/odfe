@@ -93,24 +93,24 @@ export default function SelfOrderPage() {
   return (
     <div className="min-h-screen bg-surface-950">
       {/* Header */}
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineQueueList className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Self-Order</h1>
+          <h1 className="text-lg font-bold text-text-primary">Self-Order</h1>
         </div>
         <button
           onClick={() => setShowCart(!showCart)}
-          className="relative ml-auto rounded-xl bg-white/5 p-2.5 text-surface-400 transition-colors hover:bg-white/10 hover:text-white"
+          className="relative ml-auto rounded-xl bg-[var(--glass-secondary)] p-2.5 text-text-muted transition-colors hover:bg-brand-primary/20 hover:text-brand-primary"
         >
           <HiOutlineShoppingBag className="h-5 w-5" />
           {totalItems > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-text-primary">
               {totalItems}
             </span>
           )}
@@ -120,20 +120,20 @@ export default function SelfOrderPage() {
       {/* QR Code Display */}
       <div className="px-6 pt-6">
         <div className="glass-card mb-6 flex flex-col items-center p-6">
-          <p className="mb-3 text-sm text-surface-400">Scan to order from your phone</p>
-          <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-white p-2">
+          <p className="mb-3 text-sm text-text-muted">Scan to order from your phone</p>
+          <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-surface p-2">
             <div className="grid grid-cols-5 gap-1">
               {Array.from({ length: 25 }).map((_, i) => (
                 <div
                   key={i}
                   className={`h-4 w-4 rounded-sm ${
-                    Math.random() > 0.4 ? "bg-surface-950" : "bg-white"
+                    Math.random() > 0.4 ? "bg-surface-950" : "bg-surface"
                   }`}
                 />
               ))}
             </div>
           </div>
-          <p className="mt-3 text-xs text-surface-500">Table T-05 · ODFE Self-Order</p>
+          <p className="mt-3 text-xs text-text-muted">Table T-05 · ODFE Self-Order</p>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export default function SelfOrderPage() {
             className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-all ${
               activeCategory === cat.id
                 ? "bg-brand-500/20 text-brand-400"
-                : "text-surface-400 hover:bg-white/5 hover:text-white"
+                : "text-text-muted hover:bg-[var(--glass-border)] hover:text-brand-primary"
             }`}
           >
             <span>{cat.emoji}</span>
@@ -171,8 +171,8 @@ export default function SelfOrderPage() {
             className="glass-card flex flex-col items-center p-5 text-center hover:border-brand-500/30"
           >
             <span className="mb-3 text-4xl">{item.image}</span>
-            <h3 className="text-sm font-semibold text-white">{item.name}</h3>
-            <p className="mt-1 text-xs text-surface-500">{item.desc}</p>
+            <h3 className="text-sm font-semibold text-text-primary">{item.name}</h3>
+            <p className="mt-1 text-xs text-text-muted">{item.desc}</p>
             <p className="mt-2 text-base font-bold text-brand-400">₹{item.price.toFixed(2)}</p>
           </motion.button>
         ))}
@@ -180,31 +180,31 @@ export default function SelfOrderPage() {
 
       {/* Cart Panel */}
       {showCart && (
-        <div className="fixed inset-0 z-50 flex">
-          <div className="flex-1 bg-black/50" onClick={() => setShowCart(false)} />
-          <div className="w-[380px] bg-surface-950 border-l border-white/5 p-6 flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+          <div className="flex-1 bg-bg/80 backdrop-blur-sm absolute inset-0" onClick={() => setShowCart(false)} />
+          <div className="relative z-10 w-full max-w-md animate-in slide-in-from-bottom-full rounded-t-3xl border border-border bg-card p-6 shadow-premium sm:rounded-3xl sm:slide-in-from-bottom-0 sm:zoom-in-95">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">Your Order</h2>
-              <button onClick={() => setShowCart(false)} className="text-surface-400 hover:text-white">✕</button>
+              <h2 className="text-lg font-bold text-text-primary">Your Order</h2>
+              <button onClick={() => setShowCart(false)} className="text-text-muted hover:text-brand-primary">✕</button>
             </div>
             <div className="flex-1 overflow-y-auto">
               {cart.length === 0 ? (
-                <p className="py-12 text-center text-surface-500">Cart is empty</p>
+                <p className="py-12 text-center text-text-muted">Cart is empty</p>
               ) : (
                 <div className="space-y-3">
                   {cart.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3">
+                    <div key={item.id} className="flex items-center gap-3 rounded-xl border border-border bg-[var(--glass-secondary)] p-3">
                       <span className="text-xl">{item.image}</span>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-white">{item.name}</p>
+                        <p className="text-sm font-medium text-text-primary">{item.name}</p>
                         <p className="text-xs text-brand-400">₹{(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => updateQuantity(item.id, -1)} className="rounded-lg bg-white/5 p-1 text-surface-400 hover:bg-white/10 hover:text-white">
+                        <button onClick={() => updateQuantity(item.id, -1)} className="rounded-lg bg-[var(--glass-secondary)] p-1 text-text-muted hover:bg-brand-primary/20 hover:text-brand-primary">
                           <HiOutlineMinus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="w-6 text-center text-sm font-medium text-white">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.id, 1)} className="rounded-lg bg-white/5 p-1 text-surface-400 hover:bg-white/10 hover:text-white">
+                        <span className="w-6 text-center text-sm font-medium text-text-primary">{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.id, 1)} className="rounded-lg bg-[var(--glass-secondary)] p-1 text-text-muted hover:bg-brand-primary/20 hover:text-brand-primary">
                           <HiOutlinePlus className="h-3.5 w-3.5" />
                         </button>
                         <button onClick={() => removeFromCart(item.id)} className="ml-1 rounded-lg p-1 text-red-400/60 hover:bg-red-500/10 hover:text-red-400">
@@ -217,8 +217,8 @@ export default function SelfOrderPage() {
               )}
             </div>
             {cart.length > 0 && (
-              <div className="mt-4 border-t border-white/5 pt-4">
-                <div className="mb-4 flex justify-between text-lg font-bold text-white">
+              <div className="mt-4 border-t border-border pt-4">
+                <div className="mb-4 flex justify-between text-lg font-bold text-text-primary">
                   <span>Total</span>
                   <span className="gradient-text">₹{totalPrice.toFixed(2)}</span>
                 </div>

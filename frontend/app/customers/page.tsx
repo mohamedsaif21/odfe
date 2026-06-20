@@ -32,16 +32,16 @@ export default function CustomersPage() {
 
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineUsers className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Customers</h1>
+          <h1 className="text-lg font-bold text-text-primary">Customers</h1>
         </div>
         <button className="btn-primary ml-auto flex items-center gap-2 text-sm">
           <HiOutlinePlus className="h-4 w-4" />
@@ -52,52 +52,52 @@ export default function CustomersPage() {
       <div className="p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="relative flex-1 max-w-md">
-            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-500" />
+            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Search customers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-surface-500 outline-none focus:border-brand-500/50"
+              className="w-full rounded-xl border border-border bg-[var(--glass-secondary)] py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-surface-500 outline-none focus:border-brand-500/50"
             />
           </div>
-          <div className="text-sm text-surface-500">{filtered.length} customers</div>
+          <div className="text-sm text-text-muted">{filtered.length} customers</div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((customer) => (
             <div key={customer.id} className="glass-card p-5">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-bold text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-bold text-text-primary">
                   {customer.avatar}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="truncate text-sm font-semibold text-white">{customer.name}</h3>
-                  <p className="truncate text-xs text-surface-500">{customer.email}</p>
+                  <h3 className="truncate text-sm font-semibold text-text-primary">{customer.name}</h3>
+                  <p className="truncate text-xs text-text-muted">{customer.email}</p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-surface-400">Loyalty Points</span>
+                  <span className="text-xs text-text-muted">Loyalty Points</span>
                   <span className="flex items-center gap-1 text-sm font-semibold text-amber-400">
                     <HiOutlineStar className="h-3.5 w-3.5" />
                     {customer.loyaltyPoints.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-surface-400">Total Spent</span>
+                  <span className="text-xs text-text-muted">Total Spent</span>
                   <span className="text-sm font-semibold text-brand-400">
                     ${customer.totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-surface-400">Visits</span>
-                  <span className="text-sm font-medium text-surface-300">{customer.visits}</span>
+                  <span className="text-xs text-text-muted">Visits</span>
+                  <span className="text-sm font-medium text-text-secondary">{customer.visits}</span>
                 </div>
               </div>
 
-              <button className="mt-4 w-full rounded-xl bg-white/5 py-2 text-xs font-medium text-surface-300 transition-colors hover:bg-white/10 hover:text-white">
+              <button className="mt-4 w-full rounded-xl bg-[var(--glass-secondary)] py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-brand-primary/20 hover:text-brand-primary">
                 View Details
               </button>
             </div>

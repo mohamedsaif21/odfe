@@ -40,7 +40,7 @@ export default function FAQ() {
           <span className="glass mb-4 inline-block px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-400">
             FAQ
           </span>
-          <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">
+          <h2 className="mt-4 text-3xl font-bold text-text-primary sm:text-4xl">
             Frequently Asked Questions
           </h2>
         </div>
@@ -52,18 +52,18 @@ export default function FAQ() {
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                 className="flex w-full items-center justify-between p-6 text-left"
               >
-                <span className="text-sm font-semibold text-white">
+                <span className="text-sm font-semibold text-text-primary">
                   {faq.q}
                 </span>
                 <HiOutlineChevronDown
-                  className={`h-5 w-5 shrink-0 text-surface-400 transition-transform ${
+                  className={`h-5 w-5 shrink-0 text-text-muted transition-transform ${
                     openIndex === i ? "rotate-180" : ""
                   }`}
                 />
               </button>
               {openIndex === i && (
                 <div className="px-6 pb-6">
-                  <p className="text-sm leading-relaxed text-surface-400">
+                  <p className="text-sm leading-relaxed text-text-secondary">
                     {faq.a}
                   </p>
                 </div>

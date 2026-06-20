@@ -37,28 +37,28 @@ const statusColors: Record<string, string> = {
 export default function PaymentsPage() {
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineCurrencyDollar className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Payments</h1>
+          <h1 className="text-lg font-bold text-text-primary">Payments</h1>
         </div>
       </header>
 
       <div className="p-6">
         {/* Payment Methods */}
         <div className="mb-8">
-          <h2 className="mb-4 text-base font-semibold text-white">Payment Methods</h2>
+          <h2 className="mb-4 text-base font-semibold text-text-primary">Payment Methods</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {paymentMethods.map((method) => (
               <div key={method.id} className="glass-card p-5">
                 <div className="mb-3 flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--glass-border)]">
                     <method.icon className="h-5 w-5 text-brand-400" />
                   </div>
                   {method.isDefault && (
@@ -68,8 +68,8 @@ export default function PaymentsPage() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm font-semibold text-white">{method.name}</h3>
-                <p className="mt-1 text-xs text-surface-500">{method.type}</p>
+                <h3 className="text-sm font-semibold text-text-primary">{method.name}</h3>
+                <p className="mt-1 text-xs text-text-muted">{method.type}</p>
               </div>
             ))}
           </div>
@@ -77,34 +77,34 @@ export default function PaymentsPage() {
 
         {/* Recent Transactions */}
         <div className="glass-card overflow-hidden">
-          <div className="border-b border-white/5 px-5 py-4">
-            <h2 className="text-base font-semibold text-white">Recent Transactions</h2>
+          <div className="border-b border-border px-5 py-4">
+            <h2 className="text-base font-semibold text-text-primary">Recent Transactions</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/5">
-                  <th className="px-5 py-3 font-medium text-surface-400">Transaction</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Order</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Method</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Amount</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Status</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Time</th>
+                <tr className="border-b border-border">
+                  <th className="px-5 py-3 font-medium text-text-muted">Transaction</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Order</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Method</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Amount</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Status</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Time</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {transactions.map((txn) => (
-                  <tr key={txn.id} className="text-surface-300 transition-colors hover:bg-white/5">
-                    <td className="px-5 py-3 font-medium text-white">{txn.id}</td>
+                  <tr key={txn.id} className="text-text-secondary transition-colors hover:bg-[var(--glass-border)]">
+                    <td className="px-5 py-3 font-medium text-text-primary">{txn.id}</td>
                     <td className="px-5 py-3">{txn.orderId}</td>
                     <td className="px-5 py-3">{txn.method}</td>
-                    <td className="px-5 py-3 font-medium text-white">{txn.amount}</td>
+                    <td className="px-5 py-3 font-medium text-text-primary">{txn.amount}</td>
                     <td className="px-5 py-3">
                       <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[txn.status]}`}>
                         {txn.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-surface-500">{txn.time}</td>
+                    <td className="px-5 py-3 text-text-muted">{txn.time}</td>
                   </tr>
                 ))}
               </tbody>

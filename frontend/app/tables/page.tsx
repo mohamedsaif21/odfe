@@ -52,16 +52,16 @@ export default function TablesPage() {
 
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineRectangleStack className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Table Management</h1>
+          <h1 className="text-lg font-bold text-text-primary">Table Management</h1>
         </div>
       </header>
 
@@ -73,7 +73,7 @@ export default function TablesPage() {
             return (
               <div key={status} className="flex items-center gap-2">
                 <span className={`h-2.5 w-2.5 rounded-full ${cfg.dot}`} />
-                <span className="text-sm text-surface-400">
+                <span className="text-sm text-text-muted">
                   {cfg.label} — {status === "available" ? available : status === "occupied" ? occupied : reserved}
                 </span>
               </div>
@@ -99,13 +99,13 @@ export default function TablesPage() {
                 className={`glass-card border ${cfg.color} cursor-pointer p-5`}
               >
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-white">{table.id}</h3>
+                  <h3 className="text-lg font-bold text-text-primary">{table.id}</h3>
                   <span className={`flex items-center gap-1.5 text-xs font-medium ${cfg.text}`}>
                     <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
                     {cfg.label}
                   </span>
                 </div>
-                <p className="text-xs text-surface-400">
+                <p className="text-xs text-text-muted">
                   {table.seats} seats · {table.zone}
                 </p>
                 {table.orderSince && (

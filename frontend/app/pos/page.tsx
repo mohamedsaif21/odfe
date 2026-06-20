@@ -100,22 +100,22 @@ export default function POSPage() {
   return (
     <div className="flex h-screen bg-surface-950 text-surface-200">
       {/* Left Panel - Products */}
-      <div className="flex flex-1 flex-col border-r border-white/5">
-        <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <div className="flex flex-1 flex-col border-r border-border">
+        <header className="flex items-center gap-4 border-b border-border px-6 py-4">
           <Link
             href="/dashboard"
-            className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
           >
             <HiOutlineArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex items-center gap-2">
             <HiOutlineShoppingBag className="h-5 w-5 text-brand-400" />
-            <h1 className="text-lg font-bold text-white">POS</h1>
+            <h1 className="text-lg font-bold text-text-primary">POS</h1>
           </div>
         </header>
 
         {/* Category Tabs */}
-        <div className="flex gap-2 border-b border-white/5 px-6 py-3 overflow-x-auto">
+        <div className="flex gap-2 border-b border-border px-6 py-3 overflow-x-auto">
           {categories.map((cat) => (
             <button
               key={cat.id}
@@ -123,7 +123,7 @@ export default function POSPage() {
               className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                 activeCategory === cat.id
                   ? "bg-brand-500/20 text-brand-400"
-                  : "text-surface-400 hover:bg-white/5 hover:text-white"
+                  : "text-text-muted hover:bg-[var(--glass-border)] hover:text-brand-primary"
               }`}
             >
               <span>{cat.emoji}</span>
@@ -135,13 +135,13 @@ export default function POSPage() {
         {/* Search */}
         <div className="px-6 py-3">
           <div className="relative">
-            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-500" />
+            <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-surface-500 outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30"
+              className="w-full rounded-xl border border-border bg-[var(--glass-secondary)] py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-surface-500 outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30"
             />
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function POSPage() {
                 className="glass-card flex flex-col items-center p-4 text-center hover:border-brand-500/30"
               >
                 <span className="mb-2 text-3xl">{product.image}</span>
-                <p className="text-sm font-semibold text-white">{product.name}</p>
+                <p className="text-sm font-semibold text-text-primary">{product.name}</p>
                 <p className="mt-1 text-sm font-bold text-brand-400">
                   ₹{product.price.toFixed(2)}
                 </p>
@@ -167,9 +167,9 @@ export default function POSPage() {
       </div>
 
       {/* Middle Panel - Cart */}
-      <div className="flex w-[380px] flex-col border-r border-white/5">
-        <header className="border-b border-white/5 px-6 py-4">
-          <h2 className="text-base font-bold text-white">
+      <div className="flex w-[380px] flex-col border-r border-border">
+        <header className="border-b border-border px-6 py-4">
+          <h2 className="text-base font-bold text-text-primary">
             Current Order
             {cart.length > 0 && (
               <span className="ml-2 rounded-full bg-brand-500/20 px-2 py-0.5 text-xs text-brand-400">
@@ -181,7 +181,7 @@ export default function POSPage() {
 
         <div className="flex-1 overflow-y-auto p-4">
           {cart.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center text-surface-500">
+            <div className="flex h-full flex-col items-center justify-center text-text-muted">
               <HiOutlineShoppingBag className="mb-3 h-12 w-12 opacity-30" />
               <p className="text-sm">Cart is empty</p>
               <p className="text-xs">Tap a product to add it</p>
@@ -191,11 +191,11 @@ export default function POSPage() {
               {cart.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-[var(--glass-secondary)] p-3"
                 >
                   <span className="text-xl">{item.image}</span>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-white">{item.name}</p>
+                    <p className="text-sm font-medium text-text-primary">{item.name}</p>
                     <p className="text-xs text-brand-400">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
@@ -203,16 +203,16 @@ export default function POSPage() {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => updateQuantity(item.id, -1)}
-                      className="rounded-lg bg-white/5 p-1 text-surface-400 hover:bg-white/10 hover:text-white"
+                      className="rounded-lg bg-[var(--glass-secondary)] p-1 text-text-muted hover:bg-brand-primary/20 hover:text-brand-primary"
                     >
                       <HiOutlineMinus className="h-3.5 w-3.5" />
                     </button>
-                    <span className="w-6 text-center text-sm font-medium text-white">
+                    <span className="w-6 text-center text-sm font-medium text-text-primary">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => updateQuantity(item.id, 1)}
-                      className="rounded-lg bg-white/5 p-1 text-surface-400 hover:bg-white/10 hover:text-white"
+                      className="rounded-lg bg-[var(--glass-secondary)] p-1 text-text-muted hover:bg-brand-primary/20 hover:text-brand-primary"
                     >
                       <HiOutlinePlus className="h-3.5 w-3.5" />
                     </button>
@@ -230,17 +230,17 @@ export default function POSPage() {
         </div>
 
         {/* Totals */}
-        <div className="border-t border-white/5 p-4">
+        <div className="border-t border-border p-4">
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between text-surface-400">
+            <div className="flex justify-between text-text-muted">
               <span>Subtotal</span>
               <span>₹{subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-surface-400">
+            <div className="flex justify-between text-text-muted">
               <span>Tax (8%)</span>
               <span>₹{tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between border-t border-white/10 pt-2 text-lg font-bold text-white">
+            <div className="flex justify-between border-t border-border pt-2 text-lg font-bold text-text-primary">
               <span>Total</span>
               <span className="gradient-text">₹{total.toFixed(2)}</span>
             </div>
@@ -277,46 +277,46 @@ export default function POSPage() {
 
       {/* Right Panel - Payment */}
       <div className="flex w-[320px] flex-col bg-surface-950/50 p-6">
-        <h2 className="mb-6 text-base font-bold text-white">Payment</h2>
+        <h2 className="mb-6 text-base font-bold text-text-primary">Payment</h2>
 
         <div className="space-y-3">
-          <button className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-left transition-all hover:border-brand-500/30 hover:bg-white/10">
+          <button className="flex w-full items-center gap-3 rounded-xl border border-border bg-[var(--glass-secondary)] p-4 text-left transition-all hover:border-brand-500/30 hover:bg-brand-primary/20">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/20">
               <HiOutlineCreditCard className="h-5 w-5 text-brand-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Card</p>
-              <p className="text-xs text-surface-500">Credit / Debit</p>
+              <p className="text-sm font-semibold text-text-primary">Card</p>
+              <p className="text-xs text-text-muted">Credit / Debit</p>
             </div>
           </button>
 
-          <button className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-left transition-all hover:border-brand-500/30 hover:bg-white/10">
+          <button className="flex w-full items-center gap-3 rounded-xl border border-border bg-[var(--glass-secondary)] p-4 text-left transition-all hover:border-brand-500/30 hover:bg-brand-primary/20">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20">
               <HiOutlineCurrencyDollar className="h-5 w-5 text-emerald-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Cash</p>
-              <p className="text-xs text-surface-500">Pay with cash</p>
+              <p className="text-sm font-semibold text-text-primary">Cash</p>
+              <p className="text-xs text-text-muted">Pay with cash</p>
             </div>
           </button>
 
-          <button className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-left transition-all hover:border-brand-500/30 hover:bg-white/10">
+          <button className="flex w-full items-center gap-3 rounded-xl border border-border bg-[var(--glass-secondary)] p-4 text-left transition-all hover:border-brand-500/30 hover:bg-brand-primary/20">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20">
               <HiOutlineDevicePhoneMobile className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Mobile Pay</p>
-              <p className="text-xs text-surface-500">Apple Pay, Google Pay</p>
+              <p className="text-sm font-semibold text-text-primary">Mobile Pay</p>
+              <p className="text-xs text-text-muted">Apple Pay, Google Pay</p>
             </div>
           </button>
 
-          <button className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-left transition-all hover:border-brand-500/30 hover:bg-white/10">
+          <button className="flex w-full items-center gap-3 rounded-xl border border-border bg-[var(--glass-secondary)] p-4 text-left transition-all hover:border-brand-500/30 hover:bg-brand-primary/20">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/20">
               <HiOutlineBanknotes className="h-5 w-5 text-violet-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Split</p>
-              <p className="text-xs text-surface-500">Split payment</p>
+              <p className="text-sm font-semibold text-text-primary">Split</p>
+              <p className="text-xs text-text-muted">Split payment</p>
             </div>
           </button>
         </div>

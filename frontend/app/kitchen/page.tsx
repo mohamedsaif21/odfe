@@ -46,33 +46,33 @@ const columnConfig = {
   new: { label: "Queued", color: "border-blue-500/30", headerColor: "text-blue-400", dotColor: "bg-blue-400" },
   preparing: { label: "Brewing", color: "border-amber-500/30", headerColor: "text-amber-400", dotColor: "bg-amber-400" },
   ready: { label: "Ready", color: "border-emerald-500/30", headerColor: "text-emerald-400", dotColor: "bg-emerald-400" },
-  done: { label: "Served", color: "border-surface-500/30", headerColor: "text-surface-400", dotColor: "bg-surface-400" },
+  done: { label: "Served", color: "border-surface-500/30", headerColor: "text-text-muted", dotColor: "bg-surface-400" },
 };
 
 function TicketCard({ ticket }: { ticket: Ticket }) {
   return (
     <div className="glass-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-base font-bold text-white">{ticket.id}</span>
-        <span className="rounded-lg bg-white/10 px-2 py-0.5 text-xs font-medium text-surface-300">
+        <span className="text-base font-bold text-text-primary">{ticket.id}</span>
+        <span className="rounded-lg bg-[var(--glass-border)] px-2 py-0.5 text-xs font-medium text-text-secondary">
           {ticket.table}
         </span>
       </div>
-      <p className="mb-2 text-xs text-surface-500">Server: {ticket.server}</p>
+      <p className="mb-2 text-xs text-text-muted">Server: {ticket.server}</p>
       <div className="space-y-1.5">
         {ticket.items.map((item, i) => (
           <div key={i} className="flex items-center justify-between text-sm">
-            <span className="text-surface-300">{item.name}</span>
-            <span className="font-medium text-white">×{item.qty}</span>
+            <span className="text-text-secondary">{item.name}</span>
+            <span className="font-medium text-text-primary">×{item.qty}</span>
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-3">
-        <span className="flex items-center gap-1 text-xs text-surface-500">
+      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+        <span className="flex items-center gap-1 text-xs text-text-muted">
           <HiOutlineClock className="h-3 w-3" />
           {ticket.elapsed}
         </span>
-        <button className="rounded-lg bg-white/5 px-3 py-1 text-xs font-medium text-surface-300 transition-colors hover:bg-white/10 hover:text-white">
+        <button className="rounded-lg bg-[var(--glass-secondary)] px-3 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-brand-primary/20 hover:text-brand-primary">
           Advance
         </button>
       </div>
@@ -83,16 +83,16 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
 export default function KitchenPage() {
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineTv className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Brew Bar</h1>
+          <h1 className="text-lg font-bold text-text-primary">Brew Bar</h1>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <span className="flex items-center gap-1.5 rounded-lg bg-blue-500/15 px-3 py-1.5 text-xs font-medium text-blue-400">
@@ -116,7 +116,7 @@ export default function KitchenPage() {
                   <h2 className={`text-sm font-semibold ${cfg.headerColor}`}>
                     {cfg.label}
                   </h2>
-                  <span className="ml-auto rounded-full bg-white/5 px-2 py-0.5 text-xs text-surface-500">
+                  <span className="ml-auto rounded-full bg-[var(--glass-secondary)] px-2 py-0.5 text-xs text-text-muted">
                     {columns[colKey].length}
                   </span>
                 </div>

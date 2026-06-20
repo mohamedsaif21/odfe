@@ -84,10 +84,10 @@ export default function Features() {
           <span className="glass mb-4 inline-block px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-400">
             Features
           </span>
-          <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl md:text-5xl">
+          <h2 className="mt-4 text-3xl font-bold text-text-primary sm:text-4xl md:text-5xl">
             Everything Your Restaurant Needs
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-surface-400">
+          <p className="mx-auto mt-4 max-w-2xl text-text-secondary">
             A complete suite of tools designed for modern restaurants, cafes,
             food trucks, and cloud kitchens.
           </p>
@@ -97,12 +97,12 @@ export default function Features() {
           {features.map((f) => (
             <div key={f.title} className="glass-card group p-7">
               <div
-                className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${f.color} text-white shadow-lg`}
+                className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${f.color} text-text-primary shadow-lg`}
               >
                 <f.icon className="h-6 w-6" />
               </div>
-              <h3 className="mb-2 text-lg font-bold text-white">{f.title}</h3>
-              <p className="text-sm leading-relaxed text-surface-400">
+              <h3 className="mb-2 text-lg font-bold text-text-primary">{f.title}</h3>
+              <p className="text-sm leading-relaxed text-text-muted">
                 {f.description}
               </p>
             </div>

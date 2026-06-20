@@ -20,6 +20,7 @@ import {
   HiOutlineMagnifyingGlass,
 } from "react-icons/hi2";
 import { motion } from "framer-motion";
+import Logo from "@/components/Logo";
 
 const container = {
   hidden: { opacity: 0 },
@@ -68,12 +69,10 @@ const sidebarItems = [
 export default function DashboardPage() {
   return (
     <div className="flex min-h-screen bg-surface-950">
-      <aside className="hidden w-64 shrink-0 border-r border-white/5 p-4 lg:block">
+      <aside className="hidden w-64 shrink-0 border-r border-border p-4 lg:block">
         <Link href="/" className="mb-8 flex items-center gap-2 px-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700">
-            <span className="text-xs font-extrabold text-white">O</span>
-          </div>
-          <span className="text-base font-bold text-white">ODFE</span>
+          <Logo size={32} linked={false} />
+          <span className="text-base font-bold text-text-primary">ODFE</span>
         </Link>
 
         <nav className="space-y-1">
@@ -84,7 +83,7 @@ export default function DashboardPage() {
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                 item.active
                   ? "bg-brand-500/15 text-brand-400"
-                  : "text-surface-400 hover:bg-white/5 hover:text-white"
+                  : "text-text-muted hover:bg-[var(--glass-border)] hover:text-brand-primary"
               }`}
             >
               <item.icon className="h-5 w-5" />
@@ -95,16 +94,16 @@ export default function DashboardPage() {
       </aside>
 
       <div className="flex-1">
-        <header className="flex items-center justify-between border-b border-white/5 px-6 py-4">
+        <header className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Dashboard</h1>
-            <p className="text-sm text-surface-500">Welcome back, Admin</p>
+            <h1 className="text-xl font-bold text-text-primary">Dashboard</h1>
+            <p className="text-sm text-text-muted">Welcome back, Admin</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="rounded-xl p-2.5 text-surface-400 transition-colors hover:bg-white/5 hover:text-white">
+            <button className="rounded-xl p-2.5 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary">
               <HiOutlineMagnifyingGlass className="h-5 w-5" />
             </button>
-            <button className="relative rounded-xl p-2.5 text-surface-400 transition-colors hover:bg-white/5 hover:text-white">
+            <button className="relative rounded-xl p-2.5 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary">
               <HiOutlineBell className="h-5 w-5" />
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand-500" />
             </button>
@@ -120,8 +119,8 @@ export default function DashboardPage() {
           >
             {kpis.map((kpi) => (
               <motion.div key={kpi.label} variants={item} className="glass-card p-5">
-                <p className="text-sm text-surface-400">{kpi.label}</p>
-                <p className="mt-2 text-2xl font-bold text-white">{kpi.value}</p>
+                <p className="text-sm text-text-muted">{kpi.label}</p>
+                <p className="mt-2 text-2xl font-bold text-text-primary">{kpi.value}</p>
                 <p className="mt-1 text-xs font-medium text-brand-400">
                   {kpi.change}
                 </p>
@@ -130,7 +129,7 @@ export default function DashboardPage() {
           </motion.div>
 
           <div className="mb-6">
-            <h2 className="mb-4 text-lg font-semibold text-white">Quick Actions</h2>
+            <h2 className="mb-4 text-lg font-semibold text-text-primary">Quick Actions</h2>
             <motion.div 
               variants={container}
               initial="hidden"
@@ -144,12 +143,12 @@ export default function DashboardPage() {
                     className="glass-card group flex flex-col items-center p-6 h-full"
                   >
                     <div
-                      className={`mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${action.color} text-white`}
+                      className={`mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${action.color} text-text-primary`}
                     >
                       <action.icon className="h-6 w-6" />
                     </div>
-                    <span className="text-sm font-semibold text-white">{action.label}</span>
-                    <HiOutlineArrowRight className="mt-2 h-4 w-4 text-surface-500 transition-transform group-hover:translate-x-1" />
+                    <span className="text-sm font-semibold text-text-primary">{action.label}</span>
+                    <HiOutlineArrowRight className="mt-2 h-4 w-4 text-text-muted transition-transform group-hover:translate-x-1" />
                   </Link>
                 </motion.div>
               ))}
@@ -157,16 +156,16 @@ export default function DashboardPage() {
           </div>
 
           <div className="glass-card p-6">
-            <h2 className="mb-4 text-lg font-semibold text-white">Recent Orders</h2>
+            <h2 className="mb-4 text-lg font-semibold text-text-primary">Recent Orders</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-white/5">
-                    <th className="pb-3 font-medium text-surface-400">Order ID</th>
-                    <th className="pb-3 font-medium text-surface-400">Table</th>
-                    <th className="pb-3 font-medium text-surface-400">Items</th>
-                    <th className="pb-3 font-medium text-surface-400">Total</th>
-                    <th className="pb-3 font-medium text-surface-400">Status</th>
+                  <tr className="border-b border-border">
+                    <th className="pb-3 font-medium text-text-muted">Order ID</th>
+                    <th className="pb-3 font-medium text-text-muted">Table</th>
+                    <th className="pb-3 font-medium text-text-muted">Items</th>
+                    <th className="pb-3 font-medium text-text-muted">Total</th>
+                    <th className="pb-3 font-medium text-text-muted">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -176,11 +175,11 @@ export default function DashboardPage() {
                     { id: "#1232", table: "T-03", items: 6, total: "₹112.80", status: "Paid" },
                     { id: "#1231", table: "T-08", items: 3, total: "₹52.20", status: "Queued" },
                   ].map((order) => (
-                    <tr key={order.id} className="text-surface-300">
-                      <td className="py-3 font-medium text-white">{order.id}</td>
+                    <tr key={order.id} className="text-text-secondary">
+                      <td className="py-3 font-medium text-text-primary">{order.id}</td>
                       <td className="py-3">{order.table}</td>
                       <td className="py-3">{order.items} items</td>
-                      <td className="py-3 font-medium text-white">{order.total}</td>
+                      <td className="py-3 font-medium text-text-primary">{order.total}</td>
                       <td className="py-3">
                         <span
                           className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${

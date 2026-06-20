@@ -37,7 +37,7 @@ export default function Testimonials() {
           <span className="glass mb-4 inline-block px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-400">
             Testimonials
           </span>
-          <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">
+          <h2 className="mt-4 text-3xl font-bold text-text-primary sm:text-4xl">
             Loved by Restaurant Owners
           </h2>
         </div>
@@ -53,7 +53,7 @@ export default function Testimonials() {
                   />
                 ))}
               </div>
-              <p className="flex-1 text-sm leading-relaxed text-surface-300">
+              <p className="flex-1 text-sm leading-relaxed text-text-secondary">
                 &ldquo;{t.content}&rdquo;
               </p>
               <div className="mt-6 flex items-center gap-3">
@@ -61,8 +61,8 @@ export default function Testimonials() {
                   {t.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">{t.name}</p>
-                  <p className="text-xs text-surface-500">{t.role}</p>
+                  <p className="text-sm font-semibold text-text-primary">{t.name}</p>
+                  <p className="text-xs text-text-muted">{t.role}</p>
                 </div>
               </div>
             </div>

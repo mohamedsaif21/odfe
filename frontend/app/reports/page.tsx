@@ -31,34 +31,34 @@ const recentReports = [
 export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineChartBar className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Reports</h1>
+          <h1 className="text-lg font-bold text-text-primary">Reports</h1>
         </div>
       </header>
 
       <div className="p-6">
         {/* Date Range Picker Concept */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5">
-            <HiOutlineCalendarDays className="h-4 w-4 text-surface-400" />
-            <span className="text-sm text-surface-300">Jun 1, 2026 — Jun 20, 2026</span>
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-[var(--glass-secondary)] px-4 py-2.5">
+            <HiOutlineCalendarDays className="h-4 w-4 text-text-muted" />
+            <span className="text-sm text-text-secondary">Jun 1, 2026 — Jun 20, 2026</span>
           </div>
-          <div className="flex gap-1.5 rounded-xl bg-white/5 p-1">
+          <div className="flex gap-1.5 rounded-xl bg-[var(--glass-secondary)] p-1">
             {["Today", "This Week", "This Month", "Custom"].map((range) => (
               <button
                 key={range}
                 className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
                   range === "This Month"
                     ? "bg-brand-500/20 text-brand-400"
-                    : "text-surface-400 hover:text-white"
+                    : "text-text-muted hover:text-brand-primary"
                 }`}
               >
                 {range}
@@ -69,15 +69,15 @@ export default function ReportsPage() {
 
         {/* Report Types */}
         <div className="mb-8">
-          <h2 className="mb-4 text-base font-semibold text-white">Generate Report</h2>
+          <h2 className="mb-4 text-base font-semibold text-text-primary">Generate Report</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {reportTypes.map((report) => (
               <button key={report.id} className="glass-card p-5 text-left">
                 <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${report.color}`}>
-                  <report.icon className="h-5 w-5 text-white" />
+                  <report.icon className="h-5 w-5 text-text-primary" />
                 </div>
-                <h3 className="text-sm font-semibold text-white">{report.label}</h3>
-                <p className="mt-1 text-xs text-surface-500">{report.description}</p>
+                <h3 className="text-sm font-semibold text-text-primary">{report.label}</h3>
+                <p className="mt-1 text-xs text-text-muted">{report.description}</p>
               </button>
             ))}
           </div>
@@ -85,8 +85,8 @@ export default function ReportsPage() {
 
         {/* Recent Reports */}
         <div className="glass-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
-            <h2 className="text-base font-semibold text-white">Recent Reports</h2>
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <h2 className="text-base font-semibold text-text-primary">Recent Reports</h2>
             <button className="btn-primary flex items-center gap-2 text-sm">
               <HiOutlineDocumentArrowDown className="h-4 w-4" />
               Export All
@@ -95,23 +95,23 @@ export default function ReportsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/5">
-                  <th className="px-5 py-3 font-medium text-surface-400">Report</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Type</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Generated</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Size</th>
-                  <th className="px-5 py-3 font-medium text-surface-400">Action</th>
+                <tr className="border-b border-border">
+                  <th className="px-5 py-3 font-medium text-text-muted">Report</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Type</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Generated</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Size</th>
+                  <th className="px-5 py-3 font-medium text-text-muted">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {recentReports.map((report) => (
-                  <tr key={report.id} className="text-surface-300 transition-colors hover:bg-white/5">
-                    <td className="px-5 py-3 font-medium text-white">{report.name}</td>
+                  <tr key={report.id} className="text-text-secondary transition-colors hover:bg-[var(--glass-border)]">
+                    <td className="px-5 py-3 font-medium text-text-primary">{report.name}</td>
                     <td className="px-5 py-3">{report.type}</td>
-                    <td className="px-5 py-3 text-surface-500">{report.generated}</td>
-                    <td className="px-5 py-3 text-surface-500">{report.size}</td>
+                    <td className="px-5 py-3 text-text-muted">{report.generated}</td>
+                    <td className="px-5 py-3 text-text-muted">{report.size}</td>
                     <td className="px-5 py-3">
-                      <button className="rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-surface-300 transition-colors hover:bg-white/10 hover:text-white">
+                      <button className="rounded-lg bg-[var(--glass-secondary)] px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-brand-primary/20 hover:text-brand-primary">
                         <HiOutlineDocumentArrowDown className="mr-1 inline h-3.5 w-3.5" />
                         Download
                       </button>

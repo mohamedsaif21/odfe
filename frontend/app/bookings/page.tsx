@@ -37,16 +37,16 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineCalendarDays className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Bookings</h1>
+          <h1 className="text-lg font-bold text-text-primary">Bookings</h1>
         </div>
         <button className="btn-primary ml-auto flex items-center gap-2 text-sm">
           <HiOutlineCalendarDays className="h-4 w-4" />
@@ -58,7 +58,7 @@ export default function BookingsPage() {
         {/* Date Picker Concept */}
         <div className="mb-6">
           <div className="flex items-center gap-2">
-            <button className="rounded-xl p-2 text-surface-400 hover:bg-white/5 hover:text-white">
+            <button className="rounded-xl p-2 text-text-muted hover:bg-[var(--glass-border)] hover:text-brand-primary">
               <HiOutlineChevronLeft className="h-5 w-5" />
             </button>
             <div className="flex gap-2 overflow-x-auto">
@@ -69,14 +69,14 @@ export default function BookingsPage() {
                   className={`whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                     selectedDate === date
                       ? "bg-brand-500/20 text-brand-400"
-                      : "text-surface-400 hover:bg-white/5 hover:text-white"
+                      : "text-text-muted hover:bg-[var(--glass-border)] hover:text-brand-primary"
                   }`}
                 >
                   {date}
                 </button>
               ))}
             </div>
-            <button className="rounded-xl p-2 text-surface-400 hover:bg-white/5 hover:text-white">
+            <button className="rounded-xl p-2 text-text-muted hover:bg-[var(--glass-border)] hover:text-brand-primary">
               <HiOutlineChevronRight className="h-5 w-5" />
             </button>
           </div>
@@ -87,24 +87,24 @@ export default function BookingsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/5">
-                  <th className="px-5 py-4 font-medium text-surface-400">Guest</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Date & Time</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Party Size</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Table</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Status</th>
-                  <th className="px-5 py-4 font-medium text-surface-400">Phone</th>
+                <tr className="border-b border-border">
+                  <th className="px-5 py-4 font-medium text-text-muted">Guest</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Date & Time</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Party Size</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Table</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Status</th>
+                  <th className="px-5 py-4 font-medium text-text-muted">Phone</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filtered.length > 0 ? (
                   filtered.map((booking) => (
-                    <tr key={booking.id} className="text-surface-300 transition-colors hover:bg-white/5">
-                      <td className="px-5 py-4 font-medium text-white">{booking.name}</td>
+                    <tr key={booking.id} className="text-text-secondary transition-colors hover:bg-[var(--glass-border)]">
+                      <td className="px-5 py-4 font-medium text-text-primary">{booking.name}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           <span>{booking.date}</span>
-                          <span className="flex items-center gap-1 text-surface-500">
+                          <span className="flex items-center gap-1 text-text-muted">
                             <HiOutlineClock className="h-3.5 w-3.5" />
                             {booking.time}
                           </span>
@@ -112,22 +112,22 @@ export default function BookingsPage() {
                       </td>
                       <td className="px-5 py-4">
                         <span className="flex items-center gap-1">
-                          <HiOutlineUsers className="h-3.5 w-3.5 text-surface-500" />
+                          <HiOutlineUsers className="h-3.5 w-3.5 text-text-muted" />
                           {booking.guests}
                         </span>
                       </td>
-                      <td className="px-5 py-4 font-medium text-white">{booking.table}</td>
+                      <td className="px-5 py-4 font-medium text-text-primary">{booking.table}</td>
                       <td className="px-5 py-4">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[booking.status]}`}>
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-surface-500">{booking.phone}</td>
+                      <td className="px-5 py-4 text-text-muted">{booking.phone}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-5 py-12 text-center text-surface-500">
+                    <td colSpan={6} className="px-5 py-12 text-center text-text-muted">
                       No bookings for {selectedDate}
                     </td>
                   </tr>

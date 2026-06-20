@@ -25,16 +25,16 @@ const settingsSections = [
 export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-surface-950">
-      <header className="flex items-center gap-4 border-b border-white/5 px-6 py-4">
+      <header className="flex items-center gap-4 border-b border-border px-6 py-4">
         <Link
           href="/dashboard"
-          className="rounded-xl p-2 text-surface-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="rounded-xl p-2 text-text-muted transition-colors hover:bg-[var(--glass-border)] hover:text-brand-primary"
         >
           <HiOutlineArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-2">
           <HiOutlineCog6Tooth className="h-5 w-5 text-brand-400" />
-          <h1 className="text-lg font-bold text-white">Settings</h1>
+          <h1 className="text-lg font-bold text-text-primary">Settings</h1>
         </div>
       </header>
 
@@ -46,14 +46,14 @@ export default function SettingsPage() {
               href={section.href}
               className="glass-card flex items-center gap-4 p-5"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--glass-border)]">
                 <section.icon className="h-5 w-5 text-brand-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-white">{section.label}</h3>
-                <p className="mt-0.5 text-xs text-surface-500">{section.description}</p>
+                <h3 className="text-sm font-semibold text-text-primary">{section.label}</h3>
+                <p className="mt-0.5 text-xs text-text-muted">{section.description}</p>
               </div>
-              <HiOutlineChevronRight className="h-5 w-5 text-surface-500" />
+              <HiOutlineChevronRight className="h-5 w-5 text-text-muted" />
             </Link>
           ))}
         </div>

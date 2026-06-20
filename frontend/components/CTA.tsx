@@ -9,12 +9,12 @@ export default function CTA() {
           <div className="pointer-events-none absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-brand-400/15 blur-3xl" />
 
           <div className="relative z-10">
-            <h2 className="text-3xl font-bold text-white sm:text-4xl md:text-5xl">
+            <h2 className="text-3xl font-bold text-text-primary sm:text-4xl md:text-5xl">
               Ready to Transform Your
               <br />
               <span className="gradient-text">Restaurant Experience?</span>
             </h2>
-            <p className="mx-auto mt-5 max-w-xl text-surface-400">
+            <p className="mx-auto mt-5 max-w-xl text-text-secondary">
               Join thousands of restaurants already using ODFE to streamline
               operations, delight customers, and boost revenue.
             </p>

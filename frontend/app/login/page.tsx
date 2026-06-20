@@ -8,6 +8,7 @@ import {
   HiOutlineEye,
   HiOutlineEyeSlash,
 } from "react-icons/hi2";
+import Logo from "@/components/Logo";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,13 +21,11 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700">
-              <span className="text-lg font-extrabold text-white">O</span>
-            </div>
-            <span className="text-xl font-bold text-white">ODFE</span>
+            <Logo size={40} linked={false} />
+            <span className="text-xl font-bold text-text-primary">ODFE</span>
           </Link>
-          <h1 className="mt-6 text-2xl font-bold text-white">Welcome Back</h1>
-          <p className="mt-2 text-sm text-surface-400">
+          <h1 className="mt-6 text-2xl font-bold text-text-primary">Welcome Back</h1>
+          <p className="mt-2 text-sm text-text-muted">
             Sign in to your ODFE account
           </p>
         </div>
@@ -34,34 +33,34 @@ export default function LoginPage() {
         <div className="glass-strong p-8">
           <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
             <div>
-              <label className="mb-2 block text-sm font-medium text-surface-300">
+              <label className="mb-2 block text-sm font-medium text-text-secondary">
                 Email
               </label>
               <div className="relative">
-                <HiOutlineEnvelope className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-surface-500" />
+                <HiOutlineEnvelope className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-text-muted" />
                 <input
                   type="email"
                   placeholder="you@example.com"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-sm text-white placeholder-surface-500 outline-none transition-colors focus:border-brand-500/50 focus:bg-white/8"
+                  className="w-full rounded-xl border border-border bg-[var(--glass-secondary)] py-3 pl-11 pr-4 text-sm text-text-primary placeholder-surface-500 outline-none transition-colors focus:border-brand-500/50 focus:bg-[var(--glass-border)]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-surface-300">
+              <label className="mb-2 block text-sm font-medium text-text-secondary">
                 Password
               </label>
               <div className="relative">
-                <HiOutlineLockClosed className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-surface-500" />
+                <HiOutlineLockClosed className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-text-muted" />
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-11 text-sm text-white placeholder-surface-500 outline-none transition-colors focus:border-brand-500/50 focus:bg-white/8"
+                  className="w-full rounded-xl border border-border bg-[var(--glass-secondary)] py-3 pl-11 pr-11 text-sm text-text-primary placeholder-surface-500 outline-none transition-colors focus:border-brand-500/50 focus:bg-[var(--glass-border)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-surface-500 hover:text-white"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-brand-primary"
                 >
                   {showPassword ? (
                     <HiOutlineEyeSlash className="h-5 w-5" />
@@ -73,10 +72,10 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-surface-400">
+              <label className="flex items-center gap-2 text-sm text-text-muted">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-white/20 bg-white/5 accent-brand-500"
+                  className="h-4 w-4 rounded border-border bg-[var(--glass-secondary)] accent-brand-500"
                 />
                 Remember me
               </label>
@@ -94,7 +93,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-surface-500">
+            <p className="text-sm text-text-muted">
               Don&apos;t have an account?{" "}
               <a href="#" className="font-medium text-brand-400 hover:text-brand-300">
                 Contact Admin

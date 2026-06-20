@@ -7,6 +7,8 @@ import {
   HiOutlineX,
   HiOutlineLogin,
 } from "react-icons/hi";
+import ThemeToggle from "./ThemeToggle";
+import Logo from "./Logo";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -21,19 +23,14 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="glass mt-4 flex items-center justify-between px-6 py-3">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700">
-              <span className="text-sm font-extrabold text-white">O</span>
-            </div>
-            <span className="text-lg font-bold text-white">ODFE</span>
-          </Link>
+          <Logo size={36} showText linked />
 
           <div className="hidden items-center gap-8 md:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-surface-300 transition-colors hover:text-white"
+                className="text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
               >
                 {link.label}
               </Link>
@@ -41,6 +38,7 @@ export default function Navbar() {
           </div>
 
           <div className="hidden items-center gap-3 md:flex">
+            <ThemeToggle />
             <Link href="/login" className="btn-secondary !px-5 !py-2.5 text-sm">
               Sign In
             </Link>
@@ -51,7 +49,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setOpen(!open)}
-            className="rounded-xl p-2 text-surface-300 transition-colors hover:bg-white/10 hover:text-white md:hidden"
+            className="rounded-xl p-2 text-text-secondary transition-colors hover:bg-card hover:text-text-primary md:hidden"
           >
             {open ? <HiOutlineX size={22} /> : <HiOutlineMenu size={22} />}
           </button>
@@ -65,12 +63,17 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="text-sm font-medium text-surface-300 transition-colors hover:text-white"
+                  className="text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
                 >
                   {link.label}
                 </Link>
               ))}
-              <hr className="border-white/10" />
+              <hr className="border-border" />
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-text-secondary">Theme</span>
+                <ThemeToggle />
+              </div>
+              <hr className="border-border" />
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}

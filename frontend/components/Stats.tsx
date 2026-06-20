@@ -36,7 +36,7 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
   }, [target]);
 
   return (
-    <span className="text-4xl font-extrabold text-white sm:text-5xl">
+    <span className="text-4xl font-extrabold text-text-primary sm:text-5xl">
       {formatNumber(count)}
       {suffix}
     </span>
@@ -52,7 +52,7 @@ export default function Stats() {
             {stats.map((s) => (
               <div key={s.label} className="text-center">
                 <CountUp target={s.value} suffix={s.suffix} />
-                <p className="mt-2 text-sm text-surface-400">{s.label}</p>
+                <p className="mt-2 text-sm text-text-muted">{s.label}</p>
               </div>
             ))}
           </div>
