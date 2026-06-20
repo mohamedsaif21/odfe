@@ -1,0 +1,25 @@
+meta {
+  name: Login Employee
+  type: item
+  description: Authenticate as employee/cashier
+}
+
+request {
+  method: POST
+  url: {{base_url}}/api/auth/login
+  header Content-Type: application/json
+  body:json {
+    "email": "cashier@example.com",
+    "password": "Cashier@123"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  if (res.status === 200) {
+    bru.setVar("auth_token", data.data.accessToken);
+    bru.setVar("refresh_token", data.data.refreshToken);
+    bru.setVar("user_id", data.data.id);
+    bru.setVar("user_role", data.data.role);
+  }
+}

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_odfe_booking_tree" model="ir.ui.view">
+    <field name="name">odfe.booking.tree</field>
+    <field name="model">odfe.booking</field>
+    <field name="arch" type="xml">
+      <tree decoration-danger="state == 'cancelled'" decoration-success="state == 'confirmed' or state == 'seated'" decoration-muted="state == 'no_show'" decoration-info="state == 'draft'">
+        <field name="name"/>
+        <field name="customer_id"/>
+        <field name="phone"/>
+        <field name="guest_count"/>
+        <field name="table_id"/>
+        <field name="floor_id"/>
+        <field name="date"/>
+        <field name="time_start" widget="float_time"/>
+        <field name="time_end" widget="float_time"/>
+        <field name="state" widget="badge" decoration-danger="state == 'cancelled'" decoration-success="state in ('confirmed','seated')" decoration-warning="state == 'draft'" decoration-secondary="state == 'no_show'"/>
+        <field name="created_by"/>
+      </tree>
+    </field>
+  </record>
+
+  <record id="view_odfe_booking_form" model="ir.ui.view">
+    <field name="name">odfe.booking.form</field>
+    <field name="model">odfe.booking</field>
+    <field name="arch" type="xml">
+      <form>
+        <header>
+          <button name="action_confirm" type="object" string="Confirm" class="btn-primary"
+                  states="draft" groups="odfe_auth.odfe_group_admin,odfe_auth.odfe_group_manager,odfe_auth.odfe_group_cashier"/>
+          <button name="action_seat" type="object" string="Seat"
+                  states="confirmed" groups="odfe_auth.odfe_group_admin,odfe_auth.odfe_group_manager,odfe_auth.odfe_group_cashier,odfe_auth.odfe_group_waiter"/>
+          <button name="action_cancel" type="object" string="Cancel"
+                  states="draft,confirmed" groups="odfe_auth.odfe_group_admin,odfe_auth.odfe_group_manager,odfe_auth.odfe_group_cashier"/>
+          <button name="action_mark_no_show" type="object" string="No Show"
+                  states="draft,confirmed" groups="odfe_auth.odfe_group_admin,odfe_auth.odfe_group_manager,odfe_auth.odfe_group_cashier"/>
+          <button name="action_draft" type="object" string="Reset to Draft"
+                  states="cancelled,no_show" groups="odfe_auth.odfe_group_admin,odfe_auth.odfe_group_manager"/>
+          <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,seated"/>
+        </header>
+        <sheet>
+          <div class="oe_title">
+            <h1>
+              <field name="name"/>
+            </h1>
+          </div>
+          <group>
+            <group>
+              <field name="customer_id" options="{'no_create': True}" context="{'default_phone': phone, 'default_email': email}"/>
+              <field name="phone"/>
+              <field name="email"/>
+              <field name="guest_count"/>
+            </group>
+            <group>
+              <field name="table_id"/>
+              <field name="floor_id"/>
+              <field name="date"/>
+              <field name="time_start" widget="float_time"/>
+              <field name="time_end" widget="float_time"/>
+              <field name="duration" widget="float_time"/>
+            </group>
+          </group>
+          <notebook>
+            <page name="reservation_items" string="Reservation Items">
+              <field name="reservation_ids">
+                <tree editable="bottom">
+                  <field name="sequence" widget="handle"/>
+                  <field name="item"/>
+                  <field name="quantity"/>
+                  <field name="notes"/>
+                </tree>
+              </field>
+            </page>
+            <page name="notes" string="Notes">
+              <group>
+                <field name="note" nolabel="1"/>
+              </group>
+            </page>
+          </notebook>
+        </sheet>
+        <div class="oe_chatter">
+          <field name="message_follower_ids" widget="mail_followers"/>
+          <field name="message_ids" widget="mail_thread"/>
+        </div>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_odfe_booking_calendar" model="ir.ui.view">
+    <field name="name">odfe.booking.calendar</field>
+    <field name="model">odfe.booking</field>
+    <field name="arch" type="xml">
+      <calendar date_start="date" string="Bookings" color="state" mode="month">
+        <field name="name"/>
+        <field name="customer_id"/>
+        <field name="table_id"/>
+        <field name="guest_count"/>
+        <field name="state"/>
+        <templates>
+          <t t-name="calendar-box">
+            <div class="o_calendar_event">
+              <t t-if="record.state.raw_value == 'confirmed'">
+                <i class="fa fa-check-circle text-success me-1"/>
+              </t>
+              <t t-elif="record.state.raw_value == 'seated'">
+                <i class="fa fa-user text-primary me-1"/>
+              </t>
+              <t t-elif="record.state.raw_value == 'cancelled'">
+                <i class="fa fa-times-circle text-danger me-1"/>
+              </t>
+              <t t-elif="record.state.raw_value == 'no_show'">
+                <i class="fa fa-user-slash text-muted me-1"/>
+              </t>
+              <t t-else="">
+                <i class="fa fa-pencil text-warning me-1"/>
+              </t>
+              <strong><t t-esc="record.name.raw_value"/></strong>
+              <t t-esc="record.customer_id.raw_value"/>
+            </div>
+          </t>
+        </templates>
+      </calendar>
+    </field>
+  </record>
+
+  <record id="view_odfe_booking_search" model="ir.ui.view">
+    <field name="name">odfe.booking.search</field>
+    <field name="model">odfe.booking</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="name"/>
+        <field name="customer_id"/>
+        <field name="phone"/>
+        <field name="table_id"/>
+        <field name="state"/>
+        <field name="floor_id"/>
+        <field name="date"/>
+        <separator/>
+        <filter name="filter_today" string="Today" domain="[('date', '=', context_today().date())]"/>
+        <filter name="filter_upcoming" string="Upcoming" domain="[('date', '>=', context_today().date()), ('state', 'not in', ('cancelled', 'no_show'))]"/>
+        <filter name="filter_confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+        <filter name="filter_seated" string="Seated" domain="[('state', '=', 'seated')]"/>
+        <group expand="0" string="Group By">
+          <filter name="group_date" string="Date" context="{'group_by': 'date'}"/>
+          <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+          <filter name="group_floor" string="Floor" context="{'group_by': 'floor_id'}"/>
+          <filter name="group_table" string="Table" context="{'group_by': 'table_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="view_booking_cancel_wizard_form" model="ir.ui.view">
+    <field name="name">booking.cancel.wizard.form</field>
+    <field name="model">odfe.booking.cancel.wizard</field>
+    <field name="arch" type="xml">
+      <form>
+        <group>
+          <field name="booking_id" invisible="1"/>
+          <p>
+            <strong>Are you sure you want to cancel this booking?</strong>
+          </p>
+          <field name="cancellation_reason" placeholder="Reason for cancellation..." required="1"/>
+        </group>
+        <footer>
+          <button name="action_confirm_cancel" type="object" string="Confirm Cancellation" class="btn-danger"/>
+          <button special="cancel" string="Discard" class="btn-secondary"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_odfe_booking" model="ir.actions.act_window">
+    <field name="name">Bookings</field>
+    <field name="res_model">odfe.booking</field>
+    <field name="view_mode">calendar,tree,form</field>
+    <field name="search_view_id" ref="view_odfe_booking_search"/>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        Create a new booking
+      </p>
+      <p>
+        Manage restaurant table reservations, track customer arrivals, and
+        handle cancellations and no-shows.
+      </p>
+    </field>
+  </record>
+
+  <record id="action_odfe_schedule" model="ir.actions.act_window">
+    <field name="name">Schedules</field>
+    <field name="res_model">odfe.schedule</field>
+    <field name="view_mode">tree,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        Create a schedule configuration
+      </p>
+      <p>
+        Define operating hours and capacity limits per day of the week
+        for booking availability.
+      </p>
+    </field>
+  </record>
+</odoo>

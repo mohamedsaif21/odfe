@@ -1,0 +1,21 @@
+{
+    'name': 'ODFE Booking & Reservations',
+    'version': '19.0.1.0.0',
+    'category': 'Restaurant',
+    'summary': 'Restaurant booking, reservations, and scheduling for ODFE POS',
+    'description': 'Manage restaurant bookings with table assignment, guest counts, reservation items, and capacity scheduling.',
+    'author': 'ODFE',
+    'website': 'https://odfe.app',
+    'license': 'LGPL-3',
+    'depends': ['odfe_base', 'odfe_floor', 'odfe_customer', 'mail'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/booking_data.xml',
+        'views/booking_views.xml',
+        'views/menu_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+    'sequence': 15,
+}

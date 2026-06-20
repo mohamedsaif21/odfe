@@ -1,0 +1,14 @@
+{
+  "name": "odfe",
+  "private": true,
+  "version": "19.0.0",
+  "description": "ODFE — Odoo Food Experience | Premium Restaurant & Café POS",
+  "author": "ODFE",
+  "license": "LGPL-3.0",
+  "scripts": {
+    "dev": "cd frontend && next dev -p 3000",
+    "build": "cd frontend && next build",
+    "start": "cd frontend && next start -p 3000",
+    "lint": "cd frontend && next lint"
+  }
+}

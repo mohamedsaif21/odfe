@@ -1,0 +1,142 @@
+// ============================================================
+// ODFE Design System — Variables & Tokens
+// Dark Coffee Glass | Premium Apple-Inspired Glassmorphism
+// ============================================================
+
+:root {
+    // ── Brand Colors ──────────────────────────────────────────
+    --odfe-primary: #32D26B;
+    --odfe-primary-hover: #2BBF5F;
+    --odfe-primary-light: rgba(50, 210, 107, 0.12);
+    --odfe-primary-glow: rgba(50, 210, 107, 0.25);
+
+    --odfe-accent: #2CC8FF;
+    --odfe-accent-hover: #1AB8F0;
+    --odfe-accent-light: rgba(44, 200, 255, 0.12);
+    --odfe-accent-glow: rgba(44, 200, 255, 0.25);
+
+    // ── Cafe Palette ──────────────────────────────────────────
+    --odfe-coffee: #7A5230;
+    --odfe-coffee-light: rgba(122, 82, 48, 0.15);
+    --odfe-caramel: #D4A373;
+    --odfe-caramel-light: rgba(212, 163, 115, 0.12);
+    --odfe-cream: #FFF8F0;
+    --odfe-gold: #D6A74F;
+    --odfe-gold-light: rgba(214, 167, 79, 0.12);
+    --odfe-gold-glow: rgba(214, 167, 79, 0.25);
+
+    // ── Semantic Colors ───────────────────────────────────────
+    --odfe-danger: #EF4444;
+    --odfe-danger-light: rgba(239, 68, 68, 0.12);
+    --odfe-danger-glow: rgba(239, 68, 68, 0.25);
+
+    --odfe-warning: #F59E0B;
+    --odfe-warning-light: rgba(245, 158, 11, 0.12);
+
+    --odfe-success: #22C55E;
+    --odfe-success-light: rgba(34, 197, 94, 0.12);
+
+    --odfe-info: #2CC8FF;
+    --odfe-info-light: rgba(44, 200, 255, 0.12);
+
+    // ── Dark Theme Surfaces ───────────────────────────────────
+    --odfe-bg-deep: #071216;
+    --odfe-bg-mid: #0D1B20;
+    --odfe-bg-surface: #132D35;
+    --odfe-bg-elevated: #111A1D;
+    --odfe-bg-card: #0D1B20;
+
+    // ── Text ──────────────────────────────────────────────────
+    --odfe-text-primary: #F8FAFC;
+    --odfe-text-secondary: #9CA3AF;
+    --odfe-text-tertiary: #6B7280;
+    --odfe-text-muted: #4B5563;
+    --odfe-text-inverse: #0F172A;
+
+    // ── Glass System ──────────────────────────────────────────
+    --odfe-glass-bg: rgba(255, 255, 255, 0.06);
+    --odfe-glass-bg-hover: rgba(255, 255, 255, 0.10);
+    --odfe-glass-bg-active: rgba(255, 255, 255, 0.14);
+    --odfe-glass-border: rgba(255, 255, 255, 0.08);
+    --odfe-glass-border-hover: rgba(255, 255, 255, 0.14);
+    --odfe-glass-blur: 24px;
+    --odfe-glass-surface: rgba(18, 30, 36, 0.65);
+    --odfe-glass-shadow: 0 12px 50px rgba(0, 0, 0, 0.35);
+    --odfe-glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --odfe-glass-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.45);
+
+    // ── Typography ────────────────────────────────────────────
+    --odfe-font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --odfe-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --odfe-font-mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', monospace;
+
+    --odfe-text-xs: 0.8125rem;    // 13px
+    --odfe-text-sm: 0.8125rem;    // 13px
+    --odfe-text-base: 0.9375rem;  // 15px
+    --odfe-text-md: 1rem;         // 16px
+    --odfe-text-lg: 1.125rem;     // 18px
+    --odfe-text-xl: 1.25rem;      // 20px
+    --odfe-text-2xl: 1.375rem;    // 22px
+    --odfe-text-3xl: 1.875rem;    // 30px
+    --odfe-text-4xl: 2.25rem;     // 36px
+    --odfe-text-5xl: 3rem;        // 48px
+    --odfe-text-6xl: 3.75rem;     // 60px
+
+    --odfe-leading-tight: 1.2;
+    --odfe-leading-normal: 1.5;
+    --odfe-leading-relaxed: 1.7;
+
+    // ── Spacing (8pt Grid) ────────────────────────────────────
+    --odfe-space-1: 4px;
+    --odfe-space-2: 8px;
+    --odfe-space-3: 12px;
+    --odfe-space-4: 16px;
+    --odfe-space-5: 20px;
+    --odfe-space-6: 24px;
+    --odfe-space-8: 32px;
+    --odfe-space-10: 40px;
+    --odfe-space-12: 48px;
+    --odfe-space-16: 64px;
+    --odfe-space-20: 80px;
+    --odfe-space-24: 96px;
+
+    // ── Border Radius ─────────────────────────────────────────
+    --odfe-radius-sm: 10px;
+    --odfe-radius-md: 14px;
+    --odfe-radius-lg: 18px;
+    --odfe-radius-xl: 22px;
+    --odfe-radius-2xl: 28px;
+    --odfe-radius-3xl: 36px;
+    --odfe-radius-full: 9999px;
+
+    // ── Transitions ───────────────────────────────────────────
+    --odfe-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --odfe-transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --odfe-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --odfe-transition-spring: 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    // ── Z-Index Scale ─────────────────────────────────────────
+    --odfe-z-base: 1;
+    --odfe-z-dropdown: 100;
+    --odfe-z-sticky: 200;
+    --odfe-z-fixed: 300;
+    --odfe-z-overlay: 400;
+    --odfe-z-modal: 500;
+    --odfe-z-toast: 600;
+    --odfe-z-tooltip: 700;
+
+    // ── Layout ────────────────────────────────────────────────
+    --odfe-sidebar-width: 260px;
+    --odfe-sidebar-collapsed: 72px;
+    --odfe-header-height: 72px;
+    --odfe-sidebar-expanded: 280px;
+    --odfe-max-content-width: 1600px;
+
+    // ── Component Sizes ───────────────────────────────────────
+    --odfe-btn-height: 48px;
+    --odfe-input-height: 48px;
+    --odfe-icon-size-sm: 20px;
+    --odfe-icon-size: 24px;
+    --odfe-icon-size-lg: 28px;
+    --odfe-touch-target: 48px;
+}

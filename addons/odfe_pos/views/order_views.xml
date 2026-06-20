@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_order_tree" model="ir.ui.view">
+        <field name="name">odfe.pos.order.tree</field>
+        <field name="model">odfe.pos.order</field>
+        <field name="arch" type="xml">
+            <tree string="POS Orders" default_order="ordered_at desc">
+                <field name="name"/>
+                <field name="session_id"/>
+                <field name="table_id"/>
+                <field name="customer_id"/>
+                <field name="state" decoration-success="state == 'paid'" decoration-danger="state == 'cancelled'"
+                    decoration-warning="state == 'draft'" decoration-info="state == 'confirmed'"/>
+                <field name="subtotal" sum="Subtotal"/>
+                <field name="tax_amount" sum="Tax"/>
+                <field name="discount_total" sum="Discount"/>
+                <field name="total" sum="Total"/>
+                <field name="total_paid" sum="Paid"/>
+                <field name="ordered_at"/>
+                <field name="paid_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_pos_order_form" model="ir.ui.view">
+        <field name="name">odfe.pos.order.form</field>
+        <field name="model">odfe.pos.order</field>
+        <field name="arch" type="xml">
+            <form string="POS Order">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
+                        attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_pay" string="Mark as Paid" type="object" class="btn-success"
+                        attrs="{'invisible': [('state', 'not in', ('draft','confirmed'))]}"/>
+                    <button name="action_refund" string="Refund" type="object" class="btn-warning"
+                        attrs="{'invisible': [('state', '!=', 'paid')]}"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-danger"
+                        attrs="{'invisible': [('state', 'in', ('paid','cancelled','refunded'))]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,paid,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_pos_receipt)d" type="action" class="oe_stat_button"
+                            icon="fa-print" string="Receipts" context="{'default_order_id': active_id}"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="session_id"/>
+                            <field name="pos_reference"/>
+                            <field name="table_id"/>
+                        </group>
+                        <group>
+                            <field name="customer_id"/>
+                            <field name="employee_id"/>
+                            <field name="ordered_at"/>
+                            <field name="paid_at"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="order_lines" string="Order Lines">
+                            <field name="line_ids" context="{'default_order_id': active_id}">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="product_name"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="discount_type"/>
+                                    <field name="discount_value"/>
+                                    <field name="discount_amount"/>
+                                    <field name="tax_id"/>
+                                    <field name="tax_amount"/>
+                                    <field name="subtotal" sum="Subtotal"/>
+                                    <field name="is_modifier" invisible="1"/>
+                                    <field name="parent_line_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="payments" string="Payments">
+                            <field name="payment_ids">
+                                <tree>
+                                    <field name="payment_method_id"/>
+                                    <field name="amount"/>
+                                    <field name="reference"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="discounts" string="Discounts">
+                            <group>
+                                <field name="coupon_id"/>
+                                <field name="discount_total"/>
+                            </group>
+                            <field name="discount_ids">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="amount"/>
+                                    <field name="type"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="notes" string="Notes">
+                            <group>
+                                <field name="note"/>
+                                <field name="internal_note"/>
+                            </group>
+                        </page>
+                        <page name="history" string="History">
+                            <field name="order_history_ids" readonly="1">
+                                <tree>
+                                    <field name="changed_at"/>
+                                    <field name="changed_by"/>
+                                    <field name="type"/>
+                                    <field name="field_name"/>
+                                    <field name="old_value"/>
+                                    <field name="new_value"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pos_order_search" model="ir.ui.view">
+        <field name="name">odfe.pos.order.search</field>
+        <field name="model">odfe.pos.order</field>
+        <field name="arch" type="xml">
+            <search string="Search Orders">
+                <field name="name"/>
+                <field name="pos_reference"/>
+                <field name="table_id"/>
+                <field name="customer_id"/>
+                <field name="session_id"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_paid" string="Paid" domain="[('state', '=', 'paid')]"/>
+                <filter name="filter_today" string="Today" date="ordered_at"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_table" string="Table" context="{'group_by': 'table_id'}"/>
+                    <filter name="group_by_session" string="Session" context="{'group_by': 'session_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_pos_order" model="ir.actions.act_window">
+        <field name="name">POS Orders</field>
+        <field name="res_model">odfe.pos.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_pos_order_search"/>
+        <field name="help" type="html">
+            <p>Manage POS orders. View order details, process payments, and handle refunds.</p>
+        </field>
+    </record>
+</odoo>

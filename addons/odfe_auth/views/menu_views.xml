@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <menuitem id="menu_odfe_configuration"
+            name="Configuration"
+            parent="odfe_base.menu_odfe_root"
+            sequence="90"
+            groups="odfe_auth.odfe_group_admin,odfe_auth.odfe_group_manager"/>
+
+  <menuitem id="menu_odfe_employees"
+            name="Employees"
+            parent="menu_odfe_configuration"
+            action="action_odfe_employee"
+            sequence="10"
+            groups="odfe_auth.odfe_group_admin,odfe_auth.odfe_group_manager"/>
+
+  <menuitem id="menu_odfe_roles"
+            name="Roles"
+            parent="menu_odfe_configuration"
+            action="action_odfe_role"
+            sequence="20"
+            groups="odfe_auth.odfe_group_admin"/>
+</odoo>

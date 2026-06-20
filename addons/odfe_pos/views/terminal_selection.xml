@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- TERMINAL SELECTION PAGE                                    -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <template id="terminal_selection" name="odfe_pos.terminal_selection">
+        <div class="odfe-terminal-page">
+            <!-- Page Header -->
+            <div class="odfe-terminal-header">
+                <div class="odfe-terminal-header__left">
+                    <div class="odfe-terminal-header__brand">
+                        <div class="odfe-terminal-header__brand-icon">
+                            <i class="fa fa-coffee"/>
+                        </div>
+                        <div>
+                            <div class="odfe-terminal-header__title">Select Terminal</div>
+                            <div class="odfe-terminal-header__subtitle">Choose a POS terminal to begin</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="odfe-terminal-header__right">
+                    <div class="odfe-terminal-header__avatar">
+                        <i class="fa fa-user"/>
+                    </div>
+                    <div class="odfe-terminal-header__user-info">
+                        <div class="odfe-terminal-header__user-name" t-out="state.cashierName or 'Cashier'"/>
+                        <div class="odfe-terminal-header__user-role">Cashier</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Grid -->
+            <div class="odfe-terminal-grid">
+                <!-- Terminal 1 -->
+                <div class="odfe-terminal-card" t-on-click="() => openTerminal(terminals[0])" style="animation-delay: 0ms;">
+                    <div class="odfe-terminal-card__status odfe-terminal-card__status--online"/>
+                    <div class="odfe-terminal-card__icon">
+                        <div class="odfe-terminal-card__icon-glass">
+                            <i class="fa fa-desktop"/>
+                        </div>
+                    </div>
+                    <div class="odfe-terminal-card__body">
+                        <div class="odfe-terminal-card__name">Main Terminal</div>
+                        <div class="odfe-terminal-card__restaurant">The Coffee Collective</div>
+                        <div class="odfe-terminal-card__meta">
+                            <div class="odfe-terminal-card__meta-item">
+                                <i class="fa fa-clock-o"/>
+                                <span>Last opened: 2 min ago</span>
+                            </div>
+                            <div class="odfe-terminal-card__meta-item">
+                                <i class="fa fa-inr"/>
+                                <span class="odfe-terminal-card__revenue">₹24,580</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="odfe-terminal-card__footer">
+                        <button class="odfe-terminal-card__btn">
+                            <i class="fa fa-sign-in"/>
+                            Open Session
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Terminal 2 -->
+                <div class="odfe-terminal-card" t-on-click="() => openTerminal(terminals[1])" style="animation-delay: 60ms;">
+                    <div class="odfe-terminal-card__status odfe-terminal-card__status--online"/>
+                    <div class="odfe-terminal-card__icon">
+                        <div class="odfe-terminal-card__icon-glass odfe-terminal-card__icon-glass--accent">
+                            <i class="fa fa-glass"/>
+                        </div>
+                    </div>
+                    <div class="odfe-terminal-card__body">
+                        <div class="odfe-terminal-card__name">Bar Terminal</div>
+                        <div class="odfe-terminal-card__restaurant">The Coffee Collective</div>
+                        <div class="odfe-terminal-card__meta">
+                            <div class="odfe-terminal-card__meta-item">
+                                <i class="fa fa-clock-o"/>
+                                <span>Last opened: 5 min ago</span>
+                            </div>
+                            <div class="odfe-terminal-card__meta-item">
+                                <i class="fa fa-inr"/>
+                                <span class="odfe-terminal-card__revenue">₹18,320</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="odfe-terminal-card__footer">
+                        <button class="odfe-terminal-card__btn">
+                            <i class="fa fa-sign-in"/>
+                            Open Session
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Terminal 3 -->
+                <div class="odfe-terminal-card" t-on-click="() => openTerminal(terminals[2])" style="animation-delay: 120ms;">
+                    <div class="odfe-terminal-card__status odfe-terminal-card__status--offline"/>
+                    <div class="odfe-terminal-card__icon">
+                        <div class="odfe-terminal-card__icon-glass odfe-terminal-card__icon-glass--caramel">
+                            <i class="fa fa-shopping-bag"/>
+                        </div>
+                    </div>
+                    <div class="odfe-terminal-card__body">
+                        <div class="odfe-terminal-card__name">Takeaway Terminal</div>
+                        <div class="odfe-terminal-card__restaurant">The Coffee Collective</div>
+                        <div class="odfe-terminal-card__meta">
+                            <div class="odfe-terminal-card__meta-item">
+                                <i class="fa fa-clock-o"/>
+                                <span>Last opened: 1 hour ago</span>
+                            </div>
+                            <div class="odfe-terminal-card__meta-item">
+                                <i class="fa fa-inr"/>
+                                <span class="odfe-terminal-card__revenue">₹12,740</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="odfe-terminal-card__footer">
+                        <button class="odfe-terminal-card__btn">
+                            <i class="fa fa-sign-in"/>
+                            Open Session
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Terminal 4 -->
+                <div class="odfe-terminal-card" t-on-click="() => openTerminal(terminals[3])" style="animation-delay: 180ms;">
+                    <div class="odfe-terminal-card__status odfe-terminal-card__status--offline"/>
+                    <div class="odfe-terminal-card__icon">
+                        <div class="odfe-terminal-card__icon-glass odfe-terminal-card__icon-glass--gold">
+                            <i class="fa fa-cutlery"/>
+                        </div>
+                    </div>
+                    <div class="odfe-terminal-card__body">
+                        <div class="odfe-terminal-card__name">Drive-Through Terminal</div>
+                        <div class="odfe-terminal-card__restaurant">The Coffee Collective</div>
+                        <div class="odfe-terminal-card__meta">
+                            <div class="odfe-terminal-card__meta-item">
+                                <i class="fa fa-clock-o"/>
+                                <span>Last opened: 3 hours ago</span>
+                            </div>
+                            <div class="odfe-terminal-card__meta-item">
+                                <i class="fa fa-inr"/>
+                                <span class="odfe-terminal-card__revenue">₹8,960</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="odfe-terminal-card__footer">
+                        <button class="odfe-terminal-card__btn">
+                            <i class="fa fa-sign-in"/>
+                            Open Session
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

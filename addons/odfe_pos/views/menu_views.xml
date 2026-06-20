@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_odfe_pos_root" name="POS" sequence="10"
+        parent="odfe_base.menu_odfe_root"/>
+
+    <menuitem id="menu_odfe_pos_operations" name="Operations" sequence="10"
+        parent="menu_odfe_pos_root"/>
+
+    <menuitem id="menu_odfe_pos_sessions" name="Sessions" sequence="10"
+        parent="menu_odfe_pos_operations"
+        action="action_pos_session"/>
+
+    <menuitem id="menu_odfe_pos_orders" name="Orders" sequence="20"
+        parent="menu_odfe_pos_operations"
+        action="action_pos_order"/>
+
+    <menuitem id="menu_odfe_pos_receipts" name="Receipts" sequence="30"
+        parent="menu_odfe_pos_operations"
+        action="action_pos_receipt"/>
+
+    <menuitem id="menu_odfe_pos_reports" name="Reports" sequence="70"
+        parent="menu_odfe_pos_root"/>
+
+    <menuitem id="menu_odfe_pos_config" name="Configuration" sequence="90"
+        parent="menu_odfe_pos_root"/>
+</odoo>

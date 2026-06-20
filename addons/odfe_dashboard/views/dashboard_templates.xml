@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="dashboard_page" name="ODFE Dashboard">
+        <t t-call="web.layout">
+            <t t-set="title">Dashboard</t>
+            <div class="odfe-dashboard" id="odfe_dashboard_app">
+                <!-- Header -->
+                <div class="odfe-dashboard__header">
+                    <div class="odfe-dashboard__greeting">
+                        <h1><span class="wave">&#9749;</span> Cafe Dashboard</h1>
+                        <p>Real-time analytics for your cafe</p>
+                    </div>
+                    <div class="odfe-dashboard__date-filter">
+                        <select id="period_select" class="odfe-input" style="min-width: 160px;">
+                            <option value="day">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month" selected="selected">This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                        <button id="refresh_btn" class="odfe-btn odfe-btn--primary">
+                            <i class="fa fa-refresh"/> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="odfe-kpi-row" id="kpi_container">
+                    <div class="odfe-kpi-card odfe-kpi-card--revenue">
+                        <div class="odfe-kpi-card__top">
+                            <div class="odfe-kpi-card__icon odfe-kpi-card__icon--revenue">
+                                <i class="fa fa-inr"/>
+                            </div>
+                            <div class="odfe-kpi-card__trend" id="kpi_revenue_trend"></div>
+                        </div>
+                        <div class="odfe-kpi-card__label">Total Revenue</div>
+                        <div class="odfe-kpi-card__value" id="kpi_revenue">&#8377;0</div>
+                        <div class="odfe-kpi-card__subtitle">vs last period</div>
+                    </div>
+                    <div class="odfe-kpi-card odfe-kpi-card--orders">
+                        <div class="odfe-kpi-card__top">
+                            <div class="odfe-kpi-card__icon odfe-kpi-card__icon--orders">
+                                <i class="fa fa-receipt"/>
+                            </div>
+                            <div class="odfe-kpi-card__trend" id="kpi_orders_trend"></div>
+                        </div>
+                        <div class="odfe-kpi-card__label">Total Orders</div>
+                        <div class="odfe-kpi-card__value" id="kpi_orders">0</div>
+                        <div class="odfe-kpi-card__subtitle">vs last period</div>
+                    </div>
+                    <div class="odfe-kpi-card odfe-kpi-card--customers">
+                        <div class="odfe-kpi-card__top">
+                            <div class="odfe-kpi-card__icon odfe-kpi-card__icon--customers">
+                                <i class="fa fa-users"/>
+                            </div>
+                        </div>
+                        <div class="odfe-kpi-card__label">Avg Order Value</div>
+                        <div class="odfe-kpi-card__value" id="kpi_avg">&#8377;0</div>
+                        <div class="odfe-kpi-card__subtitle">per transaction</div>
+                    </div>
+                    <div class="odfe-kpi-card odfe-kpi-card--tables">
+                        <div class="odfe-kpi-card__top">
+                            <div class="odfe-kpi-card__icon odfe-kpi-card__icon--tables">
+                                <i class="fa fa-cutlery"/>
+                            </div>
+                        </div>
+                        <div class="odfe-kpi-card__label">Customers Served</div>
+                        <div class="odfe-kpi-card__value" id="kpi_customers">0</div>
+                        <div class="odfe-kpi-card__subtitle">this period</div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="odfe-chart-row">
+                    <div class="odfe-chart-card">
+                        <div class="odfe-chart-card__header">
+                            <h3 class="odfe-chart-card__title">Daily Sales Trend</h3>
+                        </div>
+                        <div class="odfe-chart-card__body">
+                            <div id="daily_sales_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                    <div class="odfe-chart-card">
+                        <div class="odfe-chart-card__header">
+                            <h3 class="odfe-chart-card__title">Payment Methods</h3>
+                        </div>
+                        <div class="odfe-chart-card__body">
+                            <div id="payment_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Row: Products + Hourly + Activity -->
+                <div class="odfe-dashboard-row">
+                    <div class="odfe-chart-card">
+                        <div class="odfe-chart-card__header">
+                            <h3 class="odfe-chart-card__title">Top Products</h3>
+                        </div>
+                        <div class="odfe-chart-card__body">
+                            <div id="top_products_chart" style="height: 280px;"></div>
+                        </div>
+                    </div>
+                    <div class="odfe-chart-card">
+                        <div class="odfe-chart-card__header">
+                            <h3 class="odfe-chart-card__title">Hourly Sales</h3>
+                        </div>
+                        <div class="odfe-chart-card__body">
+                            <div id="hourly_chart" style="height: 280px;"></div>
+                        </div>
+                    </div>
+                    <div class="odfe-timeline">
+                        <div class="odfe-timeline__header">
+                            <h3 style="font-size: var(--odfe-text-lg); font-weight: 700;">Activity</h3>
+                        </div>
+                        <div id="activity_feed">
+                            <div class="odfe-timeline__item">
+                                <div class="odfe-timeline__dot"><i class="fa fa-plus"/></div>
+                                <div class="odfe-timeline__content">
+                                    <div class="odfe-timeline__text">Dashboard loaded</div>
+                                    <div class="odfe-timeline__when">just now</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Third Row: Popular Menu + Peak Hours + Payment Breakdown -->
+                <div class="odfe-dashboard-row">
+                    <div class="odfe-popular-menu">
+                        <div class="odfe-popular-menu__header">
+                            <h3 style="font-size: var(--odfe-text-lg); font-weight: 700;">Popular Menu</h3>
+                        </div>
+                        <div id="popular_menu_list">
+                            <div style="padding: 2rem; text-align: center; color: var(--odfe-text-tertiary);">Loading...</div>
+                        </div>
+                    </div>
+                    <div class="odfe-peak-hours">
+                        <div class="odfe-chart-card__header" style="margin-bottom: var(--odfe-space-5);">
+                            <h3 style="font-size: var(--odfe-text-lg); font-weight: 700;">Peak Hours</h3>
+                        </div>
+                        <div class="odfe-peak-hours__grid" id="peak_hours_grid">
+                            <!-- JS populates heatmap cells -->
+                        </div>
+                        <div class="odfe-peak-hours__labels">
+                            <span>6am</span><span>9am</span><span>12pm</span><span>3pm</span><span>6pm</span><span>9pm</span>
+                        </div>
+                    </div>
+                    <div class="odfe-payment-breakdown">
+                        <div class="odfe-chart-card__header" style="margin-bottom: var(--odfe-space-5);">
+                            <h3 style="font-size: var(--odfe-text-lg); font-weight: 700;">Payments</h3>
+                        </div>
+                        <div id="payment_breakdown_list">
+                            <div style="padding: 2rem; text-align: center; color: var(--odfe-text-tertiary);">Loading...</div>
+                        </div>
+                        <div class="odfe-payment-breakdown__bar" id="payment_breakdown_bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.2/dist/apexcharts.min.js"></script>
+            <script src="/odfe_dashboard/static/src/js/kpi_card.js"></script>
+            <script src="/odfe_dashboard/static/src/js/sales_chart.js"></script>
+            <script src="/odfe_dashboard/static/src/js/dashboard_app.js"></script>
+        </t>
+    </template>
+</odoo>

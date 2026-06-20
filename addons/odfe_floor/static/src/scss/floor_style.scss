@@ -1,0 +1,308 @@
+// ============================================================
+// ODFE — Floor Plan & Table Management
+// Interactive floor with animated occupancy
+// ============================================================
+
+@import '../../odfe_base/static/src/scss/variables';
+@import '../../odfe_base/static/src/scss/mixins';
+@import '../../odfe_base/static/src/scss/animations';
+
+.odfe-floor {
+    padding: var(--odfe-space-8);
+    animation: odfe-fadeIn 280ms ease-out;
+
+    &__header {
+        @include flex-between;
+        margin-bottom: var(--odfe-space-8);
+    }
+
+    &__tabs {
+        display: flex;
+        gap: var(--odfe-space-2);
+        @include glass(12px);
+        padding: var(--odfe-space-1);
+        border-radius: var(--odfe-radius-lg);
+    }
+
+    &__tab {
+        @include button-base;
+        background: transparent;
+        color: var(--odfe-text-secondary);
+        padding: var(--odfe-space-2) var(--odfe-space-5);
+        border-radius: var(--odfe-radius-md);
+        font-size: var(--odfe-text-sm);
+        min-height: 36px;
+
+        &.active {
+            background: var(--odfe-primary);
+            color: white;
+        }
+    }
+
+    &__legend {
+        display: flex;
+        gap: var(--odfe-space-6);
+        font-size: var(--odfe-text-sm);
+
+        &-item {
+            display: flex;
+            align-items: center;
+            gap: var(--odfe-space-2);
+        }
+
+        &-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+        }
+    }
+}
+
+// Table Grid
+.odfe-floor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--odfe-space-5);
+    padding: var(--odfe-space-6);
+    @include glass-card-static;
+    min-height: 500px;
+    position: relative;
+}
+
+// Table Item
+.odfe-table-item {
+    @include flex-center;
+    @include flex-col;
+    aspect-ratio: 1;
+    border-radius: var(--odfe-radius-xl);
+    cursor: pointer;
+    transition: all var(--odfe-transition-base);
+    position: relative;
+    border: 2px solid transparent;
+    padding: var(--odfe-space-4);
+
+    &:hover {
+        transform: translateY(-3px) scale(1.02);
+    }
+
+    // Shapes
+    &--round { border-radius: 50%; }
+    &--square { border-radius: var(--odfe-radius-xl); }
+
+    // Statuses
+    &--available {
+        background: rgba(34,197,94,0.08);
+        border-color: rgba(34,197,94,0.25);
+
+        &:hover { border-color: var(--odfe-accent); box-shadow: 0 0 20px rgba(34,197,94,0.2); }
+
+        .odfe-table-item__status { color: var(--odfe-accent); }
+    }
+
+    &--occupied {
+        background: rgba(245,158,11,0.08);
+        border-color: rgba(245,158,11,0.25);
+
+        &:hover { border-color: var(--odfe-warning); }
+
+        .odfe-table-item__status { color: var(--odfe-warning); }
+
+        // Animated pulse ring
+        &::after {
+            content: '';
+            position: absolute; inset: -4px;
+            border-radius: inherit;
+            border: 2px solid rgba(245,158,11,0.15);
+            animation: odfe-pulse 2s ease-in-out infinite;
+        }
+    }
+
+    &--reserved {
+        background: rgba(56,189,248,0.08);
+        border-color: rgba(56,189,248,0.25);
+
+        .odfe-table-item__status { color: var(--odfe-info); }
+    }
+
+    &--cleaning {
+        background: rgba(148,163,184,0.08);
+        border-color: rgba(148,163,184,0.2);
+
+        .odfe-table-item__status { color: var(--odfe-text-muted); }
+    }
+
+    &.selected {
+        border-color: var(--odfe-primary);
+        box-shadow: 0 0 24px rgba(50,210,107,0.3);
+    }
+
+    &__number {
+        font-family: var(--odfe-font-heading);
+        font-size: var(--odfe-text-2xl);
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    &__status {
+        font-size: var(--odfe-text-xs);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    &__capacity {
+        font-size: var(--odfe-text-xs);
+        color: var(--odfe-text-tertiary);
+        margin-top: var(--odfe-space-1);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__amount {
+        @include mono-number;
+        font-size: var(--odfe-text-sm);
+        font-weight: 600;
+        color: var(--odfe-caramel);
+        margin-top: var(--odfe-space-2);
+    }
+}
+
+// ── Customer Display ──────────────────────────────────────────
+.odfe-customer-display {
+    height: 100vh;
+    @include flex-center;
+    @include flex-col;
+    background: linear-gradient(180deg, #071216 0%, #0D1B20 50%, #132D35 100%);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: var(--odfe-space-8);
+
+    &::before {
+        content: '';
+        position: fixed; inset: 0;
+        background:
+            radial-gradient(ellipse 600px 500px at 50% 30%, rgba(50,210,107,0.10) 0%, transparent 60%),
+            radial-gradient(ellipse 400px 400px at 20% 80%, rgba(212,163,115,0.06) 0%, transparent 55%);
+        pointer-events: none;
+    }
+
+    &__brand {
+        position: relative; z-index: 1;
+        margin-bottom: var(--odfe-space-10);
+
+        &-icon {
+            width: 72px; height: 72px;
+            border-radius: var(--odfe-radius-xl);
+            background: linear-gradient(135deg, var(--odfe-primary), var(--odfe-accent));
+            @include flex-center;
+            margin: 0 auto var(--odfe-space-4);
+            font-size: 28px;
+            color: white;
+            font-weight: 800;
+        }
+
+        &-name {
+            font-family: var(--odfe-font-heading);
+            font-size: var(--odfe-text-3xl);
+            font-weight: 800;
+            @include gradient-text(#32D26B, #22C55E);
+        }
+    }
+
+    &__order {
+        position: relative; z-index: 1;
+        @include glass(28px);
+        border-radius: var(--odfe-radius-2xl);
+        padding: var(--odfe-space-8);
+        width: 100%;
+        max-width: 500px;
+        animation: odfe-scaleIn 400ms ease-out;
+    }
+
+    &__items {
+        margin-bottom: var(--odfe-space-6);
+    }
+
+    &__item {
+        @include flex-between;
+        padding: var(--odfe-space-3) 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        font-size: var(--odfe-text-lg);
+
+        &:last-child { border-bottom: none; }
+
+        &-name { font-weight: 500; text-align: left; }
+
+        &-qty {
+            @include mono-number;
+            color: var(--odfe-text-secondary);
+        }
+
+        &-price {
+            @include mono-number;
+            font-weight: 600;
+        }
+    }
+
+    &__total {
+        @include flex-between;
+        padding-top: var(--odfe-space-5);
+        border-top: 2px solid var(--odfe-glass-border);
+
+        &-label {
+            font-size: var(--odfe-text-xl);
+            font-weight: 700;
+        }
+
+        &-value {
+            @include mono-number;
+            font-size: var(--odfe-text-4xl);
+            font-weight: 800;
+            color: var(--odfe-accent);
+            animation: odfe-countReveal 500ms ease-out;
+        }
+    }
+
+    &__qr {
+        position: relative; z-index: 1;
+        margin-top: var(--odfe-space-8);
+
+        img {
+            width: 180px; height: 180px;
+            border-radius: var(--odfe-radius-lg);
+            background: white;
+            padding: var(--odfe-space-3);
+        }
+
+        p {
+            font-size: var(--odfe-text-sm);
+            color: var(--odfe-text-tertiary);
+            margin-top: var(--odfe-space-3);
+        }
+    }
+
+    &__thankyou {
+        position: relative; z-index: 1;
+        animation: odfe-fadeInUp 600ms ease-out;
+
+        &-icon {
+            font-size: 72px;
+            color: var(--odfe-accent);
+            margin-bottom: var(--odfe-space-4);
+            animation: odfe-float 2s ease-in-out infinite;
+        }
+
+        &-text {
+            font-family: var(--odfe-font-heading);
+            font-size: var(--odfe-text-3xl);
+            font-weight: 800;
+        }
+
+        &-sub {
+            color: var(--odfe-text-secondary);
+            font-size: var(--odfe-text-lg);
+            margin-top: var(--odfe-space-2);
+        }
+    }
+}

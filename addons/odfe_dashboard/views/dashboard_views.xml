@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dashboard_config_form" model="ir.ui.view">
+        <field name="name">odfe.dashboard.config.form</field>
+        <field name="model">odfe.dashboard.config</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard Configuration">
+                <group>
+                    <field name="date_from" />
+                    <field name="date_to" />
+                    <field name="period" />
+                    <field name="show_trend" />
+                    <field name="compare_period" />
+                </group>
+                <footer>
+                    <button name="action_load_dashboard" string="Load Dashboard" type="object" class="btn-primary" />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dashboard_sales_form" model="ir.ui.view">
+        <field name="name">odfe.dashboard.sales.form</field>
+        <field name="model">odfe.dashboard.sales</field>
+        <field name="arch" type="xml">
+            <form string="Sales Dashboard">
+                <div class="o_dashboard">
+                    <div class="o_dashboard_kpis row">
+                        <div class="col-lg-3 col-md-6 col-sm-12">
+                            <div class="o_kpi_card">
+                                <div class="o_kpi_label">Total Revenue</div>
+                                <div class="o_kpi_value" id="kpi_revenue">
+                                    <t t-esc="context.get('total_revenue', 0)" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12">
+                            <div class="o_kpi_card">
+                                <div class="o_kpi_label">Total Orders</div>
+                                <div class="o_kpi_value" id="kpi_orders">
+                                    <t t-esc="context.get('total_orders', 0)" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12">
+                            <div class="o_kpi_card">
+                                <div class="o_kpi_label">Avg Order Value</div>
+                                <div class="o_kpi_value" id="kpi_avg">
+                                    <t t-esc="context.get('avg_order_value', 0)" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12">
+                            <div class="o_kpi_card">
+                                <div class="o_kpi_label">Customers</div>
+                                <div class="o_kpi_value" id="kpi_customers">
+                                    <t t-esc="context.get('total_customers', 0)" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dashboard_report_form" model="ir.ui.view">
+        <field name="name">odfe.dashboard.report.form</field>
+        <field name="model">odfe.dashboard.report</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard Report">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="report_type" />
+                        <field name="date_from" />
+                        <field name="date_to" />
+                        <field name="generated_by" readonly="1" />
+                        <field name="generated_at" readonly="1" />
+                    </group>
+                    <group string="Report Actions">
+                        <button name="generate" string="Generate Report" type="object" class="btn-primary" />
+                    </group>
+                    <group string="Report Data" attrs="{'invisible': [('report_data', '=', False)]}">
+                        <field name="report_data" readonly="1" nolabel="1" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dashboard_report_tree" model="ir.ui.view">
+        <field name="name">odfe.dashboard.report.tree</field>
+        <field name="model">odfe.dashboard.report</field>
+        <field name="arch" type="xml">
+            <tree string="Dashboard Reports">
+                <field name="name" />
+                <field name="report_type" />
+                <field name="date_from" />
+                <field name="date_to" />
+                <field name="generated_by" />
+                <field name="generated_at" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dashboard_analytics_form" model="ir.ui.view">
+        <field name="name">odfe.dashboard.analytics.form</field>
+        <field name="model">odfe.analytics</field>
+        <field name="arch" type="xml">
+            <form string="Daily Analytics">
+                <sheet>
+                    <group>
+                        <field name="date" />
+                        <field name="revenue" />
+                        <field name="orders_count" />
+                        <field name="avg_order" />
+                        <field name="customers_count" />
+                        <field name="top_product_id" />
+                        <field name="revenue_growth" widget="percentage" />
+                        <field name="order_growth" widget="percentage" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dashboard_analytics_tree" model="ir.ui.view">
+        <field name="name">odfe.dashboard.analytics.tree</field>
+        <field name="model">odfe.analytics</field>
+        <field name="arch" type="xml">
+            <tree string="Daily Analytics">
+                <field name="date" />
+                <field name="revenue" />
+                <field name="orders_count" />
+                <field name="avg_order" />
+                <field name="revenue_growth" widget="percentage" />
+                <field name="order_growth" widget="percentage" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dashboard_analytics_graph" model="ir.ui.view">
+        <field name="name">odfe.dashboard.analytics.graph</field>
+        <field name="model">odfe.analytics</field>
+        <field name="arch" type="xml">
+            <graph string="Revenue Trend" type="line">
+                <field name="date" interval="day" />
+                <field name="revenue" type="measure" />
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_dashboard_config" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">odfe.dashboard.config</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_dashboard_report" model="ir.actions.act_window">
+        <field name="name">Dashboard Reports</field>
+        <field name="res_model">odfe.dashboard.report</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_dashboard_analytics" model="ir.actions.act_window">
+        <field name="name">Daily Analytics</field>
+        <field name="res_model">odfe.analytics</field>
+        <field name="view_mode">tree,form,graph</field>
+    </record>
+</odoo>

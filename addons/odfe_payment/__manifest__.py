@@ -1,0 +1,21 @@
+{
+    'name': 'ODFE Payment',
+    'version': '19.0.1.0.0',
+    'category': 'Restaurant/POS',
+    'summary': 'Payment methods and processing for ODFE Restaurant POS',
+    'description': 'Handles cash, card, UPI, and QR payment methods for the ODFE POS system.',
+    'author': 'ODFE',
+    'website': 'https://odfe.app',
+    'license': 'LGPL-3',
+    'depends': ['base', 'odfe_base', 'account'],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/payment_method_views.xml',
+        'views/payment_views.xml',
+        'views/menu_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+    'sequence': 10,
+}

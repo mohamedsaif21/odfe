@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_odfe_payment_method_admin,odfe.payment.method admin,model_odfe_payment_method,base.group_system,1,1,1,1
+access_odfe_payment_method_manager,odfe.payment.method manager,model_odfe_payment_method,base.group_user,1,0,0,0
+access_odfe_payment_admin,odfe.payment admin,model_odfe_payment,base.group_system,1,1,1,1
+access_odfe_payment_manager,odfe.payment manager,model_odfe_payment,base.group_user,1,1,1,0
+access_odfe_payment_cash_admin,odfe.payment.cash admin,model_odfe_payment_cash,base.group_system,1,1,1,1
+access_odfe_payment_cash_manager,odfe.payment.cash manager,model_odfe_payment_cash,base.group_user,1,1,1,0
+access_odfe_payment_card_admin,odfe.payment.card admin,model_odfe_payment_card,base.group_system,1,1,1,1
+access_odfe_payment_card_manager,odfe.payment.card manager,model_odfe_payment_card,base.group_user,1,1,1,0
+access_odfe_payment_upi_admin,odfe.payment.upi admin,model_odfe_payment_upi,base.group_system,1,1,1,1
+access_odfe_payment_upi_manager,odfe.payment.upi manager,model_odfe_payment_upi,base.group_user,1,1,1,0
+access_odfe_payment_qr_generator_admin,odfe.payment.qr.generator admin,model_odfe_payment_qr_generator,base.group_system,1,1,1,1
+access_odfe_payment_qr_generator_manager,odfe.payment.qr.generator manager,model_odfe_payment_qr_generator,base.group_user,1,1,1,0
+access_odfe_payment_qr_wizard_admin,odfe.payment.qr.wizard admin,model_odfe_payment_qr_wizard,base.group_system,1,1,1,1
+access_odfe_payment_qr_wizard_manager,odfe.payment.qr.wizard manager,model_odfe_payment_qr_wizard,base.group_user,1,1,1,0

@@ -1,0 +1,26 @@
+meta {
+  name: Signup
+  type: item
+  description: Register a new admin user account (Admin only)
+}
+
+request {
+  method: POST
+  url: {{base_url}}/api/auth/signup
+  header Content-Type: application/json
+  header Authorization: Bearer {{auth_token}}
+  body:json {
+    "name": "Admin User",
+    "email": "admin@example.com",
+    "password": "Admin@123"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  if (res.status === 201) {
+    bru.setVar("auth_token", data.data.accessToken);
+    bru.setVar("refresh_token", data.data.refreshToken);
+    bru.setVar("user_id", data.data.id);
+  }
+}

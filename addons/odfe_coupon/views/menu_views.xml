@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_odfe_coupon_root"
+              name="Coupons &amp; Promotions"
+              parent="odfe_base.menu_odfe_root"
+              sequence="50"/>
+
+    <menuitem id="menu_odfe_coupon"
+              name="Coupons"
+              parent="menu_odfe_coupon_root"
+              action="action_odfe_coupon"
+              sequence="10"/>
+
+    <menuitem id="menu_odfe_promotion"
+              name="Promotions"
+              parent="menu_odfe_coupon_root"
+              action="action_odfe_promotion"
+              sequence="20"/>
+
+    <record id="action_odfe_coupon" model="ir.actions.act_window">
+        <field name="name">Coupons</field>
+        <field name="res_model">odfe.coupon</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_odfe_coupon_search"/>
+        <field name="help" type="html">
+            <p>Manage discount coupons for the restaurant POS.</p>
+            <p>Create percentage-based, fixed-amount, or free-shipping coupons with usage limits, date ranges, and optional customer restrictions.</p>
+        </field>
+    </record>
+
+    <record id="action_odfe_promotion" model="ir.actions.act_window">
+        <field name="name">Promotions</field>
+        <field name="res_model">odfe.promotion</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>Manage promotions such as Buy X Get Y, percentage off, fixed amount off, and bundles.</p>
+        </field>
+    </record>
+</odoo>

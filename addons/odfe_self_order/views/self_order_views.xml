@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_self_order_tree" model="ir.ui.view">
+            <field name="name">odfe.self.order.tree</field>
+            <field name="model">odfe.self.order</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" string="Order"/>
+                    <field name="table_id" string="Table"/>
+                    <field name="customer_id" string="Customer"/>
+                    <field name="state" string="State"/>
+                    <field name="total" string="Total" sum="Total"/>
+                    <field name="ordered_at" string="Ordered"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_self_order_form" model="ir.ui.view">
+            <field name="name">odfe.self.order.form</field>
+            <field name="model">odfe.self.order</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_submit" string="Submit" type="object" states="draft" class="btn-primary"/>
+                        <button name="action_preparing" string="Preparing" type="object" states="confirmed"/>
+                        <button name="action_ready" string="Ready" type="object" states="preparing"/>
+                        <button name="action_delivered" string="Delivered" type="object" states="ready" class="btn-success"/>
+                        <button name="action_cancel" string="Cancel" type="object" states="draft,confirmed,preparing,ready" class="btn-secondary"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="table_id"/>
+                                <field name="customer_id"/>
+                                <field name="token"/>
+                                <field name="session_id"/>
+                            </group>
+                            <group>
+                                <field name="ordered_at"/>
+                                <field name="submitted_at"/>
+                                <field name="pos_order_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="lines" string="Order Lines">
+                                <field name="line_ids">
+                                    <tree editable="bottom">
+                                        <field name="product_id"/>
+                                        <field name="quantity"/>
+                                        <field name="price_unit"/>
+                                        <field name="price_subtotal"/>
+                                        <field name="tax_amount"/>
+                                        <field name="subtotal"/>
+                                        <field name="note"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="totals" string="Totals">
+                                <group>
+                                    <field name="subtotal"/>
+                                    <field name="tax_amount"/>
+                                    <field name="discount_total"/>
+                                    <field name="total"/>
+                                </group>
+                            </page>
+                            <page name="notes" string="Notes">
+                                <field name="note"/>
+                                <field name="special_instructions"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_self_order_search" model="ir.ui.view">
+            <field name="name">odfe.self.order.search</field>
+            <field name="model">odfe.self.order</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="table_id"/>
+                    <field name="customer_id"/>
+                    <field name="state"/>
+                    <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
+                    <filter name="confirmed" string="Confirmed" domain="[('state','=','confirmed')]"/>
+                    <filter name="preparing" string="Preparing" domain="[('state','=','preparing')]"/>
+                    <filter name="ready" string="Ready" domain="[('state','=','ready')]"/>
+                    <separator/>
+                    <filter name="today" string="Today" date="ordered_at"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="view_self_order_qr_tree" model="ir.ui.view">
+            <field name="name">odfe.self.order.qr.table.tree</field>
+            <field name="model">odfe.self.order.qr.table</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="table_id"/>
+                    <field name="qr_token"/>
+                    <field name="generated_at"/>
+                    <field name="active"/>
+                    <button name="action_regenerate_qr" string="Regenerate QR" type="object"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_self_order_qr_form" model="ir.ui.view">
+            <field name="name">odfe.self.order.qr.table.form</field>
+            <field name="model">odfe.self.order.qr.table</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="table_id"/></h1>
+                        </div>
+                        <group>
+                            <field name="table_id"/>
+                            <field name="qr_code" widget="image"/>
+                            <field name="qr_token"/>
+                            <field name="active"/>
+                            <field name="generated_at"/>
+                        </group>
+                        <footer>
+                            <button name="action_regenerate_qr" string="Regenerate QR Code" type="object" class="btn-primary"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_self_order_token_tree" model="ir.ui.view">
+            <field name="name">odfe.self.order.token.tree</field>
+            <field name="model">odfe.self.order.token</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="token"/>
+                    <field name="table_id"/>
+                    <field name="session_id"/>
+                    <field name="created_at"/>
+                    <field name="expires_at"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_self_order_token_form" model="ir.ui.view">
+            <field name="name">odfe.self.order.token.form</field>
+            <field name="model">odfe.self.order.token</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="token"/>
+                            <field name="table_id"/>
+                            <field name="customer_id"/>
+                            <field name="session_id"/>
+                            <field name="created_at"/>
+                            <field name="expires_at"/>
+                            <field name="active"/>
+                        </group>
+                        <footer>
+                            <button name="action_expire" string="Expire Token" type="object" class="btn-danger"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_self_order" model="ir.actions.act_window">
+            <field name="name">Self Orders</field>
+            <field name="res_model">odfe.self.order</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_self_order_search"/>
+            <field name="help" type="html">
+                <p>Manage self-service orders placed by customers via QR code.</p>
+            </field>
+        </record>
+
+        <record id="action_self_order_qr" model="ir.actions.act_window">
+            <field name="name">QR Tables</field>
+            <field name="res_model">odfe.self.order.qr.table</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="action_self_order_token" model="ir.actions.act_window">
+            <field name="name">Session Tokens</field>
+            <field name="res_model">odfe.self.order.token</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="menu_self_order_root" name="Self Order"
+            parent="odfe_base.menu_odfe_root" sequence="30"/>
+
+        <menuitem id="menu_self_order_orders" name="Orders"
+            parent="menu_self_order_root" action="action_self_order" sequence="10"/>
+
+        <menuitem id="menu_self_order_qr" name="QR Codes"
+            parent="menu_self_order_root" action="action_self_order_qr" sequence="20"/>
+
+        <menuitem id="menu_self_order_tokens" name="Session Tokens"
+            parent="menu_self_order_root" action="action_self_order_token" sequence="30"/>
+
+        <record id="seq_odfe_self_order" model="ir.sequence">
+            <field name="name">Self Order Reference</field>
+            <field name="code">odfe.self.order</field>
+            <field name="prefix">SO/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

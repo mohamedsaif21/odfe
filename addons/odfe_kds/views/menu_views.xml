@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_odfe_kds_root" name="KDS" sequence="50"
+        parent="odfe_base.menu_odfe_root"/>
+
+    <menuitem id="menu_odfe_kds_dashboard" name="KDS Dashboard" sequence="10"
+        parent="menu_odfe_kds_root"
+        action="action_odfe_kds_dashboard"/>
+
+    <menuitem id="menu_odfe_kds_orders" name="Kitchen Orders" sequence="20"
+        parent="menu_odfe_kds_root"
+        action="action_kitchen_order"/>
+
+    <menuitem id="menu_odfe_kds_status_log" name="Status Log" sequence="30"
+        parent="menu_odfe_kds_root"
+        action="action_kitchen_status"/>
+
+    <record id="action_odfe_kds_dashboard" model="ir.actions.act_url">
+        <field name="name">KDS Dashboard</field>
+        <field name="url">/kds/dashboard</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

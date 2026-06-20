@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="floor_main" model="odfe.floor">
+    <field name="name">Main Floor</field>
+    <field name="sequence">10</field>
+    <field name="code">MAIN</field>
+    <field name="color">3</field>
+    <field name="active">True</field>
+  </record>
+
+  <record id="table_main_1" model="odfe.table">
+    <field name="name">T1</field>
+    <field name="floor_id" ref="floor_main"/>
+    <field name="capacity">2</field>
+    <field name="shape">circle</field>
+    <field name="pos_x">50</field>
+    <field name="pos_y">50</field>
+    <field name="width">60</field>
+    <field name="height">60</field>
+    <field name="state">free</field>
+  </record>
+
+  <record id="table_main_2" model="odfe.table">
+    <field name="name">T2</field>
+    <field name="floor_id" ref="floor_main"/>
+    <field name="capacity">2</field>
+    <field name="shape">circle</field>
+    <field name="pos_x">200</field>
+    <field name="pos_y">50</field>
+    <field name="width">60</field>
+    <field name="height">60</field>
+    <field name="state">free</field>
+  </record>
+
+  <record id="table_main_3" model="odfe.table">
+    <field name="name">T3</field>
+    <field name="floor_id" ref="floor_main"/>
+    <field name="capacity">4</field>
+    <field name="shape">rectangle</field>
+    <field name="pos_x">50</field>
+    <field name="pos_y">200</field>
+    <field name="width">80</field>
+    <field name="height">60</field>
+    <field name="state">free</field>
+  </record>
+
+  <record id="table_main_4" model="odfe.table">
+    <field name="name">T4</field>
+    <field name="floor_id" ref="floor_main"/>
+    <field name="capacity">4</field>
+    <field name="shape">rectangle</field>
+    <field name="pos_x">200</field>
+    <field name="pos_y">200</field>
+    <field name="width">80</field>
+    <field name="height">60</field>
+    <field name="state">free</field>
+  </record>
+
+  <record id="table_main_5" model="odfe.table">
+    <field name="name">T5</field>
+    <field name="floor_id" ref="floor_main"/>
+    <field name="capacity">4</field>
+    <field name="shape">square</field>
+    <field name="pos_x">50</field>
+    <field name="pos_y">350</field>
+    <field name="width">70</field>
+    <field name="height">70</field>
+    <field name="state">free</field>
+  </record>
+
+  <record id="table_main_6" model="odfe.table">
+    <field name="name">T6</field>
+    <field name="floor_id" ref="floor_main"/>
+    <field name="capacity">4</field>
+    <field name="shape">square</field>
+    <field name="pos_x">200</field>
+    <field name="pos_y">350</field>
+    <field name="width">70</field>
+    <field name="height">70</field>
+    <field name="state">free</field>
+  </record>
+
+  <record id="table_main_7" model="odfe.table">
+    <field name="name">T7</field>
+    <field name="floor_id" ref="floor_main"/>
+    <field name="capacity">6</field>
+    <field name="shape">rectangle</field>
+    <field name="pos_x">50</field>
+    <field name="pos_y">500</field>
+    <field name="width">120</field>
+    <field name="height">70</field>
+    <field name="state">free</field>
+  </record>
+
+  <record id="table_main_8" model="odfe.table">
+    <field name="name">T8</field>
+    <field name="floor_id" ref="floor_main"/>
+    <field name="capacity">6</field>
+    <field name="shape">rectangle</field>
+    <field name="pos_x">220</field>
+    <field name="pos_y">500</field>
+    <field name="width">120</field>
+    <field name="height">70</field>
+    <field name="state">free</field>
+  </record>
+</odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_odfe_customer_tag,odfe.customer.tag,model_odfe_customer_tag,base.group_user,1,1,1,1
+access_odfe_customer,odfe.customer,model_odfe_customer,base.group_user,1,1,1,1
+access_odfe_loyalty_program,odfe.loyalty.program,model_odfe_loyalty_program,base.group_user,1,1,1,1
+access_odfe_customer_loyalty,odfe.customer.loyalty,model_odfe_customer_loyalty,base.group_user,1,1,1,1

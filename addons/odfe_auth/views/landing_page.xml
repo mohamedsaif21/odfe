@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="landing_page" name="ODFE Landing Page">
+        <t t-call="web.html_container">
+            <div class="odfe-landing">
+
+                <div class="odfe-landing-content">
+
+                    <!-- ═══════════════ Navigation Bar ═══════════════ -->
+                    <nav class="odfe-landing-nav" id="odfe-nav">
+                        <div class="odfe-landing-nav__logo">
+                            <div class="odfe-landing-nav__logo-mark">O</div>
+                            <span class="odfe-landing-nav__logo-text">ODFE</span>
+                        </div>
+                        <div class="odfe-landing-nav__links">
+                            <a href="#features">Features</a>
+                            <a href="#pricing">Pricing</a>
+                            <a href="#faq">FAQ</a>
+                        </div>
+                        <div class="odfe-landing-nav__cta">
+                            <a href="/web/login" class="odfe-btn odfe-btn--ghost">Login</a>
+                            <a href="/web/login" class="odfe-btn odfe-btn--primary">Get Started</a>
+                        </div>
+                    </nav>
+
+                    <!-- ═══════════════ Hero Section ═══════════════ -->
+                    <section class="odfe-hero">
+                        <div class="odfe-hero__badge">
+                            <span>&#9733;</span> Trusted by 500+ cafes across India
+                        </div>
+                        <h1 class="odfe-hero__title">
+                            The Premium POS Built for
+                            <span class="highlight">Modern Cafes</span>
+                        </h1>
+                        <p class="odfe-hero__subtitle">
+                            ODFE is purpose-built for premium cafe chains who demand speed, elegance,
+                            and powerful analytics. From single outlets to multi-location franchises.
+                        </p>
+                        <div class="odfe-hero__actions">
+                            <a href="/web/login" class="odfe-btn odfe-btn--primary">Start Free Trial</a>
+                            <a href="#features" class="odfe-btn odfe-btn--outline">Watch Demo</a>
+                        </div>
+                        <div class="odfe-hero__preview">
+                            <div class="odfe-hero__preview-frame">
+                                <div style="background: linear-gradient(135deg, #132D35, #1a3a44); border-radius: 16px; padding: 40px; text-align: center; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;">
+                                    <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
+                                        <div style="width: 120px; height: 80px; background: rgba(50,210,107,0.1); border: 1px solid rgba(50,210,107,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #32D26B; font-size: 14px; font-weight: 600;">Quick Serve</div>
+                                        <div style="width: 120px; height: 80px; background: rgba(214,167,79,0.1); border: 1px solid rgba(214,167,79,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #D6A74F; font-size: 14px; font-weight: 600;">Dine-In</div>
+                                        <div style="width: 120px; height: 80px; background: rgba(122,82,48,0.1); border: 1px solid rgba(122,82,48,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #7A5230; font-size: 14px; font-weight: 600;">Delivery</div>
+                                    </div>
+                                    <div style="color: var(--odfe-text-secondary); font-size: 13px; opacity: 0.6;">POS Dashboard Preview</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════════ Trusted By ═══════════════ -->
+                    <section class="odfe-trusted">
+                        <p class="odfe-trusted__label">Trusted by Leading Cafe Brands</p>
+                        <div class="odfe-trusted__logos">
+                            <span>Blue Tokai</span>
+                            <span>Third Wave</span>
+                            <span>Slay Coffee</span>
+                            <span>Starbucks</span>
+                            <span>Chaayos</span>
+                            <span>CCD</span>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════════ Features Grid ═══════════════ -->
+                    <section class="odfe-features" id="features">
+                        <div class="odfe-features__header">
+                            <p class="odfe-features__label">Features</p>
+                            <h2 class="odfe-features__title">Everything Your Cafe Needs</h2>
+                            <p class="odfe-features__subtitle">
+                                A complete suite of tools designed for the modern cafe experience.
+                            </p>
+                        </div>
+                        <div class="odfe-features__grid">
+                            <div class="odfe-feature-card">
+                                <div class="odfe-feature-card__icon" style="background: rgba(50,210,107,0.1); color: #32D26B;">&#9889;</div>
+                                <h3 class="odfe-feature-card__title">Lightning Fast POS</h3>
+                                <p class="odfe-feature-card__desc">
+                                    Process orders in under 3 seconds. Sub-200ms tap response ensures
+                                    zero delays during peak rush hours, even on low-end tablets.
+                                </p>
+                            </div>
+                            <div class="odfe-feature-card">
+                                <div class="odfe-feature-card__icon" style="background: rgba(214,167,79,0.1); color: #D6A74F;">&#128230;</div>
+                                <h3 class="odfe-feature-card__title">Kitchen Display System</h3>
+                                <p class="odfe-feature-card__desc">
+                                    Real-time order routing to kitchen screens. Color-coded priority
+                                    levels, prep timers, and automatic bump-to-ready notifications.
+                                </p>
+                            </div>
+                            <div class="odfe-feature-card">
+                                <div class="odfe-feature-card__icon" style="background: rgba(122,82,48,0.1); color: #7A5230;">&#128247;</div>
+                                <h3 class="odfe-feature-card__title">Self-Order QR Menu</h3>
+                                <p class="odfe-feature-card__desc">
+                                    Customers scan, browse, and order from their phones. Reduces
+                                    wait staff dependency by 60% and increases average order value.
+                                </p>
+                            </div>
+                            <div class="odfe-feature-card">
+                                <div class="odfe-feature-card__icon" style="background: rgba(50,210,107,0.1); color: #32D26B;">&#128200;</div>
+                                <h3 class="odfe-feature-card__title">Real-time Analytics</h3>
+                                <p class="odfe-feature-card__desc">
+                                    Live dashboards with hourly sales, peak hours, best sellers, and
+                                    staff performance. Export reports for accounting in one click.
+                                </p>
+                            </div>
+                            <div class="odfe-feature-card">
+                                <div class="odfe-feature-card__icon" style="background: rgba(214,167,79,0.1); color: #D6A74F;">&#128205;</div>
+                                <h3 class="odfe-feature-card__title">Table Management</h3>
+                                <p class="odfe-feature-card__desc">
+                                    Interactive floor plan editor. Drag-and-drop table placement,
+                                    real-time occupancy tracking, and automated reservation sync.
+                                </p>
+                            </div>
+                            <div class="odfe-feature-card">
+                                <div class="odfe-feature-card__icon" style="background: rgba(122,82,48,0.1); color: #7A5230;">&#10084;</div>
+                                <h3 class="odfe-feature-card__title">Customer Loyalty</h3>
+                                <p class="odfe-feature-card__desc">
+                                    Built-in points, stamps, and tier rewards. Automated birthday
+                                    offers, reorder nudges, and WhatsApp receipt marketing.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════════ Pricing ═══════════════ -->
+                    <section class="odfe-pricing" id="pricing">
+                        <div class="odfe-pricing__header">
+                            <p class="odfe-features__label">Pricing</p>
+                            <h2 class="odfe-features__title">Simple, Transparent Pricing</h2>
+                            <p class="odfe-features__subtitle">
+                                No hidden charges. No long-term contracts. Cancel anytime.
+                            </p>
+                        </div>
+                        <div class="odfe-pricing__grid">
+                            <div class="odfe-price-card">
+                                <h3 class="odfe-price-card__name">Starter</h3>
+                                <div class="odfe-price-card__price">&#8377;999<span>/mo</span></div>
+                                <ul class="odfe-price-card__features">
+                                    <li>1 POS terminal</li>
+                                    <li>Basic order management</li>
+                                    <li>Daily sales reports</li>
+                                    <li>Email support</li>
+                                    <li>Up to 500 orders/day</li>
+                                </ul>
+                                <a href="/web/login" class="odfe-btn odfe-btn--outline odfe-btn--full">Get Started</a>
+                            </div>
+                            <div class="odfe-price-card odfe-price-card--popular">
+                                <h3 class="odfe-price-card__name">Professional</h3>
+                                <div class="odfe-price-card__price">&#8377;2,499<span>/mo</span></div>
+                                <ul class="odfe-price-card__features">
+                                    <li>Up to 5 POS terminals</li>
+                                    <li>Kitchen Display System</li>
+                                    <li>Self-order QR menu</li>
+                                    <li>Real-time analytics dashboard</li>
+                                    <li>Table management</li>
+                                    <li>Customer loyalty program</li>
+                                    <li>Priority phone support</li>
+                                </ul>
+                                <a href="/web/login" class="odfe-btn odfe-btn--primary odfe-btn--full">Get Started</a>
+                            </div>
+                            <div class="odfe-price-card">
+                                <h3 class="odfe-price-card__name">Enterprise</h3>
+                                <div class="odfe-price-card__price">&#8377;4,999<span>/mo</span></div>
+                                <ul class="odfe-price-card__features">
+                                    <li>Unlimited terminals</li>
+                                    <li>Multi-location management</li>
+                                    <li>Custom integrations (Zomato, Swiggy)</li>
+                                    <li>Advanced inventory &amp; recipe costing</li>
+                                    <li>Whitelabel self-order app</li>
+                                    <li>Dedicated account manager</li>
+                                    <li>SLA guarantee &amp; on-site setup</li>
+                                </ul>
+                                <a href="/web/login" class="odfe-btn odfe-btn--outline odfe-btn--full">Contact Sales</a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════════ Testimonials ═══════════════ -->
+                    <section class="odfe-testimonials">
+                        <div class="odfe-features__header" style="margin-bottom: var(--odfe-space-16);">
+                            <p class="odfe-features__label">Testimonials</p>
+                            <h2 class="odfe-features__title">Loved by Cafe Owners</h2>
+                        </div>
+                        <div class="odfe-testimonials__grid">
+                            <div class="odfe-testimonial">
+                                <p class="odfe-testimonial__text">
+                                    ODFE cut our average order time from 4 minutes to under 90 seconds.
+                                    During the morning rush we serve 200+ orders in 2 hours without a
+                                    single bottleneck. The kitchen display alone was worth the switch.
+                                </p>
+                                <div class="odfe-testimonial__author">
+                                    <div>
+                                        <p class="odfe-testimonial__name">Rohan Malhotra</p>
+                                        <p class="odfe-testimonial__role">Owner, Blue Tokai Koramangala</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="odfe-testimonial">
+                                <p class="odfe-testimonial__text">
+                                    We switched from a legacy POS and the difference is night and day.
+                                    The QR ordering boosted our average ticket size by 35% because
+                                    customers browse longer without feeling rushed by staff.
+                                </p>
+                                <div class="odfe-testimonial__author">
+                                    <div>
+                                        <p class="odfe-testimonial__name">Priya Sharma</p>
+                                        <p class="odfe-testimonial__role">Founder, Slay Coffee Mumbai</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="odfe-testimonial">
+                                <p class="odfe-testimonial__text">
+                                    Managing 12 outlets used to be a nightmare of spreadsheets. ODFE
+                                    gives me a single dashboard for all locations. I can see live sales,
+                                    inventory levels, and staff performance from my phone.
+                                </p>
+                                <div class="odfe-testimonial__author">
+                                    <div>
+                                        <p class="odfe-testimonial__name">Arjun Nair</p>
+                                        <p class="odfe-testimonial__role">Director, Chaayos Delhi NCR</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════════ FAQ ═══════════════ -->
+                    <section class="odfe-faq" id="faq">
+                        <div class="odfe-features__header" style="margin-bottom: var(--odfe-space-12);">
+                            <p class="odfe-features__label">FAQ</p>
+                            <h2 class="odfe-features__title">Frequently Asked Questions</h2>
+                        </div>
+                        <div class="odfe-faq__item">
+                            <div class="odfe-faq__question" aria-expanded="false" onclick="var a=this.getAttribute('aria-expanded')==='true'; this.setAttribute('aria-expanded',!a); this.nextElementSibling.classList.toggle('open');">
+                                <span>How long does it take to set up ODFE?</span>
+                                <span class="odfe-faq__question-icon">+</span>
+                            </div>
+                            <div class="odfe-faq__answer">
+                                Most cafes are live within 24 hours. Our onboarding team handles menu
+                                import, floor plan setup, and staff training via a 1-hour video call.
+                                Enterprise deployments with custom integrations take 3-5 business days.
+                            </div>
+                        </div>
+                        <div class="odfe-faq__item">
+                            <div class="odfe-faq__question" aria-expanded="false" onclick="var a=this.getAttribute('aria-expanded')==='true'; this.setAttribute('aria-expanded',!a); this.nextElementSibling.classList.toggle('open');">
+                                <span>Does ODFE work offline?</span>
+                                <span class="odfe-faq__question-icon">+</span>
+                            </div>
+                            <div class="odfe-faq__answer">
+                                Yes. ODFE runs fully offline on your local network. Orders, payments, and
+                                kitchen routing continue without internet. Data syncs automatically when
+                                connectivity is restored, so you never lose a transaction.
+                            </div>
+                        </div>
+                        <div class="odfe-faq__item">
+                            <div class="odfe-faq__question" aria-expanded="false" onclick="var a=this.getAttribute('aria-expanded')==='true'; this.setAttribute('aria-expanded',!a); this.nextElementSibling.classList.toggle('open');">
+                                <span>Can I integrate with Zomato and Swiggy?</span>
+                                <span class="odfe-faq__question-icon">+</span>
+                            </div>
+                            <div class="odfe-faq__answer">
+                                Absolutely. ODFE has native integrations with Zomato, Swiggy, and
+                                Magicpin. Aggregator orders appear directly on your POS and KDS with
+                                auto-acknowledgment. No tablet juggling needed.
+                            </div>
+                        </div>
+                        <div class="odfe-faq__item">
+                            <div class="odfe-faq__question" aria-expanded="false" onclick="var a=this.getAttribute('aria-expanded')==='true'; this.setAttribute('aria-expanded',!a); this.nextElementSibling.classList.toggle('open');">
+                                <span>Is there a free trial?</span>
+                                <span class="odfe-faq__question-icon">+</span>
+                            </div>
+                            <div class="odfe-faq__answer">
+                                Yes. Every plan includes a 14-day free trial with full access to all
+                                features. No credit card required. If you need more time to evaluate,
+                                just ask our team and we will extend it.
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════════ Footer ═══════════════ -->
+                    <footer class="odfe-footer">
+                        <div class="odfe-footer__grid">
+                            <div>
+                                <div class="odfe-landing-nav__logo" style="margin-bottom: 0;">
+                                    <div class="odfe-landing-nav__logo-mark">O</div>
+                                    <span class="odfe-landing-nav__logo-text">ODFE</span>
+                                </div>
+                                <p class="odfe-footer__brand-desc">
+                                    The premium point-of-sale platform built exclusively for modern
+                                    cafe chains. Speed, elegance, and intelligence in every transaction.
+                                </p>
+                            </div>
+                            <div>
+                                <h4 class="odfe-footer__col-title">Product</h4>
+                                <ul class="odfe-footer__links">
+                                    <li><a href="#features">Features</a></li>
+                                    <li><a href="#pricing">Pricing</a></li>
+                                    <li><a href="#">Integrations</a></li>
+                                    <li><a href="#">Changelog</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="odfe-footer__col-title">Company</h4>
+                                <ul class="odfe-footer__links">
+                                    <li><a href="#">About Us</a></li>
+                                    <li><a href="#">Blog</a></li>
+                                    <li><a href="#">Careers</a></li>
+                                    <li><a href="#">Contact</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="odfe-footer__col-title">Support</h4>
+                                <ul class="odfe-footer__links">
+                                    <li><a href="#">Help Center</a></li>
+                                    <li><a href="#">API Docs</a></li>
+                                    <li><a href="#">Status</a></li>
+                                    <li><a href="#">Privacy Policy</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="odfe-footer__bottom">
+                            <span>&#169; 2026 ODFE. All rights reserved.</span>
+                            <span>Made for cafe owners, by cafe lovers.</span>
+                        </div>
+                    </footer>
+
+                </div><!-- /.odfe-landing-content -->
+            </div><!-- /.odfe-landing -->
+
+            <script type="text/javascript">
+                document.addEventListener('DOMContentLoaded', function () {
+                    // ── Navbar scroll effect ──
+                    var nav = document.getElementById('odfe-nav');
+                    if (nav) {
+                        window.addEventListener('scroll', function () {
+                            if (window.scrollY > 50) {
+                                nav.classList.add('scrolled');
+                            } else {
+                                nav.classList.remove('scrolled');
+                            }
+                        });
+                    }
+
+                    // ── Smooth scroll for anchor links ──
+                    document.querySelectorAll('a[href^="#"]').forEach(function (link) {
+                        link.addEventListener('click', function (e) {
+                            var id = this.getAttribute('href');
+                            if (id === '#') return;
+                            var target = document.querySelector(id);
+                            if (target) {
+                                e.preventDefault();
+                                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        });
+                    });
+                });
+            </script>
+        </t>
+    </template>
+</odoo>

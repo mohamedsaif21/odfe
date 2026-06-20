@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_odfe_booking_admin,odfe.booking.admin,model_odfe_booking,odfe_auth.odfe_group_admin,1,1,1,1
+access_odfe_booking_manager,odfe.booking.manager,model_odfe_booking,odfe_auth.odfe_group_manager,1,1,1,1
+access_odfe_booking_cashier,odfe.booking.cashier,model_odfe_booking,odfe_auth.odfe_group_cashier,1,1,1,1
+access_odfe_booking_waiter,odfe.booking.waiter,model_odfe_booking,odfe_auth.odfe_group_waiter,1,1,1,0
+access_odfe_reservation_admin,odfe.reservation.admin,model_odfe_reservation,odfe_auth.odfe_group_admin,1,1,1,1
+access_odfe_reservation_manager,odfe.reservation.manager,model_odfe_reservation,odfe_auth.odfe_group_manager,1,1,1,1
+access_odfe_reservation_cashier,odfe.reservation.cashier,model_odfe_reservation,odfe_auth.odfe_group_cashier,1,1,1,1
+access_odfe_reservation_waiter,odfe.reservation.waiter,model_odfe_reservation,odfe_auth.odfe_group_waiter,1,1,1,0
+access_odfe_schedule_admin,odfe.schedule.admin,model_odfe_schedule,odfe_auth.odfe_group_admin,1,1,1,1
+access_odfe_schedule_manager,odfe.schedule.manager,model_odfe_schedule,odfe_auth.odfe_group_manager,1,1,1,1
+access_odfe_schedule_cashier,odfe.schedule.cashier,model_odfe_schedule,odfe_auth.odfe_group_cashier,1,0,0,0
+access_odfe_schedule_waiter,odfe.schedule.waiter,model_odfe_schedule,odfe_auth.odfe_group_waiter,1,0,0,0
+access_odfe_booking_cancel_wizard_admin,odfe.booking.cancel.wizard.admin,model_odfe_booking_cancel_wizard,odfe_auth.odfe_group_admin,1,1,1,1
+access_odfe_booking_cancel_wizard_manager,odfe.booking.cancel.wizard.manager,model_odfe_booking_cancel_wizard,odfe_auth.odfe_group_manager,1,1,1,1
+access_odfe_booking_cancel_wizard_cashier,odfe.booking.cancel.wizard.cashier,model_odfe_booking_cancel_wizard,odfe_auth.odfe_group_cashier,1,1,1,1
+access_odfe_booking_cancel_wizard_waiter,odfe.booking.cancel.wizard.waiter,model_odfe_booking_cancel_wizard,odfe_auth.odfe_group_waiter,1,1,1,0

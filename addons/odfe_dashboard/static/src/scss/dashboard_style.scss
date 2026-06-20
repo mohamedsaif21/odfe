@@ -1,0 +1,452 @@
+// ============================================================
+// ODFE — Dashboard Styles
+// Premium Analytics Dashboard with Glass Cards
+// ============================================================
+
+@import '../../odfe_base/static/src/scss/variables';
+@import '../../odfe_base/static/src/scss/mixins';
+@import '../../odfe_base/static/src/scss/animations';
+
+// ── Dashboard Grid ────────────────────────────────────────────
+.odfe-dashboard {
+    padding: var(--odfe-space-8);
+    animation: odfe-fadeIn 280ms ease-out;
+
+    &__header {
+        @include flex-between;
+        margin-bottom: var(--odfe-space-8);
+        flex-wrap: wrap;
+        gap: var(--odfe-space-4);
+    }
+
+    &__greeting {
+        h1 {
+            font-size: var(--odfe-text-3xl);
+            font-weight: 800;
+            margin-bottom: var(--odfe-space-1);
+
+            .wave { display: inline-block; animation: odfe-float 2s ease-in-out infinite; }
+        }
+
+        p {
+            font-size: var(--odfe-text-base);
+            color: var(--odfe-text-secondary);
+        }
+    }
+
+    &__date-filter {
+        display: flex;
+        gap: var(--odfe-space-3);
+        align-items: center;
+    }
+}
+
+// ── KPI Row ───────────────────────────────────────────────────
+.odfe-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--odfe-space-6);
+    margin-bottom: var(--odfe-space-8);
+
+    @include tablet { grid-template-columns: repeat(2, 1fr); }
+    @include mobile { grid-template-columns: 1fr; }
+}
+
+.odfe-kpi-card {
+    @include glass-card;
+    padding: var(--odfe-space-6);
+    position: relative;
+    overflow: hidden;
+
+    &__top {
+        @include flex-between;
+        margin-bottom: var(--odfe-space-4);
+    }
+
+    &__icon {
+        width: 52px; height: 52px;
+        border-radius: var(--odfe-radius-xl);
+        @include flex-center;
+        font-size: 24px;
+    }
+
+    &__icon--revenue {
+        background: var(--odfe-accent-light);
+        color: var(--odfe-accent);
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+    }
+
+    &__icon--orders {
+        background: var(--odfe-info-light);
+        color: var(--odfe-info);
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+    }
+
+    &__icon--customers {
+        background: var(--odfe-gold-light);
+        color: var(--odfe-gold);
+        box-shadow: 0 4px 12px rgba(200, 155, 60, 0.2);
+    }
+
+    &__icon--tables {
+        background: var(--odfe-caramel-light);
+        color: var(--odfe-caramel);
+        box-shadow: 0 4px 12px rgba(212, 163, 115, 0.2);
+    }
+
+    &__icon--kitchen {
+        background: var(--odfe-warning-light);
+        color: var(--odfe-warning);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+
+    &__trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 3px 10px;
+        border-radius: var(--odfe-radius-full);
+        font-size: var(--odfe-text-xs);
+        font-weight: 600;
+
+        &--up { background: var(--odfe-success-light); color: var(--odfe-success); }
+        &--down { background: var(--odfe-danger-light); color: var(--odfe-danger); }
+    }
+
+    &__label {
+        font-size: var(--odfe-text-sm);
+        color: var(--odfe-text-secondary);
+        font-weight: 500;
+        margin-bottom: var(--odfe-space-1);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    &__value {
+        @include mono-number;
+        font-size: var(--odfe-text-3xl);
+        font-weight: 700;
+        color: var(--odfe-text-primary);
+        line-height: 1.1;
+    }
+
+    &__subtitle {
+        font-size: var(--odfe-text-xs);
+        color: var(--odfe-text-tertiary);
+        margin-top: var(--odfe-space-1);
+    }
+
+    // Decorative corner glow
+    &::after {
+        content: '';
+        position: absolute;
+        top: -30px; right: -30px;
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0.12;
+    }
+
+    &--revenue::after { background: var(--odfe-accent); }
+    &--orders::after { background: var(--odfe-info); }
+    &--customers::after { background: var(--odfe-gold); }
+    &--tables::after { background: var(--odfe-caramel); }
+}
+
+// ── Chart Row ─────────────────────────────────────────────────
+.odfe-chart-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--odfe-space-6);
+    margin-bottom: var(--odfe-space-8);
+
+    @include tablet { grid-template-columns: 1fr; }
+}
+
+.odfe-chart-card {
+    @include glass-card-static;
+    padding: var(--odfe-space-6);
+
+    &__header {
+        @include flex-between;
+        margin-bottom: var(--odfe-space-6);
+    }
+
+    &__title {
+        font-size: var(--odfe-text-lg);
+        font-weight: 700;
+    }
+
+    &__body {
+        min-height: 260px;
+        position: relative;
+    }
+
+    // ApexCharts theme overrides
+    .apexcharts-canvas {
+        .apexcharts-tooltip {
+            @include glass(16px);
+            border: 1px solid var(--odfe-glass-border) !important;
+            border-radius: var(--odfe-radius-md) !important;
+            color: var(--odfe-text-primary) !important;
+            box-shadow: var(--odfe-glass-shadow) !important;
+        }
+
+        .apexcharts-gridline { stroke: rgba(255,255,255,0.04); }
+        .apexcharts-xaxis-label,
+        .apexcharts-yaxis-label {
+            fill: var(--odfe-text-tertiary);
+            font-family: var(--odfe-font-mono);
+            font-size: 11px;
+        }
+    }
+}
+
+// ── Popular Menu ──────────────────────────────────────────────
+.odfe-popular-menu {
+    @include glass-card-static;
+    padding: var(--odfe-space-6);
+
+    &__header {
+        @include flex-between;
+        margin-bottom: var(--odfe-space-5);
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--odfe-space-4);
+        padding: var(--odfe-space-3) 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+
+        &:last-child { border-bottom: none; }
+    }
+
+    &__rank {
+        @include mono-number;
+        width: 32px; height: 32px;
+        border-radius: var(--odfe-radius-md);
+        @include flex-center;
+        font-size: var(--odfe-text-xs);
+        font-weight: 700;
+        background: var(--odfe-glass-bg);
+        color: var(--odfe-text-secondary);
+        flex-shrink: 0;
+
+        &:nth-child(1) { background: var(--odfe-gold-light); color: var(--odfe-gold); }
+    }
+
+    &__image {
+        width: 48px; height: 48px;
+        border-radius: var(--odfe-radius-lg);
+        overflow: hidden;
+        flex-shrink: 0;
+        background: rgba(255,255,255,0.05);
+
+        img { width: 100%; height: 100%; object-fit: cover; }
+    }
+
+    &__info { flex: 1; }
+
+    &__name {
+        font-size: var(--odfe-text-sm);
+        font-weight: 600;
+    }
+
+    &__category {
+        font-size: var(--odfe-text-xs);
+        color: var(--odfe-text-tertiary);
+    }
+
+    &__sales {
+        @include mono-number;
+        font-size: var(--odfe-text-sm);
+        font-weight: 600;
+        color: var(--odfe-accent);
+    }
+}
+
+// ── Recent Orders ─────────────────────────────────────────────
+.odfe-recent-orders {
+    @include glass-card-static;
+    padding: var(--odfe-space-6);
+
+    &__header {
+        @include flex-between;
+        margin-bottom: var(--odfe-space-5);
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: var(--odfe-space-4);
+        padding: var(--odfe-space-3) 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        &:last-child { border-bottom: none; }
+    }
+
+    &__id {
+        @include mono-number;
+        font-size: var(--odfe-text-sm);
+        font-weight: 600;
+        color: var(--odfe-primary);
+    }
+
+    &__info { flex: 1; }
+
+    &__customer {
+        font-size: var(--odfe-text-sm);
+        font-weight: 500;
+    }
+
+    &__time {
+        font-size: var(--odfe-text-xs);
+        color: var(--odfe-text-tertiary);
+    }
+
+    &__amount {
+        @include mono-number;
+        font-weight: 600;
+        font-size: var(--odfe-text-sm);
+    }
+}
+
+// ── Activity Timeline ─────────────────────────────────────────
+.odfe-timeline {
+    @include glass-card-static;
+    padding: var(--odfe-space-6);
+
+    &__header {
+        margin-bottom: var(--odfe-space-5);
+    }
+
+    &__item {
+        display: flex;
+        gap: var(--odfe-space-4);
+        padding: var(--odfe-space-3) 0;
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 36px;
+            bottom: -12px;
+            width: 1px;
+            background: var(--odfe-glass-border);
+        }
+
+        &:last-child::before { display: none; }
+    }
+
+    &__dot {
+        width: 32px; height: 32px;
+        border-radius: var(--odfe-radius-full);
+        @include flex-center;
+        font-size: 14px;
+        flex-shrink: 0;
+        background: var(--odfe-glass-bg);
+        border: 1px solid var(--odfe-glass-border);
+    }
+
+    &__content { flex: 1; }
+
+    &__text {
+        font-size: var(--odfe-text-sm);
+        color: var(--odfe-text-secondary);
+    }
+
+    &__when {
+        font-size: var(--odfe-text-xs);
+        color: var(--odfe-text-muted);
+        margin-top: 2px;
+    }
+}
+
+// ── Second Row Panels ─────────────────────────────────────────
+.odfe-dashboard-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--odfe-space-6);
+    margin-bottom: var(--odfe-space-8);
+
+    @include tablet { grid-template-columns: 1fr; }
+}
+
+// ── Peak Hours Heatmap ────────────────────────────────────────
+.odfe-peak-hours {
+    @include glass-card-static;
+    padding: var(--odfe-space-6);
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 3px;
+    }
+
+    &__cell {
+        aspect-ratio: 1;
+        border-radius: var(--odfe-radius-sm);
+        position: relative;
+        cursor: pointer;
+        transition: all var(--odfe-transition-fast);
+
+        &:hover { transform: scale(1.15); z-index: 2; }
+
+        &--low { background: rgba(15, 118, 110, 0.1); }
+        &--medium { background: rgba(15, 118, 110, 0.3); }
+        &--high { background: rgba(15, 118, 110, 0.5); }
+        &--peak { background: rgba(34, 197, 94, 0.7); }
+    }
+
+    &__labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--odfe-space-2);
+        font-size: var(--odfe-text-xs);
+        color: var(--odfe-text-muted);
+    }
+}
+
+// ── Payment Breakdown ─────────────────────────────────────────
+.odfe-payment-breakdown {
+    @include glass-card-static;
+    padding: var(--odfe-space-6);
+
+    &__item {
+        @include flex-between;
+        padding: var(--odfe-space-3) 0;
+
+        &-label {
+            display: flex;
+            align-items: center;
+            gap: var(--odfe-space-3);
+            font-size: var(--odfe-text-sm);
+        }
+
+        &-dot {
+            width: 10px; height: 10px;
+            border-radius: var(--odfe-radius-full);
+        }
+
+        &-value {
+            @include mono-number;
+            font-weight: 600;
+            font-size: var(--odfe-text-sm);
+        }
+    }
+
+    &__bar {
+        height: 8px;
+        border-radius: var(--odfe-radius-full);
+        background: var(--odfe-glass-bg);
+        overflow: hidden;
+        margin-top: var(--odfe-space-4);
+        display: flex;
+
+        span {
+            height: 100%;
+            transition: width var(--odfe-transition-slow);
+        }
+    }
+}

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_odfe_product_uom_tree" model="ir.ui.view">
+    <field name="name">odfe.product.uom.tree</field>
+    <field name="model">odfe.product.uom</field>
+    <field name="arch" type="xml">
+      <tree decoration-success="active==True" decoration-muted="active==False">
+        <field name="name"/>
+        <field name="uom_type"/>
+        <field name="category_id_rel" string="UoM Category"/>
+        <field name="factor"/>
+        <field name="serving_size"/>
+        <field name="category" string="Applies To"/>
+        <field name="restaurant_specific" string="Restaurant Specific" widget="boolean_toggle"/>
+        <field name="active" string="Active" widget="boolean_toggle"/>
+        <field name="sequence" string="Seq"/>
+      </tree>
+    </field>
+  </record>
+
+  <record id="view_odfe_product_uom_form" model="ir.ui.view">
+    <field name="name">odfe.product.uom.form</field>
+    <field name="model">odfe.product.uom</field>
+    <field name="arch" type="xml">
+      <form>
+        <sheet>
+          <widget name="web_ribbon" text="Inactive" bg_color="bg-danger" invisible="active"/>
+          <div class="oe_title">
+            <label for="name"/>
+            <h1><field name="name"/></h1>
+          </div>
+          <group>
+            <group string="General">
+              <field name="uom_id" options="{'no_create': True}"/>
+              <field name="uom_type" readonly="1"/>
+              <field name="category_id_rel" string="UoM Category"/>
+              <field name="factor" readonly="1"/>
+              <field name="rounding" readonly="1"/>
+            </group>
+            <group string="ODFE Settings">
+              <field name="restaurant_specific"/>
+              <field name="serving_size"/>
+              <field name="category"/>
+              <field name="active"/>
+              <field name="sequence"/>
+            </group>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_odfe_product_uom" model="ir.actions.act_window">
+    <field name="name">Units of Measure</field>
+    <field name="res_model">odfe.product.uom</field>
+    <field name="view_mode">tree,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">Configure units of measure</p>
+      <p>Link UoM from the Odoo catalog and mark them for restaurant-specific use.</p>
+    </field>
+  </record>
+</odoo>

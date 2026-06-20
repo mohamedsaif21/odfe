@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data noupdate="0">
+    <!-- Admin: inherits base.group_system (full access) -->
+    <record id="odfe_group_admin" model="res.groups">
+      <field name="name">Admin</field>
+      <field name="category_id" ref="base.module_category_hidden"/>
+      <field name="implied_ids" eval="[(4, ref('base.group_system'))]"/>
+      <field name="comment">ODFE Admin – full system access.</field>
+    </record>
+
+    <!-- Manager: inherits base.group_user -->
+    <record id="odfe_group_manager" model="res.groups">
+      <field name="name">Manager</field>
+      <field name="category_id" ref="base.module_category_hidden"/>
+      <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+      <field name="comment">ODFE Manager – back-office and reporting.</field>
+    </record>
+
+    <!-- Cashier -->
+    <record id="odfe_group_cashier" model="res.groups">
+      <field name="name">Cashier</field>
+      <field name="category_id" ref="base.module_category_hidden"/>
+      <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+      <field name="comment">ODFE Cashier – POS terminal operations.</field>
+    </record>
+
+    <!-- Kitchen -->
+    <record id="odfe_group_kitchen" model="res.groups">
+      <field name="name">Kitchen</field>
+      <field name="category_id" ref="base.module_category_hidden"/>
+      <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+      <field name="comment">ODFE Kitchen – kitchen display and order tickets.</field>
+    </record>
+
+    <!-- Waiter -->
+    <record id="odfe_group_waiter" model="res.groups">
+      <field name="name">Waiter</field>
+      <field name="category_id" ref="base.module_category_hidden"/>
+      <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+      <field name="comment">ODFE Waiter – order taking and table service.</field>
+    </record>
+  </data>
+</odoo>

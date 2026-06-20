@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_odfe_reports_root"
+              name="Reports"
+              parent="odfe_base.menu_odfe_root"
+              sequence="50"/>
+
+    <menuitem id="menu_odfe_report_sales"
+              name="Sales Report"
+              parent="menu_odfe_reports_root"
+              action="action_odfe_report_sales"
+              sequence="10"/>
+
+    <menuitem id="menu_odfe_report_orders"
+              name="Orders Report"
+              parent="menu_odfe_reports_root"
+              action="action_odfe_report_orders"
+              sequence="20"/>
+
+    <menuitem id="menu_odfe_report_revenue"
+              name="Revenue Report"
+              parent="menu_odfe_reports_root"
+              action="action_odfe_report_revenue"
+              sequence="30"/>
+
+    <menuitem id="menu_odfe_report_products"
+              name="Products Report"
+              parent="menu_odfe_reports_root"
+              action="action_odfe_report_products"
+              sequence="40"/>
+
+    <menuitem id="menu_odfe_report_employees"
+              name="Employee Performance"
+              parent="menu_odfe_reports_root"
+              action="action_odfe_report_employees"
+              sequence="50"/>
+
+    <menuitem id="menu_odfe_report_sessions"
+              name="Session Report"
+              parent="menu_odfe_reports_root"
+              action="action_odfe_report_sessions"
+              sequence="60"/>
+</odoo>

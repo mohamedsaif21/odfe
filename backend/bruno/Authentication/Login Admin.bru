@@ -1,0 +1,25 @@
+meta {
+  name: Login Admin
+  type: item
+  description: Authenticate as admin user
+}
+
+request {
+  method: POST
+  url: {{base_url}}/api/auth/login
+  header Content-Type: application/json
+  body:json {
+    "email": "admin@example.com",
+    "password": "Admin@123"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  if (res.status === 200) {
+    bru.setVar("auth_token", data.data.accessToken);
+    bru.setVar("refresh_token", data.data.refreshToken);
+    bru.setVar("user_id", data.data.id);
+    bru.setVar("user_role", data.data.role);
+  }
+}

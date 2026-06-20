@@ -1,0 +1,22 @@
+meta {
+  name: Logout
+  type: item
+  description: Logout current session
+}
+
+request {
+  method: POST
+  url: {{base_url}}/api/auth/logout
+  header Content-Type: application/json
+  header Authorization: Bearer {{auth_token}}
+  body:json {
+    "refreshToken": "{{refresh_token}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("auth_token", "");
+    bru.setVar("refresh_token", "");
+  }
+}

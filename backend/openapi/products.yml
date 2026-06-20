@@ -1,0 +1,16 @@
+openapi: 3.0.3
+info:
+  title: ODFE Cafe POS - Products API
+  description: Product management endpoints for the ODFE Cafe POS platform
+  version: 1.0.0
+  contact:
+    name: ODFE Team
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+paths: {}
+
+components:
+  schemas: {}

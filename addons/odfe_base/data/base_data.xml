@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="odfe_config_default" model="odfe.config">
+            <field name="restaurant_name">My Restaurant</field>
+            <field name="tax_included">False</field>
+            <field name="print_receipt_auto">True</field>
+            <field name="enable_kds">True</field>
+            <field name="enable_self_order">False</field>
+            <field name="enable_customer_display">False</field>
+            <field name="enable_loyalty">False</field>
+            <field name="service_charge_percent">0.0</field>
+            <field name="discount_limit">50.0</field>
+        </record>
+    </data>
+</odoo>

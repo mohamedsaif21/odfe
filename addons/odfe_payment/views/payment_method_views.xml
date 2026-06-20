@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_odfe_payment_method_tree" model="ir.ui.view">
+        <field name="name">odfe.payment.method.tree</field>
+        <field name="model">odfe.payment.method</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="type"/>
+                <field name="is_default"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_odfe_payment_method_form" model="ir.ui.view">
+        <field name="name">odfe.payment.method.form</field>
+        <field name="model">odfe.payment.method</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object"
+                                class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_toggle"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="type"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="is_default"/>
+                            <field name="image" widget="image"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_odfe_payment_method_search" model="ir.ui.view">
+        <field name="name">odfe.payment.method.search</field>
+        <field name="model">odfe.payment.method</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="active" string="Active" domain="[('active','=',True)]"/>
+                <filter name="inactive" string="Inactive" domain="[('active','=',False)]"/>
+                <separator/>
+                <filter name="type_cash" string="Cash" domain="[('type','=','cash')]"/>
+                <filter name="type_card" string="Card" domain="[('type','=','card')]"/>
+                <filter name="type_upi" string="UPI" domain="[('type','=','upi')]"/>
+                <filter name="type_qr" string="QR" domain="[('type','=','qr')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_odfe_payment_method" model="ir.actions.act_window">
+        <field name="name">Payment Methods</field>
+        <field name="res_model">odfe.payment.method</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_odfe_payment_method_search"/>
+        <field name="help" type="html">
+            <p>Configure payment methods accepted in your restaurant.</p>
+        </field>
+    </record>
+</odoo>

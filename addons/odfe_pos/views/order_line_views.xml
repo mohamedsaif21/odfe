@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_order_line_tree" model="ir.ui.view">
+        <field name="name">odfe.pos.order.line.tree</field>
+        <field name="model">odfe.pos.order.line</field>
+        <field name="arch" type="xml">
+            <tree string="Order Lines" editable="top">
+                <field name="order_id"/>
+                <field name="product_id"/>
+                <field name="product_name"/>
+                <field name="quantity"/>
+                <field name="price_unit"/>
+                <field name="price_subtotal"/>
+                <field name="discount_type"/>
+                <field name="discount_value"/>
+                <field name="discount_amount"/>
+                <field name="tax_id"/>
+                <field name="tax_amount"/>
+                <field name="subtotal"/>
+                <field name="note"/>
+                <field name="is_modifier" invisible="1"/>
+                <field name="parent_line_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_pos_order_line_form" model="ir.ui.view">
+        <field name="name">odfe.pos.order.line.form</field>
+        <field name="model">odfe.pos.order.line</field>
+        <field name="arch" type="xml">
+            <form string="Order Line">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="order_id"/>
+                            <field name="product_id"/>
+                            <field name="product_name"/>
+                        </group>
+                        <group>
+                            <field name="quantity"/>
+                            <field name="price_unit"/>
+                            <field name="price_subtotal"/>
+                        </group>
+                    </group>
+                    <group string="Discount &amp; Tax">
+                        <group>
+                            <field name="discount_type"/>
+                            <field name="discount_value"/>
+                            <field name="discount_amount"/>
+                        </group>
+                        <group>
+                            <field name="tax_id"/>
+                            <field name="tax_amount"/>
+                            <field name="subtotal"/>
+                        </group>
+                    </group>
+                    <field name="note"/>
+                    <field name="is_modifier" invisible="1"/>
+                    <field name="parent_line_id" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_pos_order_line" model="ir.actions.act_window">
+        <field name="name">Order Lines</field>
+        <field name="res_model">odfe.pos.order.line</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
