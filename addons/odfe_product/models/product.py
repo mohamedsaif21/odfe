@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 
 
-class OdpeProduct(models.Model):
+class OdfeProduct(models.Model):
     _name = 'odfe.product'
     _description = 'ODFE Product'
     _inherit = ['odfe.base.mixin']
@@ -25,8 +25,6 @@ class OdpeProduct(models.Model):
     kds_visible = fields.Boolean(string='Visible on KDS', default=True)
     preparation_time = fields.Float(string='Preparation Time (min)', default=0.0, help='Average preparation time in minutes')
     modifiers_available = fields.Boolean(string='Has Modifiers', default=False)
-    modifier_ids = fields.Many2many('odfe.product.modifier', string='Modifiers',
-        relation='odfe_product_modifier_rel', column1='product_id', column2='modifier_id')
     category_id = fields.Many2one('odfe.product.category', string='ODFE Category',
         index=True, ondelete='restrict')
 

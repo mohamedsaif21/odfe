@@ -1,3 +1,4 @@
+/** @odoo-module */
 import { Component, useState } from "@odoo/owl";
 import { LoginScreen } from "./screens/login_screen.js";
 import { FloorPopup } from "./screens/floor_popup.js";

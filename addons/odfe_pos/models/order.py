@@ -51,24 +51,31 @@ class PosOrder(models.Model):
         return order
 
     def write(self, vals):
+        old_vals = {}
+        if vals:
+            for order in self:
+                old_vals[order.id] = {}
+                for field in vals:
+                    if field not in ("write_date", "write_uid") and field in order._fields:
+                        old_vals[order.id][field] = str(order[field])
         res = super().write(vals)
         if vals:
             for order in self:
                 for field, value in vals.items():
                     if field in ("write_date", "write_uid"):
                         continue
-                    old_val = order._fields.get(field) and str(order._fields[field].convert_to_cache(order[field], order))
+                    old_val = old_vals.get(order.id, {}).get(field, "")
                     order._log_history("update", field, old_val, str(value))
         return res
 
-    @api.depends("line_ids.subtotal", "line_ids.tax_amount", "line_ids.discount_amount", "discount_ids.amount", "coupon_id")
+    @api.depends("line_ids.subtotal", "line_ids.tax_amount", "line_ids.discount_amount", "discount_ids.amount", "coupon_id", "coupon_id.value")
     def _compute_line_totals(self):
         for order in self:
             order.subtotal = sum(order.line_ids.mapped("subtotal"))
             order.tax_amount = sum(order.line_ids.mapped("tax_amount"))
             disc = sum(order.discount_ids.mapped("amount"))
             if order.coupon_id:
-                disc += order.coupon_id.discount_value
+                disc += order.coupon_id.value
             order.discount_total = disc
             order.total = order.subtotal + order.tax_amount - order.discount_total
 
@@ -82,6 +89,7 @@ class PosOrder(models.Model):
         if self.state != "draft":
             raise UserError(_("Only draft orders can be confirmed."))
         self.write({"state": "confirmed"})
+        return True
 
     def action_pay(self):
         self.ensure_one()
@@ -91,6 +99,7 @@ class PosOrder(models.Model):
             "state": "paid",
             "paid_at": fields.Datetime.now(),
         })
+        return True
 
     def action_cancel(self, reason=None):
         self.ensure_one()
@@ -100,6 +109,7 @@ class PosOrder(models.Model):
             "state": "cancelled",
             "note": reason if reason else self.note,
         })
+        return True
 
     def action_refund(self):
         self.ensure_one()

@@ -1,8 +1,7 @@
 odoo.define('odfe_self_order.SelfOrderApp', function (require) {
     'use strict';
 
-    const { Component, mount, useState, useRef, onMounted, onWillUpdate, useEnv, xml } = owl;
-    const { useService } = require('web.core');
+    const { Component, mount, useState, useRef, onMounted, xml } = owl;
 
     const MENU_URL = '/api/self/menu';
     const SUBMIT_URL = '/api/self/order/submit';

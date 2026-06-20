@@ -1,7 +1,7 @@
 from odoo import fields, models
 
 
-class OdpeProductUom(models.Model):
+class OdfeProductUom(models.Model):
     _name = 'odfe.product.uom'
     _description = 'ODFE Unit of Measure'
     _inherit = ['odfe.base.mixin']

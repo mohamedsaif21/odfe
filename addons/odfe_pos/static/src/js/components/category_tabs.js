@@ -1,3 +1,4 @@
+/** @odoo-module */
 import { Component, useState } from "@odoo/owl";
 
 export class CategoryTabs extends Component {

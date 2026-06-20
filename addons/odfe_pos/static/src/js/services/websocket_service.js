@@ -1,3 +1,4 @@
+/** @odoo-module */
 export class WebSocketService {
     constructor() {
         this.ws = null;

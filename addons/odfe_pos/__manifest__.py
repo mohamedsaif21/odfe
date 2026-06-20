@@ -1,12 +1,13 @@
 {
     "name": "ODFE Restaurant POS",
     "version": "19.0.1.0.0",
-    "category": "Sales/Point of Sale",
+    "category": "Restaurant/POS",
     "summary": "Restaurant Point of Sale System",
     "description": "Complete Restaurant POS with session management, order handling, cart, receipts, and order history.",
     "author": "ODFE",
     "website": "https://odfe.ai",
     "depends": [
+        "mail",
         "odfe_base",
         "odfe_auth",
         "odfe_product",

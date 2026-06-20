@@ -7,7 +7,7 @@
     'author': 'ODFE',
     'website': 'https://odfe.app',
     'license': 'LGPL-3',
-    'depends': ['odfe_base', 'odfe_customer'],
+    'depends': ['mail', 'odfe_base', 'odfe_customer'],
     'data': [
         'security/ir.model.access.csv',
         'data/coupon_data.xml',

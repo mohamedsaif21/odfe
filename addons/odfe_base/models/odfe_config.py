@@ -1,7 +1,7 @@
 from odoo import models, fields
 
 
-class OdpeConfig(models.Model):
+class OdfeConfig(models.Model):
     _name = 'odfe.config'
     _description = 'ODFE Configuration'
     _rec_name = 'restaurant_name'

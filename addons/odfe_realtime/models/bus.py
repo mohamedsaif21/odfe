@@ -1,12 +1,9 @@
-import json
-
 from datetime import datetime
 
 from odoo import models, fields, api, _
-from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 
-class BusMessage(models.Model):
+class OdfeBusMessage(models.Model):
     _name = 'odfe.bus.message'
     _description = 'ODFE Bus Message'
     _order = 'created_at DESC'

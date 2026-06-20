@@ -12,6 +12,7 @@
         "odfe_payment",
     ],
     "data": [
+        "security/ir.model.access.csv",
         "views/display_templates.xml",
         "views/menu_views.xml",
     ],

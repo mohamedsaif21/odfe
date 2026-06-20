@@ -1,3 +1,4 @@
+/** @odoo-module */
 export class PromotionService {
     static activePromotions = [];
 

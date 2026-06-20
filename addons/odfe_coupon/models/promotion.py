@@ -2,12 +2,12 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
-class OdpePromotion(models.Model):
+class OdfePromotion(models.Model):
     _name = 'odfe.promotion'
     _description = 'Promotion'
     _order = 'name'
 
-    name = fields.Char(required=True)
+    name = fields.Char(string='Name', required=True)
     active = fields.Boolean(default=True)
     type = fields.Selection(
         [
@@ -21,7 +21,7 @@ class OdpePromotion(models.Model):
         default='percentage_off',
     )
     condition_product_ids = fields.Many2many(
-        'product.product',
+        'odfe.product',
         'promotion_condition_product_rel',
         'promotion_id',
         'product_id',
@@ -33,6 +33,8 @@ class OdpePromotion(models.Model):
         default=1,
         help='Minimum quantity of condition products required.',
     )
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    currency_id = fields.Many2one(related='company_id.currency_id', readonly=True)
     discount_percent = fields.Float(
         string='Discount Percentage',
         help='Percentage discount (for percentage_off type).',
@@ -48,7 +50,7 @@ class OdpePromotion(models.Model):
         help='Minimum order total required.',
     )
     applicable_product_ids = fields.Many2many(
-        'product.product',
+        'odfe.product',
         'promotion_applicable_product_rel',
         'promotion_id',
         'product_id',
@@ -57,8 +59,6 @@ class OdpePromotion(models.Model):
     )
     date_start = fields.Datetime(string='Start Date')
     date_end = fields.Datetime(string='End Date')
-    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
-    currency_id = fields.Many2one('res.currency', related='company_id.currency_id', readonly=True)
     sequence = fields.Integer(default=10)
 
     _sql_constraints = [

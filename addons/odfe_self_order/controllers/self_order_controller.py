@@ -1,7 +1,5 @@
 from odoo import http
 from odoo.http import request
-from odoo.exceptions import AccessError, MissingError
-import json
 
 
 class SelfOrderController(http.Controller):

@@ -4,7 +4,7 @@ from datetime import timedelta
 from odoo import api, fields, models, _
 
 
-class OdpeSelfOrderToken(models.Model):
+class OdfeSelfOrderToken(models.Model):
     _name = 'odfe.self.order.token'
     _description = 'Self Order Session Token'
     _rec_name = 'token'

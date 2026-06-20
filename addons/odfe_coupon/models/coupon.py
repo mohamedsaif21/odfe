@@ -2,16 +2,15 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
-class OdpeCoupon(models.Model):
+class OdfeCoupon(models.Model):
     _name = 'odfe.coupon'
     _description = 'Coupon'
     _order = 'name'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    name = fields.Char(required=True, tracking=True)
+    name = fields.Char(string='Name', required=True, tracking=True)
     code = fields.Char(
         required=True,
-        unique=True,
         index=True,
         tracking=True,
         help='Coupon code entered at checkout (will be uppercased).',
@@ -54,7 +53,6 @@ class OdpeCoupon(models.Model):
     used_count = fields.Integer(
         string='Used Count',
         compute='_compute_used_count',
-        store=True,
     )
     customer_ids = fields.Many2many(
         'odfe.customer',
@@ -70,7 +68,7 @@ class OdpeCoupon(models.Model):
         ('code_unique', 'UNIQUE(code)', 'A coupon with this code already exists.'),
     ]
 
-    @api.depends('code')
+    @api.depends()
     def _compute_used_count(self):
         for record in self:
             record.used_count = self.env['odfe.order.discount'].search_count([
@@ -116,26 +114,34 @@ class OdpeCoupon(models.Model):
 
     def apply(self, order_id):
         self.ensure_one()
+        validation = self.validate()
+        if not validation['is_valid']:
+            return False
         order = self.env['odfe.pos.order'].browse(order_id)
         if not order.exists():
             return False
         discount_amount = 0.0
         if self.type == 'percentage':
-            discount_amount = order.amount_total * (self.value / 100.0)
+            discount_amount = order.total * (self.value / 100.0)
         elif self.type == 'fixed_amount':
             discount_amount = self.value
         elif self.type == 'free_shipping':
-            shipping_lines = order.lines.filtered(lambda l: l.product_id and l.product_id.type == 'service')
+            shipping_lines = order.line_ids.filtered(
+                lambda l: l.product_id and l.product_id.product_tmpl_id.type == 'service'
+            )
             discount_amount = sum(shipping_lines.mapped('price_subtotal'))
         if self.maximum_discount > 0 and discount_amount > self.maximum_discount:
             discount_amount = self.maximum_discount
+        if self.type == 'free_shipping':
+            discount_value = discount_amount
+        else:
+            discount_value = self.value
         vals = {
             'order_id': order.id,
             'name': self.name,
             'type': 'coupon',
             'discount_type': self.type if self.type != 'free_shipping' else 'fixed',
-            'value': self.value,
-            'amount': discount_amount,
+            'value': discount_value,
             'coupon_id': self.id,
         }
         self.env['odfe.order.discount'].create(vals)

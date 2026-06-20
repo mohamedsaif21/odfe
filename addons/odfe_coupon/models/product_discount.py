@@ -1,14 +1,14 @@
 from odoo import api, fields, models
 
 
-class OdpeProductDiscount(models.Model):
+class OdfeProductDiscount(models.Model):
     _name = 'odfe.product.discount'
     _description = 'Product Line Discount'
     _order = 'id'
 
-    product_id = fields.Many2one('product.product', string='Product', ondelete='cascade')
+    product_id = fields.Many2one('odfe.product', string='Product', ondelete='cascade')
     line_id = fields.Many2one(
-        'pos.order.line',
+        'odfe.pos.order.line',
         string='Order Line',
         ondelete='cascade',
         index=True,
@@ -28,11 +28,11 @@ class OdpeProductDiscount(models.Model):
         store=True,
     )
     reason = fields.Char(string='Reason')
-    authorized_by = fields.Many2one('res.users', string='Authorized By')
-    company_id = fields.Many2one('res.company', related='line_id.company_id', store=True)
+    authorized_by = fields.Many2one('res.users', string='Authorized By', default=lambda self: self.env.user)
+    company_id = fields.Many2one('res.company', related='line_id.order_id.company_id', store=True)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', readonly=True)
 
-    @api.depends('line_id', 'value', 'type')
+    @api.depends('line_id', 'line_id.price_subtotal', 'value', 'type')
     def _compute_amount(self):
         for rec in self:
             if not rec.line_id:

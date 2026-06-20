@@ -51,8 +51,8 @@
               <field name="height"/>
             </group>
           </group>
-          <group string="Self Order QR Code" attrs="{'invisible': [('qr_code', '=', False)]}">
-            <field name="qr_code" widget="image"/>
+          <group string="Self Order URL" attrs="{'invisible': [('qr_code', '=', False)]}">
+            <field name="qr_code" string="QR Data"/>
           </group>
           <notebook>
             <page name="status_history" string="Status History">

@@ -2,7 +2,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
-class OdpeCustomerTag(models.Model):
+class OdfeCustomerTag(models.Model):
     _name = 'odfe.customer.tag'
     _description = 'Customer Tag'
     _order = 'name'
@@ -12,7 +12,7 @@ class OdpeCustomerTag(models.Model):
     active = fields.Boolean(default=True)
 
 
-class OdpeCustomer(models.Model):
+class OdfeCustomer(models.Model):
     _name = 'odfe.customer'
     _description = 'ODFE Customer'
     _rec_name = 'name'

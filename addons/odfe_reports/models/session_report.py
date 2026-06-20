@@ -2,7 +2,7 @@ from odoo import api, fields, models, _
 from collections import defaultdict
 
 
-class OdpeReportSessions(models.TransientModel):
+class OdfeReportSessions(models.TransientModel):
     _name = 'odfe.report.sessions'
     _description = 'Session Report'
 

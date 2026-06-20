@@ -1,9 +1,7 @@
-from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
-import base64
+from odoo import api, fields, models
 
 
-class OdpeTable(models.Model):
+class OdfeTable(models.Model):
     _name = 'odfe.table'
     _description = 'Restaurant Table'
     _order = 'floor_id, pos_y, pos_x'
@@ -30,7 +28,7 @@ class OdpeTable(models.Model):
         'odfe.pos.order', string='Current Order',
         compute='_compute_current_order', store=False,
         help='The active POS order for this table')
-    qr_code = fields.Binary(string='QR Code', attachment=True, compute='_compute_qr_code', store=True)
+    qr_code = fields.Binary(string='QR Code', compute='_compute_qr_code')
     active = fields.Boolean(string='Active', default=True)
     status_change_ids = fields.One2many('odfe.table.status.history', 'table_id', string='Status Changes')
 
@@ -56,33 +54,21 @@ class OdpeTable(models.Model):
         for table in self:
             if table.name and table.floor_id:
                 qr_data = f'{base_url}/self-order/{table.floor_id.code}/{table.id}'
-                qr = self.env['ir.attachment'].sudo().create({
-                    'name': f'QR_{table.floor_id.code}_{table.name}.png',
-                    'datas': qr_data.encode(),
-                    'res_model': 'odfe.table',
-                    'res_id': table.id,
-                })
-                table.qr_code = qr.datas
+                table.qr_code = qr_data.encode()
             else:
                 table.qr_code = False
 
     def set_occupied(self):
         self.ensure_one()
-        old_state = self.state
         self.write({'state': 'occupied'})
-        self._log_status_change(old_state, 'occupied')
 
     def set_free(self):
         self.ensure_one()
-        old_state = self.state
         self.write({'state': 'free'})
-        self._log_status_change(old_state, 'free')
 
     def set_reserved(self):
         self.ensure_one()
-        old_state = self.state
         self.write({'state': 'reserved'})
-        self._log_status_change(old_state, 'reserved')
 
     def _log_status_change(self, state_from, state_to):
         self.env['odfe.table.status.history'].create({

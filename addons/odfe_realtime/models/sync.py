@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from odoo import models, fields, api
 
 
-class SyncLog(models.Model):
+class OdfeSyncLog(models.Model):
     _name = 'odfe.sync.log'
     _description = 'ODFE Sync Log'
     _order = 'sync_at DESC'
@@ -27,6 +27,7 @@ class SyncLog(models.Model):
 
     display_name = fields.Char(compute='_compute_display_name', store=False)
 
+    @api.depends('operation', 'model_name', 'res_id')
     def _compute_display_name(self):
         for record in self:
             record.display_name = f'[{record.operation}] {record.model_name}#{record.res_id}'
@@ -61,7 +62,6 @@ class SyncLog(models.Model):
 
     @api.model
     def cleanup_old_logs(self, days=30):
-        from datetime import timedelta
         cutoff = fields.Datetime.now() - timedelta(days=days)
         old = self.search([('sync_at', '<', cutoff)])
         count = len(old)

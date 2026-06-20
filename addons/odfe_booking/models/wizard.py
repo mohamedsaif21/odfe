@@ -1,8 +1,8 @@
 from odoo import api, fields, models, _
 
 
-class BookingCancelWizard(models.TransientModel):
-    _name = 'booking.cancel.wizard'
+class OdfeBookingCancelWizard(models.TransientModel):
+    _name = 'odfe.booking.cancel.wizard'
     _description = 'Booking Cancellation Wizard'
 
     booking_id = fields.Many2one('odfe.booking', string='Booking', required=True)

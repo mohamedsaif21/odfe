@@ -1,7 +1,7 @@
-from odoo import api, fields, models
+from odoo import fields, models
 
 
-class OdpeTableStatusHistory(models.Model):
+class OdfeTableStatusHistory(models.Model):
     _name = 'odfe.table.status.history'
     _description = 'Table Status Change History'
     _order = 'changed_at desc, id desc'

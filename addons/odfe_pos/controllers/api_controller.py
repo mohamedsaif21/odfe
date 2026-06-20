@@ -1,7 +1,5 @@
 from odoo import http
 from odoo.http import request
-from odoo.exceptions import UserError, AccessError
-import json
 
 
 class PosApiController(http.Controller):
@@ -180,7 +178,7 @@ class PosApiController(http.Controller):
         receipt.generate_receipt_data()
         return {"success": True, "order_id": order.id, "state": order.state, "receipt_id": receipt.id}
 
-    @http.route("/api/pos/table/list", type="json", auth="user", methods=["GET"])
+    @http.route("/api/pos/table/list", type="json", auth="user", methods=["POST"])
     def table_list(self, floor_id=None):
         domain = [("active", "=", True)]
         if floor_id:

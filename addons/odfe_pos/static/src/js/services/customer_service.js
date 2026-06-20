@@ -1,3 +1,4 @@
+/** @odoo-module */
 import { ApiService } from "./api_service.js";
 
 export class CustomerService {

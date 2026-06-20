@@ -2,7 +2,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 
 
-class OdpeLoyaltyProgram(models.Model):
+class OdfeLoyaltyProgram(models.Model):
     _name = 'odfe.loyalty.program'
     _description = 'Loyalty Program'
     _rec_name = 'name'
@@ -77,7 +77,7 @@ class OdpeLoyaltyProgram(models.Model):
         self.write({'active': False})
 
 
-class OdpeCustomerLoyalty(models.Model):
+class OdfeCustomerLoyalty(models.Model):
     _name = 'odfe.customer.loyalty'
     _description = 'Customer Loyalty Enrollment'
     _rec_name = 'customer_id'

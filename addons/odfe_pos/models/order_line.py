@@ -44,7 +44,7 @@ class PosOrderLine(models.Model):
                 line.product_name = ""
                 line.product_code = ""
 
-    @api.depends("quantity", "price_unit", "discount_type", "discount_value", "tax_id")
+    @api.depends("quantity", "price_unit", "discount_type", "discount_value", "tax_id", "tax_id.rate")
     def _compute_amounts(self):
         for line in self:
             line.price_subtotal = line.quantity * line.price_unit
@@ -65,5 +65,5 @@ class PosOrderLine(models.Model):
     @api.constrains("quantity")
     def _check_quantity(self):
         for line in self:
-            if line.quantity <= 0 and not line.is_modifier:
-                raise ValidationError(_("Quantity must be greater than zero."))
+            if not line.is_modifier and line.quantity == 0:
+                raise ValidationError(_("Quantity cannot be zero."))

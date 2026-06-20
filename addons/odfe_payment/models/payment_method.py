@@ -2,7 +2,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
-class OdpePaymentMethod(models.Model):
+class OdfePaymentMethod(models.Model):
     _name = 'odfe.payment.method'
     _description = 'ODFE Payment Method'
     _rec_name = 'name'

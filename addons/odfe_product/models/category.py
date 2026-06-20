@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 
 
-class OdpeProductCategory(models.Model):
+class OdfeProductCategory(models.Model):
     _name = 'odfe.product.category'
     _description = 'ODFE Product Category'
     _inherit = ['odfe.base.mixin']
@@ -30,6 +30,7 @@ class OdpeProductCategory(models.Model):
             else:
                 record.display_name = record.name
 
+    @api.depends('parent_id')
     def _compute_parent_path(self):
         for record in self:
             record.parent_path = record._compute_parent_path_strict()

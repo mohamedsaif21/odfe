@@ -4,7 +4,7 @@ from odoo import models, fields, api
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 
-class WebsocketConnection(models.Model):
+class OdfeWebsocketConnection(models.Model):
     _name = 'odfe.websocket.connection'
     _description = 'ODFE WebSocket Connection'
     _order = 'connected_at DESC'

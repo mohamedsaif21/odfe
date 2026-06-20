@@ -1,11 +1,10 @@
-import json
 from datetime import datetime
 
 from odoo import http, fields, _
 from odoo.http import request
 
 
-class OdpeDashboardController(http.Controller):
+class OdfeDashboardController(http.Controller):
 
     @http.route("/dashboard", type="http", auth="user", website=True)
     def dashboard_main(self):
@@ -47,7 +46,7 @@ class OdpeDashboardController(http.Controller):
     def generate_report(self, name=None, report_type="sales", date_from=None, date_to=None):
         report = request.env["odfe.dashboard.report"].create({
             "name": name or _("Report %s") % fields.Datetime.now(),
-            "type": report_type,
+            "report_type": report_type,
             "date_from": date_from and datetime.fromisoformat(date_from),
             "date_to": date_to and datetime.fromisoformat(date_to),
         })

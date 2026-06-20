@@ -2,7 +2,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 
-class OdpeSelfOrderLine(models.Model):
+class OdfeSelfOrderLine(models.Model):
     _name = 'odfe.self.order.line'
     _description = 'Self Order Line'
     _order = 'sequence, id'
@@ -48,7 +48,7 @@ class OdpeSelfOrderLine(models.Model):
                 raise UserError(_('Quantity must be greater than zero.'))
 
 
-class OdpeSelfOrder(models.Model):
+class OdfeSelfOrder(models.Model):
     _name = 'odfe.self.order'
     _description = 'Self Order'
     _order = 'id desc'

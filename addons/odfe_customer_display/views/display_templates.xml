@@ -15,7 +15,7 @@
                 </div>
             </div>
             <script type="text/javascript">
-                require('odfe_customer_display.customer_display_app').default();
+                require('odfe_customer_display/static/src/js/customer_display_app').default();
             </script>
         </t>
     </template>

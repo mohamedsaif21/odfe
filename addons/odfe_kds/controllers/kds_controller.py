@@ -1,7 +1,6 @@
 from odoo import http
 from odoo.http import request
 from odoo.exceptions import UserError
-import json
 
 
 class KdsController(http.Controller):

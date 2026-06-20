@@ -1,3 +1,4 @@
+/** @odoo-module */
 import { Component } from "@odoo/owl";
 
 export class TableCard extends Component {

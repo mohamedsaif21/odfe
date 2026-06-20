@@ -1,9 +1,9 @@
 from odoo import api, fields, models, _
-from datetime import datetime, timedelta
+from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
 
-class OdpeDashboardConfig(models.TransientModel):
+class OdfeDashboardConfig(models.TransientModel):
     _name = "odfe.dashboard.config"
     _description = "Dashboard Configuration"
 
@@ -34,7 +34,7 @@ class OdpeDashboardConfig(models.TransientModel):
         }
 
 
-class OdpeDashboardSales(models.Model):
+class OdfeDashboardSales(models.Model):
     _name = "odfe.dashboard.sales"
     _description = "Sales Dashboard Data"
     _auto = False

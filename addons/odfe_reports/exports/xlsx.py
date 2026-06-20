@@ -14,7 +14,7 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-class OdpeReportXlsx(models.AbstractModel):
+class OdfeReportXlsx(models.AbstractModel):
     _name = 'odfe.report.xlsx'
     _description = 'XLSX Report Generator'
 
@@ -109,7 +109,7 @@ class OdpeReportXlsx(models.AbstractModel):
                 cell.font = self.DATA_FONT
                 if isinstance(val, float):
                     cell.number_format = self.CURRENCY_FORMAT
-                self._apply_border(row_num, 1, 2)
+                    self._apply_border(ws, row_num, 1, 2)
 
         breakdown = data.get('breakdown', data.get('data', []))
         if breakdown and isinstance(breakdown, list) and breakdown:

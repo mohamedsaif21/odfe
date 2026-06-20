@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 
 
-class OdpeSchedule(models.Model):
+class OdfeSchedule(models.Model):
     _name = 'odfe.schedule'
     _description = 'Schedule Configuration'
     _order = 'day_of_week, time_start'

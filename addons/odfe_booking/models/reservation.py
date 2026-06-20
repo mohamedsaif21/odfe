@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 
 
-class OdpeReservation(models.Model):
+class OdfeReservation(models.Model):
     _name = 'odfe.reservation'
     _description = 'Reservation Item'
     _order = 'booking_id, sequence, id'

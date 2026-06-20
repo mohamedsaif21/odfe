@@ -1,7 +1,7 @@
 from odoo import fields, models
 
 
-class OdpeRole(models.Model):
+class OdfeRole(models.Model):
     _name = 'odfe.role'
     _description = 'ODFE Role'
     _inherit = 'odfe.base.mixin'
@@ -12,7 +12,6 @@ class OdpeRole(models.Model):
     code = fields.Char(
         string='Code',
         required=True,
-        unique=True,
         help='Unique code identifier for the role.',
     )
     description = fields.Text(string='Description')
@@ -27,7 +26,7 @@ class OdpeRole(models.Model):
     ]
 
 
-class OdpeRolePermission(models.Model):
+class OdfeRolePermission(models.Model):
     _name = 'odfe.role.permission'
     _description = 'ODFE Role Permission'
     _inherit = 'odfe.base.mixin'

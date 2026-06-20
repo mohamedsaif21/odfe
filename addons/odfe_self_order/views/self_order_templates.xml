@@ -126,7 +126,6 @@
                             <p class="loading-text">Loading menu...</p>
                         </div>
                     </div>
-                    <script src="/odfe_self_order/static/src/js/self_order_app.js"></script>
                 </div>
         </template>
 

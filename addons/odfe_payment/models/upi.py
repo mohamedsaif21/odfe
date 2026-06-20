@@ -1,7 +1,7 @@
 from odoo import models, fields
 
 
-class OdpePaymentUpi(models.Model):
+class OdfePaymentUpi(models.Model):
     _name = 'odfe.payment.upi'
     _description = 'ODFE UPI Payment'
     _inherit = 'odfe.payment'

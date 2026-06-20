@@ -3,7 +3,7 @@ from datetime import datetime
 from odoo import models, fields, api
 
 
-class Notification(models.Model):
+class OdfeNotification(models.Model):
     _name = 'odfe.notification'
     _description = 'ODFE Notification'
     _order = 'created_at DESC'

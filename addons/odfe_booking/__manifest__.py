@@ -7,7 +7,7 @@
     'author': 'ODFE',
     'website': 'https://odfe.app',
     'license': 'LGPL-3',
-    'depends': ['odfe_base', 'odfe_floor', 'odfe_customer'],
+    'depends': ['odfe_base', 'odfe_floor', 'odfe_customer', 'mail'],
     'data': [
         'security/ir.model.access.csv',
         'data/booking_data.xml',

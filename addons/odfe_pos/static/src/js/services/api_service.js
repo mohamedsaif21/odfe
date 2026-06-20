@@ -1,3 +1,4 @@
+/** @odoo-module */
 export class ApiService {
     static async request(route, params = {}) {
         try {

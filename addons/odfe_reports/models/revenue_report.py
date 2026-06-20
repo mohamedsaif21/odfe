@@ -3,7 +3,7 @@ from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 
 
-class OdpeReportRevenue(models.TransientModel):
+class OdfeReportRevenue(models.TransientModel):
     _name = 'odfe.report.revenue'
     _description = 'Revenue Report'
 

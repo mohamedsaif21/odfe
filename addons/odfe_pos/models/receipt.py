@@ -59,9 +59,9 @@ class PosReceipt(models.Model):
         self.ensure_one()
         order = self.order_id
         data = {
-            "restaurant_name": self.env.user.company_id.name,
-            "address": self.env.user.company_id.street or "",
-            "phone": self.env.user.company_id.phone or "",
+            "restaurant_name": order.company_id.name,
+            "address": order.company_id.street or "",
+            "phone": order.company_id.phone or "",
             "receipt_number": self.receipt_number,
             "date": fields.Datetime.to_string(order.ordered_at or fields.Datetime.now()),
             "table": order.table_id.name if order.table_id else "Takeaway",

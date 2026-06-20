@@ -1,7 +1,7 @@
 {
     "name": "ODFE Dashboard",
     "version": "19.0.1.0.0",
-    "category": "Sales/Point of Sale",
+    "category": "Restaurant/Dashboard",
     "summary": "Analytics Dashboards for ODFE Restaurant POS",
     "description": "Provides analytics dashboards with charts, KPIs, and live data for the ODFE Restaurant POS system.",
     "author": "ODFE",

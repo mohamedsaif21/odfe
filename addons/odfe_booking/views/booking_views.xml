@@ -152,7 +152,7 @@
 
   <record id="view_booking_cancel_wizard_form" model="ir.ui.view">
     <field name="name">booking.cancel.wizard.form</field>
-    <field name="model">booking.cancel.wizard</field>
+    <field name="model">odfe.booking.cancel.wizard</field>
     <field name="arch" type="xml">
       <form>
         <group>

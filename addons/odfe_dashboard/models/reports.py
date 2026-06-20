@@ -1,18 +1,16 @@
-import json
-from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
 
 
-class OdpeDashboardReport(models.Model):
+class OdfeDashboardReport(models.Model):
     _name = "odfe.dashboard.report"
     _description = "Dashboard Report"
     _order = "id desc"
     _rec_name = "name"
 
     name = fields.Char(string="Report Name", required=True)
-    type = fields.Selection([
+    report_type = fields.Selection([
         ("sales", "Sales"),
         ("orders", "Orders"),
         ("products", "Products"),
@@ -120,7 +118,7 @@ class OdpeDashboardReport(models.Model):
 
     @api.model
     def generate_scheduled_reports(self):
-        reports = self.search([("type", "!=", False)])
+        reports = self.search([("report_type", "!=", False)])
         for report in reports:
             report.generate()
         return True

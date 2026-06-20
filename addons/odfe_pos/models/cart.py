@@ -21,13 +21,12 @@ class CartLine(models.Model):
     parent_line_id = fields.Many2one("odfe.pos.cart.line", string="Parent Line", ondelete="cascade")
 
     currency_id = fields.Many2one("res.currency", related="cart_id.currency_id", string="Currency")
+    price_subtotal = fields.Monetary(string="Subtotal", compute="_compute_subtotal", store=True, currency_field="currency_id")
 
     @api.depends("quantity", "price_unit")
     def _compute_subtotal(self):
         for line in self:
             line.price_subtotal = line.quantity * line.price_unit
-
-    price_subtotal = fields.Monetary(string="Subtotal", compute="_compute_subtotal", store=True, currency_field="currency_id")
 
 
 class PosCart(models.Model):
@@ -50,7 +49,7 @@ class PosCart(models.Model):
     currency_id = fields.Many2one("res.currency", related="session_id.company_id.currency_id", string="Currency")
     company_id = fields.Many2one("res.company", related="session_id.company_id", string="Company")
 
-    @api.depends("line_ids", "line_ids.price_subtotal", "coupon_id")
+    @api.depends("line_ids", "line_ids.price_subtotal", "coupon_id", "coupon_id.value")
     def _compute_totals(self):
         for cart in self:
             lines = cart.line_ids
@@ -58,7 +57,7 @@ class PosCart(models.Model):
             cart.tax_amount = 0.0
             cart.discount_total = 0.0
             if cart.coupon_id:
-                cart.discount_total = cart.coupon_id.discount_value
+                cart.discount_total = cart.coupon_id.value
             cart.total = cart.subtotal - cart.discount_total
 
     def add_product(self, product_id, quantity=1.0, modifiers=None):
@@ -119,7 +118,7 @@ class PosCart(models.Model):
             return {"success": False, "message": _("Invalid coupon code.")}
         self.coupon_id = coupon
         self._compute_totals()
-        return {"success": True, "message": _("Coupon applied."), "discount": coupon.discount_value}
+        return {"success": True, "message": _("Coupon applied."), "discount": coupon.value}
 
     def clear(self):
         self.ensure_one()
@@ -155,6 +154,17 @@ class PosCart(models.Model):
             parent_name = modifier_line.parent_line_id.product_name
             parent_line = order.line_ids.filtered(lambda l: l.product_name == parent_name)
             if parent_line:
-                modifier_line.copy({"order_id": order.id, "parent_line_id": parent_line[0].id})
+                self.env["odfe.pos.order.line"].create({
+                    "order_id": order.id,
+                    "product_id": modifier_line.product_id.id,
+                    "product_name": modifier_line.product_name,
+                    "quantity": modifier_line.quantity,
+                    "price_unit": modifier_line.price_unit,
+                    "discount_type": modifier_line.discount_type,
+                    "discount_value": modifier_line.discount_value,
+                    "note": modifier_line.note,
+                    "is_modifier": True,
+                    "parent_line_id": parent_line[0].id,
+                })
         self.clear()
         return order

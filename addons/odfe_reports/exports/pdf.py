@@ -2,15 +2,14 @@ import io
 import logging
 from datetime import datetime
 
-from odoo import _, api, models
-from odoo.tools import html2plaintext
+from odoo import _, api, fields, models
 
 try:
     from reportlab.lib import colors
-    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+    from reportlab.lib.enums import TA_CENTER
     from reportlab.lib.pagesizes import A4, letter
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-    from reportlab.lib.units import mm, cm
+    from reportlab.lib.units import mm
     from reportlab.platypus import (
         Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
     )
@@ -21,7 +20,7 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-class OdpeReportPdf(models.AbstractModel):
+class OdfeReportPdf(models.AbstractModel):
     _name = 'odfe.report.pdf'
     _description = 'PDF Report Generator'
 

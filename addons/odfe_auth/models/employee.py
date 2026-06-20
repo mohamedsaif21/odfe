@@ -4,7 +4,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
-class OdpeEmployee(models.Model):
+class OdfeEmployee(models.Model):
     _name = 'odfe.employee'
     _description = 'ODFE Employee'
     _inherit = 'odfe.base.mixin'

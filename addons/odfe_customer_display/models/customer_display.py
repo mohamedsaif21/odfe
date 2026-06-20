@@ -1,4 +1,3 @@
-import json
 from odoo import api, fields, models, _
 
 
@@ -35,7 +34,7 @@ class CustomerDisplay(models.Model):
             "state": "order_placed",
             "display_text": _("Order #{} placed").format(order.name),
             "amount_due": order.total,
-            "animation_data": json.dumps({
+            "animation_data": {
                 "lines": [
                     {
                         "product_name": line.product_name,
@@ -49,7 +48,7 @@ class CustomerDisplay(models.Model):
                 "tax_amount": order.tax_amount,
                 "total": order.total,
                 "order_name": order.name,
-            }),
+            },
         })
         return True
 
@@ -90,7 +89,7 @@ class CustomerDisplay(models.Model):
             "numbercall": 1,
             "doall": False,
             "interval_number": 10,
-            "interval_type": "minutes",
+            "interval_type": "seconds",
             "nextcall": fields.Datetime.add(now, seconds=10),
             "active": True,
         })

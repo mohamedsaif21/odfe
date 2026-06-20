@@ -1,9 +1,8 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
-from datetime import datetime, timedelta
 
 
-class OdpeBooking(models.Model):
+class OdfeBooking(models.Model):
     _name = 'odfe.booking'
     _description = 'Restaurant Booking'
     _order = 'date DESC, time_start DESC'
@@ -127,11 +126,6 @@ class OdpeBooking(models.Model):
             self.phone = self.customer_id.phone
             self.email = self.customer_id.email
 
-    @api.onchange('table_id')
-    def _onchange_table_id(self):
-        if self.table_id:
-            self.floor_id = self.table_id.floor_id
-
     def _times_overlap(self, start_a, end_a):
         self.ensure_one()
         end_b = self.time_end or self.time_start + 2.0
@@ -168,7 +162,7 @@ class OdpeBooking(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'name': _('Cancel Booking'),
-            'res_model': 'booking.cancel.wizard',
+            'res_model': 'odfe.booking.cancel.wizard',
             'view_mode': 'form',
             'target': 'new',
             'context': {'default_booking_id': self.id},

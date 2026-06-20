@@ -1,3 +1,4 @@
+/** @odoo-module */
 import { Component, useState } from "@odoo/owl";
 import { ApiService } from "../services/api_service.js";
 import { debounce } from "../utils.js";

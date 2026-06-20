@@ -15,7 +15,7 @@ except ImportError:
     PilImage = None
 
 
-class OdpePaymentQrGenerator(models.Model):
+class OdfePaymentQrGenerator(models.Model):
     _name = 'odfe.payment.qr.generator'
     _description = 'ODFE QR Code Generator'
     _rec_name = 'name'
@@ -70,7 +70,7 @@ class OdpePaymentQrGenerator(models.Model):
         }
 
 
-class OdpePaymentQrWizard(models.TransientModel):
+class OdfePaymentQrWizard(models.TransientModel):
     _name = 'odfe.payment.qr.wizard'
     _description = 'ODFE QR Code Wizard'
 

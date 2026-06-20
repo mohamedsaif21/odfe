@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 
 
-class OdpeFloor(models.Model):
+class OdfeFloor(models.Model):
     _name = 'odfe.floor'
     _description = 'Restaurant Floor'
     _order = 'sequence, name'
@@ -22,5 +22,3 @@ class OdpeFloor(models.Model):
     def _compute_display_name(self):
         for rec in self:
             rec.display_name = f'[{rec.code}] {rec.name}' if rec.code else rec.name
-
-    display_name = fields.Char(compute='_compute_display_name', store=True)

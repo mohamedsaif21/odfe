@@ -1,13 +1,13 @@
 from odoo import api, fields, models
 
 
-class OdpeOrderDiscount(models.Model):
+class OdfeOrderDiscount(models.Model):
     _name = 'odfe.order.discount'
     _description = 'Order Discount'
     _order = 'id'
 
     order_id = fields.Many2one(
-        'pos.order',
+        'odfe.pos.order',
         string='Order',
         ondelete='cascade',
         required=True,
@@ -39,13 +39,13 @@ class OdpeOrderDiscount(models.Model):
     company_id = fields.Many2one('res.company', related='order_id.company_id', store=True)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', readonly=True)
 
-    @api.depends('order_id', 'value', 'discount_type')
+    @api.depends('order_id', 'order_id.total', 'value', 'discount_type')
     def _compute_amount(self):
         for rec in self:
             if not rec.order_id:
                 rec.amount = 0.0
                 continue
-            order_total = rec.order_id.amount_total
+            order_total = rec.order_id.total
             if rec.discount_type == 'percentage':
                 rec.amount = order_total * (rec.value / 100.0)
             else:

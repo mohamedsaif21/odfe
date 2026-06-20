@@ -1,3 +1,4 @@
+/** @odoo-module */
 export function formatCurrency(amount, currency = "$") {
     return `${currency}${Number(amount).toFixed(2)}`;
 }

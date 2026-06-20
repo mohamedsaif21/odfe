@@ -73,7 +73,7 @@
                 <sheet>
                     <group>
                         <field name="name" />
-                        <field name="type" />
+                        <field name="report_type" />
                         <field name="date_from" />
                         <field name="date_to" />
                         <field name="generated_by" readonly="1" />
@@ -96,7 +96,7 @@
         <field name="arch" type="xml">
             <tree string="Dashboard Reports">
                 <field name="name" />
-                <field name="type" />
+                <field name="report_type" />
                 <field name="date_from" />
                 <field name="date_to" />
                 <field name="generated_by" />

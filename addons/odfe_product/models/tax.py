@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 
 
-class OdpeProductTax(models.Model):
+class OdfeProductTax(models.Model):
     _name = 'odfe.product.tax'
     _description = 'ODFE Product Tax'
     _inherit = ['odfe.base.mixin']

@@ -5,7 +5,7 @@ from io import BytesIO
 from odoo import api, fields, models, _
 
 
-class OdpeSelfOrderQrTable(models.Model):
+class OdfeSelfOrderQrTable(models.Model):
     _name = 'odfe.self.order.qr.table'
     _description = 'Self Order QR Table'
     _rec_name = 'table_id'

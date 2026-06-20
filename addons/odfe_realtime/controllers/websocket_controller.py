@@ -1,7 +1,7 @@
-import json
-
 from odoo import http
 from odoo.http import request
+
+
 class OdfeRealtimeController(http.Controller):
 
     @http.route('/odfe/realtime/notifications', type='json', auth='user', methods=['GET'])

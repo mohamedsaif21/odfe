@@ -9,24 +9,24 @@
                         <div class="kds-clock" id="kds-clock"/>
                     </div>
                     <div class="kds-header-center">
-                        <Filters/>
+                        <Filters filterOptions="state.filterOptions" activeFilter="state.activeFilter" setFilter="setFilter"/>
                     </div>
                     <div class="kds-header-right">
-                        <Search/>
+                        <Search onSearch="onSearch" clearSearch="clearSearch"/>
                         <span class="kds-order-count" id="kds-order-count">0 orders</span>
                     </div>
                 </div>
-                <KitchenBoard/>
+                <KitchenBoard filteredOrders="state.filteredOrders" acceptOrder="acceptOrder" startOrder="startOrder" completeOrder="completeOrder"/>
             </div>
         </t>
     </template>
 
     <template id="KitchenBoard" name="odfe_kds.KitchenBoard">
         <div class="kds-board">
-            <div t-foreach="state.filteredOrders" t-as="order" t-key="order.id" class="kds-board-column">
-                <TicketCard order="order" onAccept="() => acceptOrder(order.id)" onStart="() => startOrder(order.id)" onComplete="() => completeOrder(order.id)"/>
+            <div t-foreach="props.filteredOrders" t-as="order" t-key="order.id" class="kds-board-column">
+                <TicketCard order="order" onAccept="() => props.acceptOrder(order.id)" onStart="() => props.startOrder(order.id)" onComplete="() => props.completeOrder(order.id)"/>
             </div>
-            <div class="kds-empty" t-if="state.filteredOrders.length === 0">
+            <div class="kds-empty" t-if="props.filteredOrders.length === 0">
                 <div class="kds-empty-icon"><i class="fa fa-check-circle"/></div>
                 <h2>All Orders Complete</h2>
                 <p>Waiting for new orders...</p>
@@ -109,9 +109,9 @@
 
     <template id="Filters" name="odfe_kds.Filters">
         <div class="kds-filters">
-            <button t-foreach="state.filterOptions" t-as="opt" t-key="opt.value"
-                class="kds-filter-btn" t-att-class="state.activeFilter === opt.value ? 'active' : ''"
-                t-on-click="() => setFilter(opt.value)">
+            <button t-foreach="props.filterOptions" t-as="opt" t-key="opt.value"
+                class="kds-filter-btn" t-att-class="props.activeFilter === opt.value ? 'active' : ''"
+                t-on-click="() => props.setFilter(opt.value)">
                 <t t-out="opt.label"/>
             </button>
         </div>
@@ -120,9 +120,9 @@
     <template id="Search" name="odfe_kds.Search">
         <div class="kds-search">
             <i class="fa fa-search kds-search-icon"/>
-            <input type="text" t-model="state.searchQuery" t-on-input="onSearch"
+            <input type="text" t-model="state.searchQuery" t-on-input="() => props.onSearch(state.searchQuery)"
                 placeholder="Search orders..."/>
-            <button class="kds-search-clear" t-if="state.searchQuery" t-on-click="clearSearch">&#215;</button>
+            <button class="kds-search-clear" t-if="state.searchQuery" t-on-click="() => { state.searchQuery = ''; props.clearSearch(); }">&#215;</button>
         </div>
     </template>
 </odoo>

@@ -1,9 +1,7 @@
-import json
-
 from odoo import api, fields, models, _
 
 
-class OdpeSelfOrderMenu(models.Model):
+class OdfeSelfOrderMenu(models.Model):
     _name = 'odfe.self.order.menu'
     _description = 'Self Order Menu'
     _rec_name = 'name'
@@ -66,11 +64,8 @@ class OdpeSelfOrderMenu(models.Model):
 
     def action_preview_menu(self):
         self.ensure_one()
-        data = self.get_menu_data()
         return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'odfe.self.order.menu.preview',
-            'view_mode': 'form',
+            'type': 'ir.actions.act_url',
+            'url': '/web',
             'target': 'new',
-            'context': {'default_menu_data': json.dumps(data)},
         }

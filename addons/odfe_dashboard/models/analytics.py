@@ -1,9 +1,9 @@
 from odoo import api, fields, models, _
-from datetime import datetime, timedelta
+from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
 
-class OdpeAnalytics(models.Model):
+class OdfeAnalytics(models.Model):
     _name = "odfe.analytics"
     _description = "Daily Sales Analytics"
     _order = "date desc"

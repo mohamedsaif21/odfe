@@ -1,7 +1,7 @@
 {
     "name": "ODFE Kitchen Display System",
     "version": "19.0.1.0.0",
-    "category": "Sales/Point of Sale",
+    "category": "Restaurant/Kitchen Display",
     "summary": "Real-time Kitchen Display for ODFE POS",
     "description": "Kitchen Display System showing incoming orders with large distance-readable cards, real-time updates, and stage tracking.",
     "author": "ODFE",

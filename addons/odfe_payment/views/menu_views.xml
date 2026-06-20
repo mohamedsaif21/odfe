@@ -2,7 +2,7 @@
 <odoo>
     <menuitem id="menu_odfe_payment_root"
               name="Payments"
-              parent="base.menu_main"
+              parent="odfe_base.menu_odfe_root"
               sequence="30"/>
 
     <menuitem id="menu_odfe_payment_config"

@@ -50,16 +50,12 @@
               <field name="kds_visible"/>
               <field name="preparation_time" string="Preparation Time (min)"/>
               <field name="modifiers_available"/>
-              <field name="modifier_ids" widget="many2many_tags" invisible="not modifiers_available"/>
               <field name="tax_type" readonly="1"/>
             </group>
           </group>
           <notebook>
             <page string="Taxes">
               <field name="tax_ids" widget="many2many_tags"/>
-            </page>
-            <page string="Modifiers" invisible="not modifiers_available">
-              <field name="modifier_ids" nolabel="1"/>
             </page>
           </notebook>
         </sheet>

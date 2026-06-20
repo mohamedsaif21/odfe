@@ -1,7 +1,7 @@
 from odoo import models, fields
 
 
-class OdpeBaseMixin(models.AbstractModel):
+class OdfeBaseMixin(models.AbstractModel):
     _name = 'odfe.base.mixin'
     _description = 'ODFE Base Mixin'
 
