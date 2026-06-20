@@ -1,0 +1,20 @@
+{
+    'name': 'ODFE Base',
+    'version': '19.0.1.0.0',
+    'category': 'Restaurant',
+    'summary': 'Shared base models and configuration for ODFE Restaurant POS',
+    'description': 'Provides shared mixins, abstract models, and configuration for all ODFE modules.',
+    'author': 'ODFE',
+    'website': 'https://odfe.app',
+    'license': 'LGPL-3',
+    'depends': ['base', 'web', 'mail'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/base_data.xml',
+        'views/menu_views.xml',
+    ],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+    'sequence': 1,
+}

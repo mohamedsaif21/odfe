@@ -1,0 +1,952 @@
+// ODFE POS Design System
+$deep-forest: #05363A;
+$accent-green: #32D26B;
+$warm-gold: #D4A843;
+$soft-cream: #F5F0E8;
+$charcoal: #1A1A2E;
+$slate: #2D2D44;
+$error-red: #E74C3C;
+$warning-orange: #F39C12;
+$info-blue: #3498DB;
+$text-primary: #FFFFFF;
+$text-secondary: #B0B0C0;
+$glass-bg: rgba(255, 255, 255, 0.05);
+$glass-border: rgba(255, 255, 255, 0.1);
+$glass-hover: rgba(255, 255, 255, 0.1);
+$shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+@mixin glass {
+    background: $glass-bg;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid $glass-border;
+}
+
+@mixin glow($color: $accent-green) {
+    box-shadow: 0 0 20px rgba($color, 0.3);
+}
+
+@mixin touch-btn {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    &:active { transform: scale(0.96); }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, $charcoal, $deep-forest);
+    color: $text-primary;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+// Login Screen
+.pos-login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.pos-login-container {
+    @include glass;
+    padding: 48px;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.pos-login-logo {
+    margin-bottom: 32px;
+    .fa-cutlery {
+        font-size: 64px;
+        color: $accent-green;
+        filter: drop-shadow(0 0 20px rgba($accent-green, 0.4));
+    }
+    h1 {
+        font-size: 28px;
+        margin-top: 16px;
+        background: linear-gradient(135deg, $accent-green, $warm-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+}
+
+.pos-login-form {
+    text-align: left;
+}
+
+.pos-login-field {
+    margin-bottom: 20px;
+    label {
+        display: block;
+        font-size: 14px;
+        color: $text-secondary;
+        margin-bottom: 8px;
+    }
+    input {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid $glass-border;
+        border-radius: 12px;
+        color: $text-primary;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.2s;
+        &:focus {
+            border-color: $accent-green;
+            @include glow;
+        }
+        &::placeholder { color: $text-secondary; }
+    }
+}
+
+.pos-login-error {
+    color: $error-red;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+// Navbar
+.pos-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    @include glass;
+    margin: 8px;
+    border-radius: 16px;
+    position: relative;
+    z-index: 100;
+}
+
+.pos-navbar-left,
+.pos-navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pos-navbar-title {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, $accent-green, $warm-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.pos-nav-btn {
+    @include touch-btn;
+    background: transparent;
+    color: $text-primary;
+    padding: 10px 16px;
+    border-radius: 10px;
+    &:hover { background: $glass-hover; }
+    .pos-badge {
+        background: $error-red;
+        color: white;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 4px;
+    }
+}
+
+// Main Layout
+.pos-main-layout {
+    display: flex;
+    height: calc(100vh - 80px);
+    padding: 0 8px 8px;
+    gap: 8px;
+}
+
+.pos-left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.pos-right-panel {
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+}
+
+// Category Tabs
+.pos-category-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    overflow-x: auto;
+    @include glass;
+    border-radius: 12px;
+}
+
+.pos-category-tab {
+    @include touch-btn;
+    background: transparent;
+    color: $text-secondary;
+    white-space: nowrap;
+    padding: 10px 20px;
+    border-radius: 10px;
+    &.active {
+        background: $accent-green;
+        color: $charcoal;
+    }
+    &:hover:not(.active) { background: $glass-hover; }
+}
+
+// Search Bar
+.pos-search-bar {
+    position: relative;
+    margin: 8px 0;
+    input {
+        width: 100%;
+        padding: 14px 16px 14px 44px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid $glass-border;
+        border-radius: 12px;
+        color: $text-primary;
+        font-size: 16px;
+        outline: none;
+        &:focus { border-color: $accent-green; }
+        &::placeholder { color: $text-secondary; }
+    }
+}
+
+.pos-search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $text-secondary;
+}
+
+.pos-search-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: $text-secondary;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+// Product Grid
+.pos-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    padding: 8px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.pos-product-card {
+    @include glass;
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    &:hover {
+        transform: translateY(-2px);
+        @include glow;
+        background: $glass-hover;
+    }
+}
+
+.pos-product-image {
+    width: 100%;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.pos-product-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.pos-product-code {
+    font-size: 12px;
+    color: $text-secondary;
+    margin-bottom: 8px;
+}
+
+.pos-product-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: $accent-green;
+}
+
+// Cart
+.pos-cart {
+    @include glass;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pos-cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    h3 { font-size: 18px; }
+}
+
+.pos-cart-items {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.pos-cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.pos-cart-item-info {
+    flex: 1;
+}
+
+.pos-cart-item-name {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.pos-cart-item-price {
+    font-size: 14px;
+    color: $accent-green;
+}
+
+.pos-cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pos-qty-btn {
+    @include touch-btn;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: $text-primary;
+    font-size: 18px;
+    &:hover { background: $glass-hover; }
+}
+
+.pos-cart-item-qty {
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+}
+
+.pos-cart-item-remove {
+    @include touch-btn;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: $error-red;
+    &:hover { background: rgba($error-red, 0.15); }
+}
+
+.pos-cart-summary {
+    border-top: 1px solid $glass-border;
+    padding-top: 12px;
+    margin-bottom: 12px;
+}
+
+.pos-cart-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 14px;
+    color: $text-secondary;
+}
+
+.pos-cart-summary-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: $text-primary;
+    border-top: 1px solid $glass-border;
+    padding-top: 8px;
+    margin-top: 4px;
+}
+
+// Buttons
+.pos-btn {
+    @include touch-btn;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.pos-btn-primary {
+    background: linear-gradient(135deg, $accent-green, darken($accent-green, 10%));
+    color: $charcoal;
+    &:hover { @include glow($accent-green); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.pos-btn-success {
+    background: linear-gradient(135deg, $info-blue, darken($info-blue, 10%));
+    color: white;
+    &:hover { @include glow($info-blue); }
+}
+
+.pos-btn-warning {
+    background: linear-gradient(135deg, $warning-orange, darken($warning-orange, 10%));
+    color: white;
+    &:hover { @include glow($warning-orange); }
+}
+
+.pos-btn-danger {
+    background: linear-gradient(135deg, $error-red, darken($error-red, 10%));
+    color: white;
+    &:hover { @include glow($error-red); }
+}
+
+.pos-btn-info {
+    background: rgba($info-blue, 0.2);
+    color: $info-blue;
+    &:hover { background: rgba($info-blue, 0.3); }
+}
+
+.pos-btn-block { width: 100%; }
+
+.pos-btn-sm {
+    padding: 8px 16px;
+    font-size: 14px;
+    min-height: 36px;
+}
+
+.pos-btn-back {
+    background: transparent;
+    color: $text-secondary;
+    &:hover { color: $text-primary; }
+}
+
+// Table View
+.pos-table-view {
+    padding: 16px;
+}
+
+.pos-table-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.pos-table-card {
+    @include glass;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    &.table-status-available {
+        border-color: rgba($accent-green, 0.3);
+    }
+    &.table-status-occupied {
+        border-color: rgba($warning-orange, 0.3);
+    }
+    &.table-status-reserved {
+        border-color: rgba($info-blue, 0.3);
+    }
+    &.selected {
+        @include glow($accent-green);
+        border-color: $accent-green;
+    }
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.pos-table-number {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.pos-table-status {
+    font-size: 12px;
+    color: $text-secondary;
+    text-transform: capitalize;
+}
+
+.pos-table-capacity {
+    font-size: 12px;
+    color: $text-secondary;
+    margin-top: 8px;
+}
+
+// Payment Screen
+.pos-payment-screen {
+    @include glass;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.pos-payment-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    h2 { flex: 1; }
+}
+
+.pos-payment-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: $accent-green;
+}
+
+.pos-payment-methods {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.pos-payment-method-card {
+    @include glass;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    &.selected {
+        @include glow($accent-green);
+        border-color: $accent-green;
+    }
+    &:hover { background: $glass-hover; }
+}
+
+.pos-payment-method-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    .fa-money { color: $accent-green; }
+    .fa-credit-card { color: $info-blue; }
+    .fa-qrcode { color: $warm-gold; }
+    .fa-mobile { color: $text-secondary; }
+}
+
+.pos-payment-method-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.pos-payment-detail {
+    margin-bottom: 24px;
+    label {
+        display: block;
+        font-size: 14px;
+        color: $text-secondary;
+        margin-bottom: 8px;
+    }
+    input {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid $glass-border;
+        border-radius: 12px;
+        color: $text-primary;
+        font-size: 20px;
+        text-align: center;
+        outline: none;
+        &:focus { border-color: $accent-green; }
+    }
+}
+
+.pos-payment-remaining {
+    text-align: center;
+    font-size: 16px;
+    color: $text-secondary;
+    margin: 12px 0;
+}
+
+.pos-payment-summary {
+    margin-bottom: 16px;
+}
+
+.pos-payment-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 16px;
+}
+
+.pos-payment-summary-remaining {
+    color: $warning-orange;
+    font-weight: 700;
+}
+
+// Floor Popup
+.pos-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.pos-popup {
+    @include glass;
+    border-radius: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.pos-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid $glass-border;
+    h2 { font-size: 20px; }
+}
+
+.pos-popup-close {
+    @include touch-btn;
+    background: transparent;
+    color: $text-secondary;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    &:hover { background: $glass-hover; }
+}
+
+.pos-popup-body {
+    padding: 24px;
+}
+
+.floor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.floor-card {
+    @include glass;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover {
+        @include glow;
+        transform: translateY(-2px);
+    }
+}
+
+.floor-icon {
+    font-size: 32px;
+    color: $warm-gold;
+    margin-bottom: 8px;
+}
+
+.floor-name {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.floor-tables {
+    font-size: 12px;
+    color: $text-secondary;
+}
+
+// Receipt Screen
+.pos-receipt-screen {
+    @include glass;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.pos-receipt-content {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.pos-receipt-header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.pos-receipt-number {
+    font-size: 12px;
+    color: $text-secondary;
+}
+
+.pos-receipt-order-info {
+    font-size: 12px;
+    color: $text-secondary;
+    margin-bottom: 8px;
+}
+
+.pos-receipt-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+}
+
+.pos-receipt-line-detail {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 12px;
+}
+
+.pos-receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+}
+
+.pos-receipt-total-final {
+    font-size: 18px;
+    font-weight: 700;
+    border-top: 1px dashed $glass-border;
+    padding-top: 8px;
+}
+
+.pos-receipt-thankyou {
+    text-align: center;
+    font-style: italic;
+    color: $text-secondary;
+    margin-top: 16px;
+}
+
+.pos-receipt-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    .pos-btn { flex: 1; }
+}
+
+// Empty State
+.pos-empty {
+    padding: 48px;
+    text-align: center;
+    p {
+        color: $text-secondary;
+        font-size: 16px;
+    }
+}
+
+// Scrollbar Styling
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: $glass-border;
+    border-radius: 3px;
+    &:hover { background: $text-secondary; }
+}
+
+// Animations
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.pos-product-card,
+.pos-table-card,
+.pos-payment-method-card {
+    animation: fadeIn 0.3s ease;
+}
+
+// Customer Screen
+.pos-customer-screen {
+    @include glass;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.pos-customer-header {
+    margin-bottom: 16px;
+    h2 { margin-bottom: 12px; }
+    input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid $glass-border;
+        border-radius: 10px;
+        color: $text-primary;
+        font-size: 16px;
+        outline: none;
+        &:focus { border-color: $accent-green; }
+    }
+}
+
+.pos-customer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pos-customer-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: $glass-hover; }
+}
+
+.pos-customer-avatar {
+    font-size: 32px;
+    color: $warm-gold;
+}
+
+.pos-customer-name {
+    font-weight: 600;
+}
+
+.pos-customer-phone,
+.pos-customer-points {
+    font-size: 12px;
+    color: $text-secondary;
+}
+
+// Reports Screen
+.pos-reports-screen {
+    padding: 24px;
+}
+
+.pos-reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.pos-report-card {
+    @include glass;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover {
+        @include glow;
+        transform: translateY(-2px);
+    }
+}
+
+.pos-report-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    color: $accent-green;
+}
+
+.pos-report-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.pos-report-desc {
+    font-size: 12px;
+    color: $text-secondary;
+}
+
+// Responsive
+@media (max-width: 1024px) {
+    .pos-main-layout {
+        flex-direction: column;
+    }
+    .pos-right-panel {
+        width: 100%;
+        max-height: 300px;
+    }
+    .pos-product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .pos-navbar { padding: 8px 12px; }
+    .pos-product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}

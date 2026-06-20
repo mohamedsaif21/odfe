@@ -1,0 +1,22 @@
+{
+    'name': 'ODFE Coupons & Promotions',
+    'version': '19.0.1.0.0',
+    'category': 'Restaurant',
+    'summary': 'Coupons, promotions, and discount management for ODFE Restaurant POS',
+    'description': 'Manage coupons (percentage/fixed/free shipping), promotions (BOGO, bundles, tiered), and both order-level and product-level discounts for the ODFE Restaurant POS system.',
+    'author': 'ODFE',
+    'website': 'https://odfe.app',
+    'license': 'LGPL-3',
+    'depends': ['odfe_base', 'odfe_customer'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/coupon_data.xml',
+        'views/coupon_views.xml',
+        'views/promotion_views.xml',
+        'views/menu_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+    'sequence': 5,
+}

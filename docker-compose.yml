@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: odfe-db
+    environment:
+      POSTGRES_DB: odfe
+      POSTGRES_USER: odfe
+      POSTGRES_PASSWORD: odfe_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+  odoo:
+    image: odoo:19
+    container_name: odfe-odoo
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    volumes:
+      - ./addons:/mnt/addons
+      - ./odoo.conf:/etc/odoo/odoo.conf
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: odfe
+      DB_PASSWORD: odfe_pass
+      DB_NAME: odfe
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

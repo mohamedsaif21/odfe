@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_odfe_report_sessions_tree" model="ir.ui.view">
+        <field name="name">odfe.report.sessions.tree</field>
+        <field name="model">odfe.report.sessions</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="session_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_odfe_report_sessions_form" model="ir.ui.view">
+        <field name="name">odfe.report.sessions.form</field>
+        <field name="model">odfe.report.sessions</field>
+        <field name="arch" type="xml">
+            <form string="Session Report">
+                <group>
+                    <field name="session_id"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                </group>
+                <footer>
+                    <button name="%(action_odfe_report_sessions_results)d" type="action"
+                            string="Generate Report" class="btn-primary"/>
+                    <button special="cancel" string="Cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_odfe_report_sessions" model="ir.actions.act_window">
+        <field name="name">Session Report</field>
+        <field name="res_model">odfe.report.sessions</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html">
+            <p>Generate a session report with cash management details.</p>
+        </field>
+    </record>
+
+    <record id="action_odfe_report_sessions_results" model="ir.actions.act_window">
+        <field name="name">Session Report Results</field>
+        <field name="res_model">odfe.report.sessions</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

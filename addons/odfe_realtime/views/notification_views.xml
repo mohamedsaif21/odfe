@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_odfe_notification_tree" model="ir.ui.view">
+        <field name="name">odfe.notification.tree</field>
+        <field name="model">odfe.notification</field>
+        <field name="arch" type="xml">
+            <tree string="Notifications" editable="false">
+                <field name="user_id" optional="show"/>
+                <field name="title"/>
+                <field name="type" widget="badge" decoration-success="type == 'success'" decoration-warning="type == 'warning'" decoration-danger="type == 'error'"/>
+                <field name="read" widget="boolean_toggle"/>
+                <field name="created_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_odfe_notification_form" model="ir.ui.view">
+        <field name="name">odfe.notification.form</field>
+        <field name="model">odfe.notification</field>
+        <field name="arch" type="xml">
+            <form string="Notification">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="title"/>
+                            <field name="type"/>
+                        </group>
+                        <group>
+                            <field name="read"/>
+                            <field name="model"/>
+                            <field name="res_id"/>
+                            <field name="created_at"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="message" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_odfe_notification_search" model="ir.ui.view">
+        <field name="name">odfe.notification.search</field>
+        <field name="model">odfe.notification</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="title"/>
+                <field name="message"/>
+                <filter name="unread" string="Unread" domain="[('read','=',False)]"/>
+                <filter name="read" string="Read" domain="[('read','=',True)]"/>
+                <separator/>
+                <filter name="info" string="Info" domain="[('type','=','info')]"/>
+                <filter name="success" string="Success" domain="[('type','=','success')]"/>
+                <filter name="warning" string="Warning" domain="[('type','=','warning')]"/>
+                <filter name="error" string="Error" domain="[('type','=','error')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_type" string="Type" context="{'group_by':'type'}"/>
+                    <filter name="group_by_user" string="User" context="{'group_by':'user_id'}"/>
+                    <filter name="group_by_read" string="Read Status" context="{'group_by':'read'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_odfe_notification" model="ir.actions.act_window">
+        <field name="name">Notifications</field>
+        <field name="res_model">odfe.notification</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_odfe_notification_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No notifications yet.
+            </p>
+        </field>
+    </record>
+</odoo>

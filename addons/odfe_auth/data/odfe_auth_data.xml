@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data noupdate="1">
+    <record id="odfe_role_admin" model="odfe.role">
+      <field name="name">Admin</field>
+      <field name="code">admin</field>
+      <field name="description">Full system access. Can manage all POS configurations, users, employees, and roles.</field>
+      <field name="sequence">10</field>
+    </record>
+
+    <record id="odfe_role_manager" model="odfe.role">
+      <field name="name">Manager</field>
+      <field name="code">manager</field>
+      <field name="description">Oversee daily operations, view reports, manage employees, and adjust menu pricing.</field>
+      <field name="sequence">20</field>
+    </record>
+
+    <record id="odfe_role_cashier" model="odfe.role">
+      <field name="name">Cashier</field>
+      <field name="code">cashier</field>
+      <field name="description">Process POS transactions, handle payments, and issue receipts.</field>
+      <field name="sequence">30</field>
+    </record>
+
+    <record id="odfe_role_kitchen" model="odfe.role">
+      <field name="name">Kitchen</field>
+      <field name="code">kitchen</field>
+      <field name="description">View and manage incoming orders via the Kitchen Display System (KDS).</field>
+      <field name="sequence">40</field>
+    </record>
+
+    <record id="odfe_role_waiter" model="odfe.role">
+      <field name="name">Waiter</field>
+      <field name="code">waiter</field>
+      <field name="description">Take orders at tables, manage seat assignments, and coordinate with kitchen.</field>
+      <field name="sequence">50</field>
+    </record>
+  </data>
+</odoo>

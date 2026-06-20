@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_odfe_role_tree" model="ir.ui.view">
+    <field name="name">odfe.role.tree</field>
+    <field name="model">odfe.role</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="name"/>
+        <field name="code"/>
+        <field name="description"/>
+        <field name="active"/>
+      </tree>
+    </field>
+  </record>
+
+  <record id="view_odfe_role_form" model="ir.ui.view">
+    <field name="name">odfe.role.form</field>
+    <field name="model">odfe.role</field>
+    <field name="arch" type="xml">
+      <form>
+        <sheet>
+          <div class="oe_button_box" name="button_box">
+            <button name="toggle_active" type="object"
+                    class="oe_stat_button" icon="fa-archive">
+              <field name="active" widget="boolean_toggle"/>
+            </button>
+          </div>
+          <div class="oe_title">
+            <h1>
+              <field name="name" placeholder="Role name..."/>
+            </h1>
+          </div>
+          <group>
+            <group>
+              <field name="code" placeholder="e.g. admin"/>
+              <field name="description" placeholder="Describe this role..."/>
+            </group>
+          </group>
+          <notebook>
+            <page string="Permissions">
+              <field name="permission_ids">
+                <tree editable="bottom">
+                  <field name="model" placeholder="e.g. odfe.product"/>
+                  <field name="perm_read" widget="boolean_toggle"/>
+                  <field name="perm_write" widget="boolean_toggle"/>
+                  <field name="perm_create" widget="boolean_toggle"/>
+                  <field name="perm_unlink" widget="boolean_toggle"/>
+                </tree>
+              </field>
+            </page>
+          </notebook>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_odfe_role_search" model="ir.ui.view">
+    <field name="name">odfe.role.search</field>
+    <field name="model">odfe.role</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="name"/>
+        <field name="code"/>
+        <field name="description"/>
+        <filter name="active" string="Active" domain="[('active','=',True)]"/>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_odfe_role" model="ir.actions.act_window">
+    <field name="name">Roles</field>
+    <field name="type">ir.actions.act_window</field>
+    <field name="res_model">odfe.role</field>
+    <field name="view_mode">tree,form</field>
+    <field name="search_view_id" ref="view_odfe_role_search"/>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        Create a new role
+      </p>
+      <p>
+        Define roles and their permissions for the ODFE POS system.
+      </p>
+    </field>
+  </record>
+</odoo>

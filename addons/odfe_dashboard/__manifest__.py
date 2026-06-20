@@ -1,0 +1,35 @@
+{
+    "name": "ODFE Dashboard",
+    "version": "19.0.1.0.0",
+    "category": "Sales/Point of Sale",
+    "summary": "Analytics Dashboards for ODFE Restaurant POS",
+    "description": "Provides analytics dashboards with charts, KPIs, and live data for the ODFE Restaurant POS system.",
+    "author": "ODFE",
+    "website": "https://odfe.ai",
+    "depends": [
+        "odfe_pos",
+        "odfe_product",
+        "odfe_reports",
+        "odfe_base",
+        "odfe_payment",
+        "odfe_customer",
+    ],
+    "data": [
+        "security/ir.model.access.csv",
+        "views/dashboard_views.xml",
+        "views/menu_views.xml",
+        "views/dashboard_templates.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "odfe_dashboard/static/src/js/dashboard_app.js",
+            "odfe_dashboard/static/src/js/kpi_card.js",
+            "odfe_dashboard/static/src/js/sales_chart.js",
+            "odfe_dashboard/static/src/scss/dashboard_style.scss",
+        ],
+    },
+    "installable": True,
+    "application": True,
+    "auto_install": False,
+    "license": "LGPL-3",
+}

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_odfe_coupon,odfe.coupon,model_odfe_coupon,base.group_user,1,1,1,1
+access_odfe_promotion,odfe.promotion,model_odfe_promotion,base.group_user,1,1,1,1
+access_odfe_order_discount,odfe.order.discount,model_odfe_order_discount,base.group_user,1,1,1,1
+access_odfe_product_discount,odfe.product.discount,model_odfe_product_discount,base.group_user,1,1,1,1

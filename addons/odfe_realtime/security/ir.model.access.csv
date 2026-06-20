@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_odfe_websocket_connection_user,odfe.websocket.connection.user,model_odfe_websocket_connection,base.group_user,1,1,1,1
+access_odfe_bus_message_user,odfe.bus.message.user,model_odfe_bus_message,base.group_user,1,0,1,0
+access_odfe_notification_user,odfe.notification.user,model_odfe_notification,base.group_user,1,1,0,0
+access_odfe_sync_log_user,odfe.sync.log.user,model_odfe_sync_log,base.group_user,1,0,0,0
+access_odfe_sync_log_manager,odfe.sync.log.manager,model_odfe_sync_log,base.group_system,1,1,1,1

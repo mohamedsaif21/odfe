@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="KDSDashboard" name="odfe_kds.KDSDashboard">
+        <t t-call="web.html_container">
+            <div class="kds-app">
+                <div class="kds-header">
+                    <div class="kds-header-left">
+                        <h1 class="kds-title">KITCHEN DISPLAY</h1>
+                        <div class="kds-clock" id="kds-clock"/>
+                    </div>
+                    <div class="kds-header-center">
+                        <Filters/>
+                    </div>
+                    <div class="kds-header-right">
+                        <Search/>
+                        <span class="kds-order-count" id="kds-order-count">0 orders</span>
+                    </div>
+                </div>
+                <KitchenBoard/>
+            </div>
+        </t>
+    </template>
+
+    <template id="KitchenBoard" name="odfe_kds.KitchenBoard">
+        <div class="kds-board">
+            <div t-foreach="state.filteredOrders" t-as="order" t-key="order.id" class="kds-board-column">
+                <TicketCard order="order" onAccept="() => acceptOrder(order.id)" onStart="() => startOrder(order.id)" onComplete="() => completeOrder(order.id)"/>
+            </div>
+            <div class="kds-empty" t-if="state.filteredOrders.length === 0">
+                <div class="kds-empty-icon"><i class="fa fa-check-circle"/></div>
+                <h2>All Orders Complete</h2>
+                <p>Waiting for new orders...</p>
+            </div>
+        </div>
+    </template>
+
+    <template id="TicketCard" name="odfe_kds.TicketCard">
+        <div class="kds-ticket" t-att-class="'kds-ticket-' + props.order.state + ' kds-priority-' + props.order.priority">
+            <div class="kds-ticket-header">
+                <div class="kds-ticket-order-info">
+                    <span class="kds-ticket-name">#<t t-out="props.order.name"/></span>
+                    <span class="kds-ticket-table" t-if="props.order.table_name">
+                        <i class="fa fa-cutlery"/> <t t-out="props.order.table_name"/>
+                    </span>
+                    <span class="kds-ticket-table" t-else="">
+                        <i class="fa fa-shopping-bag"/> Takeaway
+                    </span>
+                </div>
+                <div class="kds-ticket-timer" t-att-data-created="props.order.created_at">
+                    <i class="fa fa-clock-o"/> <span class="kds-timer-value">00:00</span>
+                </div>
+                <span class="kds-ticket-priority" t-if="props.order.priority === 'urgent'">URGENT</span>
+            </div>
+
+            <div class="kds-ticket-items">
+                <div t-foreach="props.order.items" t-as="item" t-key="item.id"
+                    class="kds-ticket-item" t-att-class="'kds-item-' + item.state">
+                    <div class="kds-item-info">
+                        <span class="kds-item-qty"><t t-esc="item.quantity"/>x</span>
+                        <span class="kds-item-name"><t t-out="item.product_name"/></span>
+                    </div>
+                    <div class="kds-item-status">
+                        <span class="kds-item-badge" t-att-class="'kds-badge-' + item.state">
+                            <t t-if="item.state === 'pending'">To Cook</t>
+                            <t t-if="item.state === 'accepted'">Accepted</t>
+                            <t t-if="item.state === 'preparing'">Preparing</t>
+                            <t t-if="item.state === 'completed'">Done</t>
+                            <t t-if="item.state === 'cancelled'">Cancelled</t>
+                        </span>
+                    </div>
+                    <div class="kds-item-modifiers" t-if="item.modifiers">
+                        <t t-esc="item.modifiers"/>
+                    </div>
+                    <div class="kds-item-note" t-if="item.note">
+                        <i class="fa fa-comment"/> <t t-out="item.note"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kds-ticket-notes" t-if="props.order.note">
+                <i class="fa fa-sticky-note"/> <t t-out="props.order.note"/>
+            </div>
+
+            <div class="kds-ticket-actions">
+                <button t-if="props.order.state === 'pending'" class="kds-btn kds-btn-accept" t-on-click="props.onAccept">
+                    <i class="fa fa-check"/> Accept
+                </button>
+                <button t-if="props.order.state === 'accepted'" class="kds-btn kds-btn-cook" t-on-click="props.onStart">
+                    <i class="fa fa-fire"/> Start Cooking
+                </button>
+                <button t-if="props.order.state === 'preparing'" class="kds-btn kds-btn-done" t-on-click="props.onComplete">
+                    <i class="fa fa-check-circle"/> Complete
+                </button>
+                <div class="kds-ticket-progress" t-if="props.order.state !== 'completed' &amp;&amp; props.order.state !== 'cancelled'">
+                    <div class="kds-progress-bar">
+                        <div class="kds-progress-fill" t-att-style="'width: ' + (props.order.total_items > 0 ? (props.order.completed_items / props.order.total_items * 100) : 0) + '%'"/>
+                    </div>
+                    <span class="kds-progress-text"><t t-esc="props.order.completed_items"/>/<t t-esc="props.order.total_items"/></span>
+                </div>
+                <span class="kds-ticket-complete-badge" t-if="props.order.state === 'completed'">
+                    <i class="fa fa-check"/> Completed
+                </span>
+                <span class="kds-ticket-complete-badge kds-cancelled-badge" t-if="props.order.state === 'cancelled'">
+                    <i class="fa fa-ban"/> Cancelled
+                </span>
+            </div>
+        </div>
+    </template>
+
+    <template id="Filters" name="odfe_kds.Filters">
+        <div class="kds-filters">
+            <button t-foreach="state.filterOptions" t-as="opt" t-key="opt.value"
+                class="kds-filter-btn" t-att-class="state.activeFilter === opt.value ? 'active' : ''"
+                t-on-click="() => setFilter(opt.value)">
+                <t t-out="opt.label"/>
+            </button>
+        </div>
+    </template>
+
+    <template id="Search" name="odfe_kds.Search">
+        <div class="kds-search">
+            <i class="fa fa-search kds-search-icon"/>
+            <input type="text" t-model="state.searchQuery" t-on-input="onSearch"
+                placeholder="Search orders..."/>
+            <button class="kds-search-clear" t-if="state.searchQuery" t-on-click="clearSearch">&#215;</button>
+        </div>
+    </template>
+</odoo>

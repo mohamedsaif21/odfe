@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="dashboard_page" name="ODFE Dashboard">
+        <t t-call="web.layout">
+            <t t-set="title">Dashboard</t>
+            <div class="o_dashboard_container" id="odfe_dashboard_app">
+                <div class="container-fluid">
+                    <div class="o_dashboard_header row mb-4">
+                        <div class="col-12">
+                            <h2>Sales Dashboard</h2>
+                            <div class="o_dashboard_controls">
+                                <select id="period_select" class="form-control d-inline-block w-auto">
+                                    <option value="day">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month" selected="selected">This Month</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                                <button id="refresh_btn" class="btn btn-primary ml-2">
+                                    <i class="fa fa-refresh"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="o_kpi_row row" id="kpi_container">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                            <div class="o_kpi_card card">
+                                <div class="card-body">
+                                    <div class="o_kpi_label text-muted">Total Revenue</div>
+                                    <div class="o_kpi_value h3" id="kpi_revenue">--</div>
+                                    <div class="o_kpi_trend" id="kpi_revenue_trend"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                            <div class="o_kpi_card card">
+                                <div class="card-body">
+                                    <div class="o_kpi_label text-muted">Total Orders</div>
+                                    <div class="o_kpi_value h3" id="kpi_orders">--</div>
+                                    <div class="o_kpi_trend" id="kpi_orders_trend"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                            <div class="o_kpi_card card">
+                                <div class="card-body">
+                                    <div class="o_kpi_label text-muted">Avg Order Value</div>
+                                    <div class="o_kpi_value h3" id="kpi_avg">--</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                            <div class="o_kpi_card card">
+                                <div class="card-body">
+                                    <div class="o_kpi_label text-muted">Customers Served</div>
+                                    <div class="o_kpi_value h3" id="kpi_customers">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-8 col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Daily Sales Trend</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="daily_sales_chart" style="height: 350px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Payment Methods</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="payment_chart" style="height: 350px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Top Products by Revenue</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="top_products_chart" style="height: 300px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Hourly Sales Heatmap</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="hourly_chart" style="height: 300px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Top Products</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-striped" id="top_products_table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Product</th>
+                                                <th>Quantity</th>
+                                                <th>Revenue</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="top_products_body">
+                                            <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.2/dist/apexcharts.min.js"></script>
+            <script src="/odfe_dashboard/static/src/js/kpi_card.js"></script>
+            <script src="/odfe_dashboard/static/src/js/sales_chart.js"></script>
+            <script src="/odfe_dashboard/static/src/js/dashboard_app.js"></script>
+        </t>
+    </template>
+</odoo>

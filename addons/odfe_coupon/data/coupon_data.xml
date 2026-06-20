@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="coupon_welcome10" model="odfe.coupon">
+        <field name="name">Welcome 10% Off</field>
+        <field name="code">WELCOME10</field>
+        <field name="type">percentage</field>
+        <field name="value">10.0</field>
+        <field name="usage_limit">1000</field>
+        <field name="active">True</field>
+        <field name="description">Welcome coupon for new customers — 10% off the entire order. Valid for the first 1000 uses.</field>
+    </record>
+</odoo>

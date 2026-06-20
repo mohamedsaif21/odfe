@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Loyalty Program Tree View -->
+        <record id="view_odfe_loyalty_program_tree" model="ir.ui.view">
+            <field name="name">odfe.loyalty.program.tree</field>
+            <field name="model">odfe.loyalty.program</field>
+            <field name="arch" type="xml">
+                <tree string="Loyalty Programs" multi_edit="1">
+                    <field name="name" filterable="1"/>
+                    <field name="program_type"/>
+                    <field name="points_per_currency" optional="show"/>
+                    <field name="points_per_visit" optional="show"/>
+                    <field name="min_spend" widget="monetary" optional="show"/>
+                    <field name="reward_type"/>
+                    <field name="reward_value"/>
+                    <field name="member_count"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Loyalty Program Form View -->
+        <record id="view_odfe_loyalty_program_form" model="ir.ui.view">
+            <field name="name">odfe.loyalty.program.form</field>
+            <field name="model">odfe.loyalty.program</field>
+            <field name="arch" type="xml">
+                <form string="Loyalty Program">
+                    <header>
+                        <field name="active" widget="toggle_button"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Program Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group name="config">
+                                <field name="program_type"/>
+                                <field name="points_per_currency"
+                                       attrs="{'invisible': [('program_type', 'not in', ('points', 'spend'))], 'required': [('program_type', 'in', ('points', 'spend'))]}"/>
+                                <field name="points_per_visit"
+                                       attrs="{'invisible': [('program_type', '!=', 'visits')], 'required': [('program_type', '=', 'visits')]}"/>
+                                <field name="min_spend" widget="monetary"/>
+                            </group>
+                            <group name="reward">
+                                <field name="reward_type"/>
+                                <field name="reward_value"/>
+                            </group>
+                            <group name="dates">
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Members">
+                                <field name="customer_loyalty_ids" readonly="1">
+                                    <tree>
+                                        <field name="customer_id"/>
+                                        <field name="tier" widget="badge" options="{'color': 'info'}"/>
+                                        <field name="points_earned"/>
+                                        <field name="points_redeemed"/>
+                                        <field name="points_balance"/>
+                                        <field name="enrolled_date"/>
+                                        <field name="last_activity"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Customer Loyalty Tree View -->
+        <record id="view_odfe_customer_loyalty_tree" model="ir.ui.view">
+            <field name="name">odfe.customer.loyalty.tree</field>
+            <field name="model">odfe.customer.loyalty</field>
+            <field name="arch" type="xml">
+                <tree string="Customer Loyalty" multi_edit="1">
+                    <field name="customer_id" filterable="1"/>
+                    <field name="program_id" filterable="1"/>
+                    <field name="tier" widget="badge" options="{'color': 'info'}"/>
+                    <field name="points_earned" sum="Total"/>
+                    <field name="points_redeemed" sum="Total"/>
+                    <field name="points_balance" sum="Total"/>
+                    <field name="enrolled_date"/>
+                    <field name="last_activity"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Customer Loyalty Form View -->
+        <record id="view_odfe_customer_loyalty_form" model="ir.ui.view">
+            <field name="name">odfe.customer.loyalty.form</field>
+            <field name="model">odfe.customer.loyalty</field>
+            <field name="arch" type="xml">
+                <form string="Customer Loyalty">
+                    <header>
+                        <button name="earn_points" type="object" string="Earn Points"
+                                attrs="{'invisible': [('id', '=', False)]}"/>
+                        <button name="redeem_points" type="object" string="Redeem Points"
+                                attrs="{'invisible': [('id', '=', False)]}"/>
+                        <field name="active" widget="toggle_button"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="customer_id"/>
+                            </h1>
+                            <group>
+                                <field name="tier" widget="badge" options="{'color': 'info'}"/>
+                            </group>
+                        </div>
+                        <group>
+                            <group name="left">
+                                <field name="program_id"/>
+                                <field name="points_earned"/>
+                                <field name="points_redeemed"/>
+                                <field name="points_balance"/>
+                            </group>
+                            <group name="right">
+                                <field name="enrolled_date"/>
+                                <field name="last_activity"/>
+                            </group>
+                        </group>
+                        <group string="Notes">
+                            <field name="notes" nolabel="1" placeholder="Notes about this loyalty enrollment..."/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Actions -->
+        <record id="action_odfe_loyalty_program" model="ir.actions.act_window">
+            <field name="name">Loyalty Programs</field>
+            <field name="res_model">odfe.loyalty.program</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="action_odfe_customer_loyalty" model="ir.actions.act_window">
+            <field name="name">Customer Loyalty</field>
+            <field name="res_model">odfe.customer.loyalty</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('customer_id', '=', active_id)]</field>
+            <field name="context">{'default_customer_id': active_id}</field>
+        </record>
+
+    </data>
+</odoo>

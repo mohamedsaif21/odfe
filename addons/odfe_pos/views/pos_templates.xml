@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="pos_app" name="odfe_pos: POS App">
+        <t t-call="web.html_container">
+            <t t-raw="0"/>
+        </t>
+    </template>
+
+    <template id="LoginScreen" name="odfe_pos.LoginScreen">
+        <div class="pos-login-screen">
+            <div class="pos-login-container">
+                <div class="pos-login-logo">
+                    <i class="fa fa-cutlery" aria-hidden="true"/>
+                    <h1>ODFE POS</h1>
+                </div>
+                <div class="pos-login-form">
+                    <div class="pos-login-field">
+                        <label>Username</label>
+                        <input type="text" t-model="state.username" placeholder="Enter username"/>
+                    </div>
+                    <div class="pos-login-field">
+                        <label>Password</label>
+                        <input type="password" t-model="state.password" placeholder="Enter password"/>
+                    </div>
+                    <div class="pos-login-error" t-if="state.error">
+                        <t t-out="state.error"/>
+                    </div>
+                    <button class="pos-btn pos-btn-primary pos-btn-block" t-on-click="handleLogin">
+                        <i class="fa fa-sign-in"/> Sign In
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="FloorPopup" name="odfe_pos.FloorPopup">
+        <div class="pos-popup-overlay" t-on-click="close">
+            <div class="pos-popup floor-popup" t-on-click.stop="">
+                <div class="pos-popup-header">
+                    <h2>Select Floor</h2>
+                    <button class="pos-popup-close" t-on-click="close">&#215;</button>
+                </div>
+                <div class="pos-popup-body">
+                    <div class="floor-grid">
+                        <div t-foreach="state.floors" t-as="floor" class="floor-card" t-on-click="() => selectFloor(floor)">
+                            <div class="floor-icon"><i class="fa fa-building"/></div>
+                            <div class="floor-name"><t t-out="floor.name"/></div>
+                            <div class="floor-tables"><t t-out="floor.table_count"/> tables</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="OrderView" name="odfe_pos.OrderView">
+        <div class="pos-order-view">
+            <div class="pos-order-header">
+                <h2>Order #<t t-out="props.order.name"/></h2>
+                <span class="pos-order-state" t-att-class="'state-' + props.order.state"><t t-out="props.order.state"/></span>
+            </div>
+            <div class="pos-order-items">
+                <div t-foreach="props.order.lines" t-as="line" class="pos-order-item">
+                    <div class="pos-order-item-name"><t t-out="line.product_name"/></div>
+                    <div class="pos-order-item-qty"><t t-out="line.quantity"/>x</div>
+                    <div class="pos-order-item-price"><t t-esc="line.subtotal"/></div>
+                </div>
+            </div>
+            <div class="pos-order-totals">
+                <div class="pos-order-total-row">
+                    <span>Subtotal</span>
+                    <span><t t-esc="props.order.subtotal"/></span>
+                </div>
+                <div class="pos-order-total-row">
+                    <span>Tax</span>
+                    <span><t t-esc="props.order.tax_amount"/></span>
+                </div>
+                <div class="pos-order-total-row pos-order-total-final">
+                    <span>Total</span>
+                    <span><t t-esc="props.order.total"/></span>
+                </div>
+            </div>
+            <div class="pos-order-actions" t-if="props.order.state === 'draft' || props.order.state === 'confirmed'">
+                <button class="pos-btn pos-btn-primary" t-on-click="() => props.onPay(props.order)">
+                    <i class="fa fa-credit-card"/> Pay
+                </button>
+                <button class="pos-btn pos-btn-danger" t-on-click="() => props.onCancel(props.order)">
+                    <i class="fa fa-times"/> Cancel
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="Orders" name="odfe_pos.Orders">
+        <div class="pos-orders-screen">
+            <div class="pos-orders-header">
+                <h2>Order History</h2>
+                <div class="pos-orders-search">
+                    <input type="text" t-model="state.searchQuery" placeholder="Search orders..."/>
+                </div>
+            </div>
+            <div class="pos-orders-filter">
+                <button t-on-click="() => filterOrders('all')" class="pos-filter-btn" t-att-class="state.activeFilter === 'all' ? 'active' : ''">All</button>
+                <button t-on-click="() => filterOrders('draft')" class="pos-filter-btn" t-att-class="state.activeFilter === 'draft' ? 'active' : ''">Draft</button>
+                <button t-on-click="() => filterOrders('paid')" class="pos-filter-btn" t-att-class="state.activeFilter === 'paid' ? 'active' : ''">Paid</button>
+                <button t-on-click="() => filterOrders('cancelled')" class="pos-filter-btn" t-att-class="state.activeFilter === 'cancelled' ? 'active' : ''">Cancelled</button>
+            </div>
+            <div class="pos-orders-list" t-if="state.filteredOrders.length > 0">
+                <div t-foreach="state.filteredOrders" t-as="order" class="pos-order-card" t-on-click="() => openOrder(order)">
+                    <div class="pos-order-card-header">
+                        <span class="pos-order-card-name"><t t-out="order.name"/></span>
+                        <span class="pos-order-card-state" t-att-class="'state-' + order.state"><t t-out="order.state"/></span>
+                    </div>
+                    <div class="pos-order-card-info">
+                        <span t-if="order.table_name">Table: <t t-out="order.table_name"/></span>
+                        <span><t t-esc="order.total"/></span>
+                    </div>
+                    <div class="pos-order-card-time">
+                        <t t-out="order.ordered_at"/>
+                    </div>
+                </div>
+            </div>
+            <div class="pos-empty" t-else="">
+                <p>No orders found</p>
+            </div>
+        </div>
+    </template>
+
+    <template id="OrderDetail" name="odfe_pos.OrderDetail">
+        <div class="pos-order-detail">
+            <div class="pos-order-detail-header">
+                <button class="pos-btn pos-btn-back" t-on-click="() => props.onBack()">
+                    <i class="fa fa-arrow-left"/> Back
+                </button>
+                <h2><t t-out="props.order.name"/></h2>
+                <span class="pos-order-state" t-att-class="'state-' + props.order.state"><t t-out="props.order.state"/></span>
+            </div>
+            <div class="pos-order-detail-info">
+                <div class="pos-order-detail-row">
+                    <span>Table:</span>
+                    <span t-if="props.order.table_name"><t t-out="props.order.table_name"/></span>
+                    <span t-else="">Takeaway</span>
+                </div>
+                <div class="pos-order-detail-row">
+                    <span>Customer:</span>
+                    <span t-if="props.order.customer_name"><t t-out="props.order.customer_name"/></span>
+                    <span t-else="">Walk-in</span>
+                </div>
+                <div class="pos-order-detail-row">
+                    <span>Date:</span>
+                    <span><t t-out="props.order.ordered_at"/></span>
+                </div>
+            </div>
+            <div class="pos-order-detail-lines">
+                <div t-foreach="props.order.lines" t-as="line" class="pos-detail-line">
+                    <div class="pos-detail-line-info">
+                        <span class="pos-detail-line-name"><t t-out="line.product_name"/></span>
+                        <span class="pos-detail-line-qty"><t t-out="line.quantity"/> x <t t-esc="line.price_unit"/></span>
+                    </div>
+                    <span class="pos-detail-line-subtotal"><t t-esc="line.subtotal"/></span>
+                </div>
+            </div>
+            <div class="pos-order-detail-totals">
+                <div class="pos-detail-total-row">
+                    <span>Subtotal</span>
+                    <span><t t-esc="props.order.subtotal"/></span>
+                </div>
+                <div class="pos-detail-total-row">
+                    <span>Tax</span>
+                    <span><t t-esc="props.order.tax_amount"/></span>
+                </div>
+                <div class="pos-detail-total-row" t-if="props.order.discount_total > 0">
+                    <span>Discount</span>
+                    <span>-<t t-esc="props.order.discount_total"/></span>
+                </div>
+                <div class="pos-detail-total-row pos-detail-total-final">
+                    <span>Total</span>
+                    <span><t t-esc="props.order.total"/></span>
+                </div>
+            </div>
+            <div class="pos-order-detail-payments" t-if="props.order.payments &amp;&amp; props.order.payments.length">
+                <h3>Payments</h3>
+                <div t-foreach="props.order.payments" t-as="pay" class="pos-detail-payment">
+                    <span><t t-out="pay.method"/></span>
+                    <span><t t-esc="pay.amount"/></span>
+                </div>
+            </div>
+            <div class="pos-order-detail-actions">
+                <button class="pos-btn pos-btn-primary" t-on-click="() => props.onPrint(props.order)">
+                    <i class="fa fa-print"/> Print Receipt
+                </button>
+                <button class="pos-btn pos-btn-success" t-if="props.order.state === 'paid'" t-on-click="() => props.onRefund(props.order)">
+                    <i class="fa fa-undo"/> Refund
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="CustomerScreen" name="odfe_pos.CustomerScreen">
+        <div class="pos-customer-screen">
+            <div class="pos-customer-header">
+                <h2>Customers</h2>
+                <div class="pos-customer-search">
+                    <input type="text" t-model="state.searchQuery" t-on-input="searchCustomers" placeholder="Search name or phone..."/>
+                </div>
+            </div>
+            <div class="pos-customer-list">
+                <div t-foreach="state.customers" t-as="customer" class="pos-customer-card" t-on-click="() => selectCustomer(customer)">
+                    <div class="pos-customer-avatar">
+                        <i class="fa fa-user-circle"/>
+                    </div>
+                    <div class="pos-customer-info">
+                        <div class="pos-customer-name"><t t-out="customer.name"/></div>
+                        <div class="pos-customer-phone"><t t-out="customer.phone"/></div>
+                        <div class="pos-customer-points"><t t-out="customer.loyalty_points"/> pts</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pos-empty" t-if="state.customers.length === 0">
+                <p>Type to search customers</p>
+            </div>
+        </div>
+    </template>
+
+    <template id="PaymentScreen" name="odfe_pos.PaymentScreen">
+        <div class="pos-payment-screen">
+            <div class="pos-payment-header">
+                <button class="pos-btn pos-btn-back" t-on-click="() => props.onBack()">
+                    <i class="fa fa-arrow-left"/> Back
+                </button>
+                <h2>Payment</h2>
+                <span class="pos-payment-amount"><t t-esc="props.total"/></span>
+            </div>
+            <div class="pos-payment-methods">
+                <div t-foreach="state.paymentMethods" t-as="method" class="pos-payment-method-card"
+                    t-on-click="() => selectMethod(method)" t-att-class="state.selectedMethod &amp;&amp; state.selectedMethod.id === method.id ? 'selected' : ''">
+                    <div class="pos-payment-method-icon">
+                        <i t-att-class="'fa ' + (method.icon || 'fa-credit-card')"/>
+                    </div>
+                    <div class="pos-payment-method-name"><t t-out="method.name"/></div>
+                </div>
+            </div>
+            <div class="pos-payment-detail" t-if="state.selectedMethod">
+                <div class="pos-payment-amount-input">
+                    <label>Amount</label>
+                    <input type="number" t-model="state.amount" step="0.01"/>
+                </div>
+                <div class="pos-payment-remaining">
+                    Remaining: <t t-esc="props.total - state.amountPaid"/>
+                </div>
+                <div class="pos-payment-actions">
+                    <button class="pos-btn pos-btn-primary pos-btn-block" t-on-click="processPayment"
+                        t-att-disabled="state.amount &lt;= 0">
+                        <i class="fa fa-check"/> Pay <t t-esc="state.amount"/>
+                    </button>
+                </div>
+            </div>
+            <div class="pos-payment-summary">
+                <div class="pos-payment-summary-row">
+                    <span>Total</span>
+                    <span><t t-esc="props.total"/></span>
+                </div>
+                <div class="pos-payment-summary-row">
+                    <span>Paid</span>
+                    <span><t t-esc="state.amountPaid"/></span>
+                </div>
+                <div class="pos-payment-summary-row pos-payment-summary-remaining">
+                    <span>Remaining</span>
+                    <span><t t-esc="props.total - state.amountPaid"/></span>
+                </div>
+            </div>
+            <button class="pos-btn pos-btn-success pos-btn-block" t-on-click="completePayment"
+                t-att-disabled="state.amountPaid &lt; props.total">
+                <i class="fa fa-check-circle"/> Complete Payment
+            </button>
+        </div>
+    </template>
+
+    <template id="ReceiptScreen" name="odfe_pos.ReceiptScreen">
+        <div class="pos-receipt-screen">
+            <div class="pos-receipt-content">
+                <div class="pos-receipt-header">
+                    <h2>Receipt</h2>
+                    <p class="pos-receipt-number">#<t t-out="state.receiptNumber"/></p>
+                </div>
+                <div class="pos-receipt-order-info">
+                    <p><t t-out="new Date(state.order.ordered_at).toLocaleString()"/></p>
+                    <p t-if="state.order.table_name">Table: <t t-out="state.order.table_name"/></p>
+                    <p t-if="state.order.customer_name">Customer: <t t-out="state.order.customer_name"/></p>
+                </div>
+                <hr/>
+                <div class="pos-receipt-lines">
+                    <div t-foreach="state.order.lines" t-as="line" class="pos-receipt-line">
+                        <div class="pos-receipt-line-name"><t t-out="line.product_name"/></div>
+                        <div class="pos-receipt-line-detail">
+                            <span><t t-out="line.quantity"/> x <t t-esc="line.price_unit"/></span>
+                            <span class="pos-receipt-line-total"><t t-esc="line.subtotal"/></span>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+                <div class="pos-receipt-totals">
+                    <div class="pos-receipt-total-row"><span>Subtotal</span><span><t t-esc="state.order.subtotal"/></span></div>
+                    <div class="pos-receipt-total-row"><span>Tax</span><span><t t-esc="state.order.tax_amount"/></span></div>
+                    <div class="pos-receipt-total-row pos-receipt-total-final"><span>Total</span><span><t t-esc="state.order.total"/></span></div>
+                    <div class="pos-receipt-total-row"><span>Paid</span><span><t t-esc="state.order.total_paid"/></span></div>
+                </div>
+                <hr/>
+                <p class="pos-receipt-thankyou">Thank you for dining with us!</p>
+            </div>
+            <div class="pos-receipt-actions">
+                <button class="pos-btn pos-btn-primary" t-on-click="printReceipt">
+                    <i class="fa fa-print"/> Print
+                </button>
+                <button class="pos-btn pos-btn-info" t-on-click="emailReceipt">
+                    <i class="fa fa-envelope"/> Email
+                </button>
+                <button class="pos-btn pos-btn-success" t-on-click="newOrder">
+                    <i class="fa fa-plus"/> New Order
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="DiscountPopup" name="odfe_pos.DiscountPopup">
+        <div class="pos-popup-overlay" t-on-click="close">
+            <div class="pos-popup" t-on-click.stop="">
+                <div class="pos-popup-header">
+                    <h2>Add Discount</h2>
+                    <button class="pos-popup-close" t-on-click="close">&#215;</button>
+                </div>
+                <div class="pos-popup-body">
+                    <div class="pos-discount-type">
+                        <label>Discount Type</label>
+                        <select t-model="state.discountType">
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="fixed">Fixed Amount</option>
+                        </select>
+                    </div>
+                    <div class="pos-discount-value">
+                        <label>Value</label>
+                        <input type="number" t-model="state.discountValue" step="0.01" min="0"/>
+                    </div>
+                    <div class="pos-discount-preview">
+                        <span>Discount Amount: </span>
+                        <strong t-if="state.discountType === 'percentage'">
+                            <t t-esc="state.discountValue"/>%
+                        </strong>
+                        <strong t-else="">
+                            <t t-esc="state.discountValue"/>
+                        </strong>
+                    </div>
+                    <button class="pos-btn pos-btn-primary pos-btn-block" t-on-click="applyDiscount">
+                        Apply Discount
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="TableView" name="odfe_pos.TableView">
+        <div class="pos-table-view">
+            <div class="pos-table-grid">
+                <div t-foreach="state.tables" t-as="table" class="pos-table-card"
+                    t-att-class="'table-status-' + table.status + (table.id === state.selectedTableId ? ' selected' : '')"
+                    t-on-click="() => selectTable(table)">
+                    <div class="pos-table-number"><t t-out="table.name"/></div>
+                    <div class="pos-table-status"><t t-out="table.status"/></div>
+                    <div class="pos-table-capacity"><i class="fa fa-users"/> <t t-out="table.capacity"/></div>
+                </div>
+            </div>
+            <div class="pos-empty" t-if="state.tables.length === 0">
+                <p>No tables available</p>
+            </div>
+        </div>
+    </template>
+
+    <template id="SessionClose" name="odfe_pos.SessionClose">
+        <div class="pos-session-close">
+            <div class="pos-session-close-header">
+                <h2>Close Session</h2>
+                <p>Session: <t t-out="props.session.name"/></p>
+            </div>
+            <div class="pos-session-close-stats">
+                <div class="pos-session-stat">
+                    <label>Total Orders</label>
+                    <span class="pos-session-stat-value"><t t-esc="props.session.total_orders"/></span>
+                </div>
+                <div class="pos-session-stat">
+                    <label>Total Sales</label>
+                    <span class="pos-session-stat-value"><t t-esc="props.session.total_sales"/></span>
+                </div>
+            </div>
+            <div class="pos-session-close-cash">
+                <div class="pos-cash-field">
+                    <label>Starting Cash</label>
+                    <span class="pos-cash-value"><t t-esc="props.session.start_cash"/></span>
+                </div>
+                <div class="pos-cash-field">
+                    <label>Count Ending Cash</label>
+                    <input type="number" t-model="state.cashCount" step="0.01" placeholder="Enter cash amount"/>
+                </div>
+                <div class="pos-cash-difference" t-if="state.cashCount > 0">
+                    <span>Difference: </span>
+                    <span t-att-class="state.difference &gt;= 0 ? 'positive' : 'negative'">
+                        <t t-esc="state.cashCount - props.session.total_sales"/>
+                    </span>
+                </div>
+            </div>
+            <div class="pos-session-close-actions">
+                <button class="pos-btn pos-btn-warning" t-on-click="closeSession"
+                    t-att-disabled="state.cashCount &lt;= 0">
+                    <i class="fa fa-lock"/> Close Session
+                </button>
+                <button class="pos-btn pos-btn-default" t-on-click="() => props.onCancel()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="ReportsScreen" name="odfe_pos.ReportsScreen">
+        <div class="pos-reports-screen">
+            <div class="pos-reports-header">
+                <h2>Reports</h2>
+            </div>
+            <div class="pos-reports-grid">
+                <div class="pos-report-card" t-on-click="openSalesReport">
+                    <div class="pos-report-icon"><i class="fa fa-line-chart"/></div>
+                    <div class="pos-report-title">Sales Report</div>
+                    <div class="pos-report-desc">Daily, weekly, monthly sales</div>
+                </div>
+                <div class="pos-report-card" t-on-click="openPaymentReport">
+                    <div class="pos-report-icon"><i class="fa fa-credit-card"/></div>
+                    <div class="pos-report-title">Payment Summary</div>
+                    <div class="pos-report-desc">Payment methods breakdown</div>
+                </div>
+                <div class="pos-report-card" t-on-click="openProductReport">
+                    <div class="pos-report-icon"><i class="fa fa-shopping-cart"/></div>
+                    <div class="pos-report-title">Product Report</div>
+                    <div class="pos-report-desc">Best selling products</div>
+                </div>
+                <div class="pos-report-card" t-on-click="openSessionReport">
+                    <div class="pos-report-icon"><i class="fa fa-history"/></div>
+                    <div class="pos-report-title">Session History</div>
+                    <div class="pos-report-desc">All sessions overview</div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="ProductCard" name="odfe_pos.ProductCard">
+        <div class="pos-product-card" t-on-click="() => props.onSelect(props.product)">
+            <div class="pos-product-image">
+                <img t-att-src="props.product.image_url || '/odfe_pos/static/img/no_image.png'"
+                    t-att-alt="props.product.name"/>
+            </div>
+            <div class="pos-product-info">
+                <div class="pos-product-name"><t t-out="props.product.name"/></div>
+                <div class="pos-product-code" t-if="props.product.code"><t t-out="props.product.code"/></div>
+                <div class="pos-product-price"><t t-esc="props.product.price"/></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="CategoryTabs" name="odfe_pos.CategoryTabs">
+        <div class="pos-category-tabs">
+            <button t-foreach="state.categories" t-as="cat" class="pos-category-tab"
+                t-att-class="cat.id === state.activeCategoryId ? 'active' : ''"
+                t-on-click="() => selectCategory(cat)">
+                <t t-out="cat.name"/>
+            </button>
+        </div>
+    </template>
+
+    <template id="CartComponent" name="odfe_pos.CartComponent">
+        <div class="pos-cart">
+            <div class="pos-cart-header">
+                <h3>Cart</h3>
+                <button class="pos-btn pos-btn-sm pos-btn-danger" t-on-click="clearCart" t-if="state.lines.length > 0">
+                    <i class="fa fa-trash"/> Clear
+                </button>
+            </div>
+            <div class="pos-cart-items" t-if="state.lines.length > 0">
+                <CartItem t-foreach="state.lines" t-as="line" t-key="line.id"
+                    line="line" onUpdate="updateLine" onRemove="removeLine"/>
+            </div>
+            <div class="pos-empty" t-else="">
+                <p>Cart is empty</p>
+            </div>
+            <div class="pos-cart-summary" t-if="state.lines.length > 0">
+                <div class="pos-cart-summary-row">
+                    <span>Subtotal</span>
+                    <span><t t-esc="state.subtotal"/></span>
+                </div>
+                <div class="pos-cart-summary-row" t-if="state.discountTotal > 0">
+                    <span>Discount</span>
+                    <span>-<t t-esc="state.discountTotal"/></span>
+                </div>
+                <div class="pos-cart-summary-row pos-cart-summary-total">
+                    <span>Total</span>
+                    <span><t t-esc="state.total"/></span>
+                </div>
+            </div>
+            <button class="pos-btn pos-btn-primary pos-btn-block" t-on-click="placeOrder"
+                t-att-disabled="state.lines.length === 0">
+                <i class="fa fa-check"/> Place Order
+            </button>
+        </div>
+    </template>
+
+    <template id="CartItem" name="odfe_pos.CartItem">
+        <div class="pos-cart-item">
+            <div class="pos-cart-item-info">
+                <div class="pos-cart-item-name"><t t-out="props.line.product_name"/></div>
+                <div class="pos-cart-item-price"><t t-esc="props.line.price_unit"/></div>
+            </div>
+            <div class="pos-cart-item-controls">
+                <button class="pos-qty-btn" t-on-click="() => props.onUpdate(props.line.id, props.line.quantity - 1)">-</button>
+                <span class="pos-cart-item-qty"><t t-out="props.line.quantity"/></span>
+                <button class="pos-qty-btn" t-on-click="() => props.onUpdate(props.line.id, props.line.quantity + 1)">+</button>
+                <button class="pos-cart-item-remove" t-on-click="() => props.onRemove(props.line.id)">
+                    <i class="fa fa-times"/>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="OrderSummary" name="odfe_pos.OrderSummary">
+        <div class="pos-order-summary">
+            <div t-foreach="props.order.lines" t-as="line" class="pos-summary-line">
+                <span><t t-out="line.quantity"/>x <t t-out="line.product_name"/></span>
+                <span><t t-esc="line.subtotal"/></span>
+            </div>
+            <div class="pos-summary-divider"/>
+            <div class="pos-summary-total">
+                <span>Total</span>
+                <span><t t-esc="props.order.total"/></span>
+            </div>
+        </div>
+    </template>
+
+    <template id="PaymentButton" name="odfe_pos.PaymentButton">
+        <button class="pos-payment-btn" t-att-class="'payment-' + (props.method.id || 'default')"
+            t-on-click="() => props.onSelect(props.method)">
+            <i t-att-class="'fa ' + (props.method.icon || 'fa-credit-card')"/>
+            <span><t t-out="props.method.name"/></span>
+        </button>
+    </template>
+
+    <template id="SearchBar" name="odfe_pos.SearchBar">
+        <div class="pos-search-bar">
+            <i class="fa fa-search pos-search-icon"/>
+            <input type="text" t-model="state.query" t-on-input="onSearch"
+                placeholder="Search products..."/>
+            <button class="pos-search-clear" t-if="state.query" t-on-click="clearSearch">&#215;</button>
+        </div>
+    </template>
+
+    <template id="Navbar" name="odfe_pos.Navbar">
+        <nav class="pos-navbar">
+            <div class="pos-navbar-left">
+                <button class="pos-nav-btn" t-on-click="() => props.onMenu()">
+                    <i class="fa fa-bars"/>
+                </button>
+                <span class="pos-navbar-title">ODFE POS</span>
+            </div>
+            <div class="pos-navbar-center">
+                <button class="pos-nav-btn" t-on-click="() => props.onFloor()">
+                    <i class="fa fa-building"/>
+                    <span t-if="props.currentFloor"><t t-out="props.currentFloor.name"/></span>
+                </button>
+            </div>
+            <div class="pos-navbar-right">
+                <button class="pos-nav-btn" t-on-click="() => props.onOrders()">
+                    <i class="fa fa-list"/> <span t-if="props.pendingOrders" class="pos-badge"><t t-esc="props.pendingOrders"/></span>
+                </button>
+                <button class="pos-nav-btn" t-on-click="() => props.onSession()">
+                    <i class="fa fa-cog"/>
+                </button>
+            </div>
+        </nav>
+    </template>
+
+    <template id="CustomerCard" name="odfe_pos.CustomerCard">
+        <div class="pos-customer-small-card" t-on-click="() => props.onSelect(props.customer)">
+            <div class="pos-csc-avatar"><i class="fa fa-user"/></div>
+            <div class="pos-csc-info">
+                <div class="pos-csc-name"><t t-out="props.customer.name"/></div>
+                <div class="pos-csc-phone"><t t-out="props.customer.phone"/></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="TableCard" name="odfe_pos.TableCard">
+        <div class="pos-table-small-card" t-on-click="() => props.onSelect(props.table)">
+            <div class="pos-tsc-number"><t t-out="props.table.name"/></div>
+            <div class="pos-tsc-capacity"><i class="fa fa-users"/> <t t-out="props.table.capacity"/></div>
+        </div>
+    </template>
+
+    <template id="FloorSelector" name="odfe_pos.FloorSelector">
+        <div class="pos-floor-selector">
+            <button t-foreach="props.floors" t-as="floor" class="pos-floor-btn"
+                t-att-class="floor.id === props.activeId ? 'active' : ''"
+                t-on-click="() => props.onSelect(floor)">
+                <span class="pos-floor-btn-icon"><i class="fa fa-building"/></span>
+                <span class="pos-floor-btn-name"><t t-out="floor.name"/></span>
+                <span class="pos-floor-btn-count"><t t-out="floor.table_count"/> tables</span>
+            </button>
+        </div>
+    </template>
+
+    <template id="ReceiptPreview" name="odfe_pos.ReceiptPreview">
+        <div class="pos-receipt-preview">
+            <div class="pos-receipt-preview-content" t-if="props.receipt">
+                <t t-raw="props.receipt.content_html"/>
+            </div>
+            <div class="pos-empty" t-else="">
+                <p>No receipt data</p>
+            </div>
+        </div>
+    </template>
+
+    <template id="QrPayment" name="odfe_pos.QrPayment">
+        <div class="pos-qr-payment">
+            <div class="pos-qr-header">
+                <h3>QR Payment</h3>
+                <p>Scan to pay</p>
+            </div>
+            <div class="pos-qr-code">
+                <img t-att-src="state.qrData" t-if="state.qrData" alt="QR Code"/>
+                <div t-else="" class="pos-qr-placeholder">
+                    <i class="fa fa-qrcode"/>
+                </div>
+            </div>
+            <div class="pos-qr-amount">
+                Amount: <t t-esc="props.amount"/>
+            </div>
+            <div class="pos-qr-status" t-if="state.status">
+                <t t-out="state.status"/>
+            </div>
+        </div>
+    </template>
+</odoo>

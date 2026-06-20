@@ -1,0 +1,30 @@
+# Odoo
+*.pyc
+*.pyo
+__pycache__/
+*.pickle
+*.sqlite
+*.sqlite3
+.idea/
+.vscode/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-data/
+
+# IDE
+.ropeproject/
+*.swp
+*.swo
+*~

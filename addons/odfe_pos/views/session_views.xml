@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_session_tree" model="ir.ui.view">
+        <field name="name">odfe.pos.session.tree</field>
+        <field name="model">odfe.pos.session</field>
+        <field name="arch" type="xml">
+            <tree string="POS Sessions" editable="top">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="state" decoration-success="state == 'opened'" decoration-muted="state == 'closed'" decoration-warning="state == 'draft'"/>
+                <field name="opened_at"/>
+                <field name="closed_at"/>
+                <field name="start_cash"/>
+                <field name="end_cash"/>
+                <field name="total_orders"/>
+                <field name="total_sales" sum="Total"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_pos_session_form" model="ir.ui.view">
+        <field name="name">odfe.pos.session.form</field>
+        <field name="model">odfe.pos.session</field>
+        <field name="arch" type="xml">
+            <form string="POS Session">
+                <header>
+                    <button name="action_open" string="Open Session" type="object" class="btn-primary"
+                        attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_close" string="Close Session" type="object" class="btn-warning"
+                        attrs="{'invisible': [('state', '!=', 'opened')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,opened,closed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="opened_at"/>
+                            <field name="closed_at"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="start_cash"/>
+                            <field name="end_cash"/>
+                        </group>
+                        <group>
+                            <field name="total_orders"/>
+                            <field name="total_sales"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="orders" string="Orders">
+                            <field name="order_ids" readonly="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="state"/>
+                                    <field name="table_id"/>
+                                    <field name="total"/>
+                                    <field name="ordered_at"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="payments" string="Payments">
+                            <field name="payment_ids" readonly="1">
+                                <tree>
+                                    <field name="payment_method_id"/>
+                                    <field name="amount"/>
+                                    <field name="order_id"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="notes" string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pos_session_search" model="ir.ui.view">
+        <field name="name">odfe.pos.session.search</field>
+        <field name="model">odfe.pos.session</field>
+        <field name="arch" type="xml">
+            <search string="Search Sessions">
+                <field name="name"/>
+                <field name="user_id"/>
+                <filter name="filter_opened" string="Opened" domain="[('state', '=', 'opened')]"/>
+                <filter name="filter_closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_user" string="User" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_pos_session" model="ir.actions.act_window">
+        <field name="name">POS Sessions</field>
+        <field name="res_model">odfe.pos.session</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_pos_session_search"/>
+        <field name="help" type="html">
+            <p>Manage your POS sessions. Open a session to start taking orders, and close it at the end of the day.</p>
+        </field>
+    </record>
+</odoo>

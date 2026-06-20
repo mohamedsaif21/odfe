@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_odfe_payment_tree" model="ir.ui.view">
+        <field name="name">odfe.payment.tree</field>
+        <field name="model">odfe.payment</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="order_id"/>
+                <field name="method_id"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id"/>
+                <field name="state"/>
+                <field name="paid_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_odfe_payment_form" model="ir.ui.view">
+        <field name="name">odfe.payment.form</field>
+        <field name="model">odfe.payment</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_complete" type="object"
+                                class="oe_stat_button" icon="fa-check"
+                                states="draft" string="Complete"/>
+                        <button name="action_fail" type="object"
+                                class="oe_stat_button" icon="fa-times"
+                                states="draft" string="Fail"/>
+                        <button name="action_refund" type="object"
+                                class="oe_stat_button" icon="fa-undo"
+                                states="completed" string="Refund"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="order_id"/>
+                            <field name="session_id"/>
+                            <field name="method_id"/>
+                        </group>
+                        <group>
+                            <field name="amount"/>
+                            <field name="currency_id"/>
+                            <field name="state"/>
+                            <field name="paid_at"/>
+                            <field name="reference"/>
+                        </group>
+                    </group>
+                    <group string="Accounting">
+                        <field name="account_id"/>
+                        <field name="company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_odfe_payment_search" model="ir.ui.view">
+        <field name="name">odfe.payment.search</field>
+        <field name="model">odfe.payment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="reference"/>
+                <field name="order_id"/>
+                <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
+                <filter name="completed" string="Completed" domain="[('state','=','completed')]"/>
+                <filter name="failed" string="Failed" domain="[('state','=','failed')]"/>
+                <filter name="refunded" string="Refunded" domain="[('state','=','refunded')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_odfe_payment" model="ir.actions.act_window">
+        <field name="name">Payments</field>
+        <field name="res_model">odfe.payment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_odfe_payment_search"/>
+        <field name="domain">[('state', '!=', 'draft')]</field>
+    </record>
+</odoo>

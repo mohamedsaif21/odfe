@@ -1,0 +1,21 @@
+{
+    'name': 'ODFE Customer Profiles & Loyalty',
+    'version': '19.0.1.0.0',
+    'category': 'Restaurant',
+    'summary': 'Customer profiles and loyalty program management for ODFE Restaurant POS',
+    'description': 'Manages customer profiles with contact details, visit history, spending analysis, and a full loyalty program with points, tiers, and rewards.',
+    'author': 'ODFE',
+    'website': 'https://odfe.app',
+    'license': 'LGPL-3',
+    'depends': ['odfe_base', 'base', 'mail', 'point_of_sale'],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/loyalty_views.xml',
+        'views/customer_views.xml',
+        'views/menu_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+    'sequence': 4,
+}
