@@ -5,6 +5,20 @@ import {
   HiOutlineArrowLeft,
   HiOutlineRectangleStack,
 } from "react-icons/hi2";
+import { motion } from "framer-motion";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 const tables = [
   { id: "T-01", seats: 2, status: "available" as const, zone: "Indoor" },
@@ -68,13 +82,21 @@ export default function TablesPage() {
         </div>
 
         {/* Floor Plan Grid */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+        <motion.div 
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
+          variants={container}
+          initial="hidden"
+          animate="show"
+        >
           {tables.map((table) => {
             const cfg = statusConfig[table.status];
             return (
-              <div
+              <motion.div
                 key={table.id}
-                className={`glass-card border ${cfg.color} cursor-pointer p-5 transition-all hover:scale-[1.02]`}
+                variants={item}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`glass-card border ${cfg.color} cursor-pointer p-5`}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-lg font-bold text-white">{table.id}</h3>
@@ -92,10 +114,10 @@ export default function TablesPage() {
                 {table.reservedFor && (
                   <p className="mt-2 text-xs text-violet-400/80">Reserved for {table.reservedFor}</p>
                 )}
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

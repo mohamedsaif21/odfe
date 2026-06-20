@@ -8,6 +8,20 @@ import {
   HiOutlineMagnifyingGlass,
   HiOutlinePlus,
 } from "react-icons/hi2";
+import { motion } from "framer-motion";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 const products = [
   { id: 1, name: "Espresso", price: 150, category: "Espresso", stock: 48, image: "☕" },
@@ -96,9 +110,14 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <motion.div 
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        >
           {filtered.map((product) => (
-            <div key={product.id} className="glass-card p-5">
+            <motion.div key={product.id} variants={item} className="glass-card p-5 hover:border-brand-500/30 transition-colors">
               <div className="mb-3 flex items-start justify-between">
                 <span className="text-4xl">{product.image}</span>
                 {getStockBadge(product.stock)}
@@ -111,9 +130,9 @@ export default function ProductsPage() {
                   Edit
                 </button>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -19,6 +19,20 @@ import {
   HiOutlineBell,
   HiOutlineMagnifyingGlass,
 } from "react-icons/hi2";
+import { motion } from "framer-motion";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 const kpis = [
   { label: "Today's Revenue", value: "₹12,458", change: "+12.5%", up: true },
@@ -98,37 +112,48 @@ export default function DashboardPage() {
         </header>
 
         <div className="p-6">
-          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <motion.div 
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          >
             {kpis.map((kpi) => (
-              <div key={kpi.label} className="glass-card p-5">
+              <motion.div key={kpi.label} variants={item} className="glass-card p-5">
                 <p className="text-sm text-surface-400">{kpi.label}</p>
                 <p className="mt-2 text-2xl font-bold text-white">{kpi.value}</p>
                 <p className="mt-1 text-xs font-medium text-brand-400">
                   {kpi.change}
                 </p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           <div className="mb-6">
             <h2 className="mb-4 text-lg font-semibold text-white">Quick Actions</h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <motion.div 
+              variants={container}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-2 gap-4 sm:grid-cols-4"
+            >
               {quickActions.map((action) => (
-                <Link
-                  key={action.href}
-                  href={action.href}
-                  className="glass-card group flex flex-col items-center p-6"
-                >
-                  <div
-                    className={`mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${action.color} text-white`}
+                <motion.div key={action.href} variants={item}>
+                  <Link
+                    href={action.href}
+                    className="glass-card group flex flex-col items-center p-6 h-full"
                   >
-                    <action.icon className="h-6 w-6" />
-                  </div>
-                  <span className="text-sm font-semibold text-white">{action.label}</span>
-                  <HiOutlineArrowRight className="mt-2 h-4 w-4 text-surface-500 transition-transform group-hover:translate-x-1" />
-                </Link>
+                    <div
+                      className={`mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${action.color} text-white`}
+                    >
+                      <action.icon className="h-6 w-6" />
+                    </div>
+                    <span className="text-sm font-semibold text-white">{action.label}</span>
+                    <HiOutlineArrowRight className="mt-2 h-4 w-4 text-surface-500 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
 
           <div className="glass-card p-6">

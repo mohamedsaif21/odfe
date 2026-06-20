@@ -11,6 +11,20 @@ import {
   HiOutlineShoppingBag,
   HiOutlineTrash,
 } from "react-icons/hi2";
+import { motion } from "framer-motion";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 const categories = [
   { id: "all", label: "All", emoji: "☕" },
@@ -142,10 +156,17 @@ export default function SelfOrderPage() {
       </div>
 
       {/* Menu Grid */}
-      <div className="grid grid-cols-2 gap-3 p-6 sm:grid-cols-3 lg:grid-cols-4">
+      <motion.div 
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-2 gap-3 p-6 sm:grid-cols-3 lg:grid-cols-4"
+      >
         {filtered.map((item) => (
-          <button
+          <motion.button
             key={item.id}
+            variants={itemVariants}
+            whileTap={{ scale: 0.95 }}
             onClick={() => addToCart(item)}
             className="glass-card flex flex-col items-center p-5 text-center hover:border-brand-500/30"
           >
@@ -153,9 +174,9 @@ export default function SelfOrderPage() {
             <h3 className="text-sm font-semibold text-white">{item.name}</h3>
             <p className="mt-1 text-xs text-surface-500">{item.desc}</p>
             <p className="mt-2 text-base font-bold text-brand-400">₹{item.price.toFixed(2)}</p>
-          </button>
+          </motion.button>
         ))}
-      </div>
+      </motion.div>
 
       {/* Cart Panel */}
       {showCart && (
