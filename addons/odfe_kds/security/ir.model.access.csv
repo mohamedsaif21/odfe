@@ -1,7 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_kitchen_order_user,kitchen.order.user,model_odfe_kitchen_order,odfe_base.group_pos_user,1,1,0,0
-access_kitchen_order_manager,kitchen.order.manager,model_odfe_kitchen_order,odfe_base.group_pos_manager,1,1,1,1
-access_kitchen_item_user,kitchen.item.user,model_odfe_kitchen_item,odfe_base.group_pos_user,1,1,0,0
-access_kitchen_item_manager,kitchen.item.manager,model_odfe_kitchen_item,odfe_base.group_pos_manager,1,1,1,1
-access_kitchen_status_user,kitchen.status.user,model_odfe_kitchen_status,odfe_base.group_pos_user,1,0,0,0
-access_kitchen_status_manager,kitchen.status.manager,model_odfe_kitchen_status,odfe_base.group_pos_manager,1,1,1,1

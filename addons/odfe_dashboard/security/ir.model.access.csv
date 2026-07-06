@@ -1,7 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_odfe_dashboard_config,odfe.dashboard.config,model_odfe_dashboard_config,odfe_base.group_odfe_user,1,1,1,0
-access_odfe_dashboard_sales,odfe.dashboard.sales,model_odfe_dashboard_sales,odfe_base.group_odfe_user,1,0,0,0
-access_odfe_analytics,odfe.analytics,model_odfe_analytics,odfe_base.group_odfe_user,1,0,0,0
-access_odfe_dashboard_report,odfe.dashboard.report,model_odfe_dashboard_report,odfe_base.group_odfe_user,1,1,1,1
-access_odfe_dashboard_report_manager,odfe.dashboard.report.manager,model_odfe_dashboard_report,odfe_base.group_odfe_manager,1,1,1,1
-access_odfe_analytics_manager,odfe.analytics.manager,model_odfe_analytics,odfe_base.group_odfe_manager,1,1,1,1

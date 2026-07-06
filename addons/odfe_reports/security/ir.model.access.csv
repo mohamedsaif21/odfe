@@ -1,9 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_odfe_report_sales,odfe.report.sales,model_odfe_report_sales,base.group_user,1,0,0,0
-access_odfe_report_orders,odfe.report.orders,model_odfe_report_orders,base.group_user,1,0,0,0
-access_odfe_report_revenue,odfe.report.revenue,model_odfe_report_revenue,base.group_user,1,0,0,0
-access_odfe_report_products,odfe.report.products,model_odfe_report_products,base.group_user,1,0,0,0
-access_odfe_report_employees,odfe.report.employees,model_odfe_report_employees,base.group_user,1,0,0,0
-access_odfe_report_sessions,odfe.report.sessions,model_odfe_report_sessions,base.group_user,1,0,0,0
-access_odfe_report_pdf,odfe.report.pdf,model_odfe_report_pdf,base.group_user,1,0,0,0
-access_odfe_report_xlsx,odfe.report.xlsx,model_odfe_report_xlsx,base.group_user,1,0,0,0
