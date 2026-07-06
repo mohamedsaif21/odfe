@@ -1,3 +1,12 @@
-export default function POSPage() {
-  return <h1 className="text-2xl font-semibold">POS</h1>
+import { AdminLayout } from "@/components/layout/Admin-layout";
+import { PageContainer, PageHeader } from "@/components/layout/page-container";
+
+export default function PosPage() {
+  return (
+    <AdminLayout>
+      <PageContainer>
+        <PageHeader title="Point of Sale" />
+      </PageContainer>
+    </AdminLayout>
+  );
 }

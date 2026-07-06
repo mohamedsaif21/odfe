@@ -1,3 +1,12 @@
+import { AdminLayout } from "@/components/layout/Admin-layout";
+import { PageContainer, PageHeader } from "@/components/layout/page-container";
+
 export default function OrdersPage() {
-  return <h1 className="text-2xl font-semibold">Orders</h1>
+  return (
+    <AdminLayout>
+      <PageContainer>
+        <PageHeader title="Orders" />
+      </PageContainer>
+    </AdminLayout>
+  );
 }

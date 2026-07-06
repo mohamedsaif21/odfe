@@ -1,3 +1,12 @@
+import { AdminLayout } from "@/components/layout/Admin-layout";
+import { PageContainer, PageHeader } from "@/components/layout/page-container";
+
 export default function TablesPage() {
-  return <h1 className="text-2xl font-semibold">Tables</h1>
+  return (
+    <AdminLayout>
+      <PageContainer>
+        <PageHeader title="Tables" />
+      </PageContainer>
+    </AdminLayout>
+  );
 }

@@ -1,5 +1,5 @@
-import { AdminSidebar } from "./AdminSidebar"
-import { TopHeader } from "./TopHeader"
+import { AdminSidebar } from "./admin-sidebar"
+import { TopHeader } from "./top-header"
 import type { AuthUser } from "@/types/app"
 import type { AnyRole } from "@/types/database"
 
@@ -23,11 +23,8 @@ interface AdminLayoutProps {
  */
 export function AdminLayout({ children, user, title, role }: AdminLayoutProps) {
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AdminSidebar
-        role={role ?? user?.role ?? "admin"}
-        cafeName={user?.cafeName}
-      />
+    <div className="flex h-screen bg-background">
+      <AdminSidebar role={role ?? user?.role ?? "admin"} cafeName={user?.cafeName} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopHeader user={user} title={title} />
         <div className="flex-1 overflow-y-auto">{children}</div>

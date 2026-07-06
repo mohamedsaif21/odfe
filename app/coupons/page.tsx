@@ -1,3 +1,12 @@
+import { AdminLayout } from "@/components/layout/Admin-layout";
+import { PageContainer, PageHeader } from "@/components/layout/page-container";
+
 export default function CouponsPage() {
-  return <h1 className="text-2xl font-semibold">Coupons</h1>
+  return (
+    <AdminLayout>
+      <PageContainer>
+        <PageHeader title="Coupons" />
+      </Container>
+    </AdminLayout>
+  );
 }

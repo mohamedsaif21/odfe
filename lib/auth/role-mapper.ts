@@ -31,7 +31,6 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Employees",        href: "/employees",         icon: "UserCheck",       roles: ["admin"] },
   { label: "Payments",         href: "/payments",          icon: "CreditCard",      roles: ["admin"] },
   { label: "Coupons",          href: "/coupons",           icon: "Percent",         roles: ["admin"] },
-  { label: "Bookings",         href: "/bookings",          icon: "CalendarDays",    roles: ["admin"] },
   { label: "Brew Bar",         href: "/brew-bar",          icon: "Coffee",          roles: ["admin", "kitchen"] },
   { label: "Reports",          href: "/reports",           icon: "BarChart2",       roles: ["admin"] },
   { label: "Settings",         href: "/settings",          icon: "Settings",        roles: ["admin"] },

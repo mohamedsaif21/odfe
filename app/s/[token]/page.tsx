@@ -1,3 +1,5 @@
-export default function SelfOrderTokenPage({ params }: { params: { token: string } }) {
-  return <h1 className="text-2xl font-semibold">Self Order: {params.token}</h1>
+export default function SelfOrderPage() {
+  return (
+    <h1 className="p-4 text-2xl font-semibold">Self Order</h1>
+  );
 }

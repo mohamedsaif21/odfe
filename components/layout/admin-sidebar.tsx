@@ -5,17 +5,18 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
   Tag, LayoutGrid, Users, UserCheck, CreditCard, Percent,
-  CalendarDays, Coffee, BarChart2, Settings, ChevronRight,
+  Coffee, BarChart2, Settings, ChevronRight,
 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { NavItem } from "@/types/app"
 import type { AnyRole } from "@/types/database"
 import { getNavItemsForRole } from "@/lib/auth/role-mapper"
 
-const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
   Tag, LayoutGrid, Users, UserCheck, CreditCard, Percent,
-  CalendarDays, Coffee, BarChart2, Settings,
+  Coffee, BarChart2, Settings,
 }
 
 interface AdminSidebarProps {
@@ -66,7 +67,7 @@ export function AdminSidebar({
     ["/products", "/categories", "/tables"].includes(i.href)
   )
   const peopleItems = navItems.filter((i) =>
-    ["/customers", "/employees", "/bookings"].includes(i.href)
+    ["/customers", "/employees"].includes(i.href)
   )
   const financeItems = navItems.filter((i) =>
     ["/payments", "/coupons"].includes(i.href)
