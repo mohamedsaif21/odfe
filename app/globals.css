@@ -2,7 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #F4F1EA;
-  color: #1A1A1A;
+@layer base {
+  :root {
+    --background: 40 20% 94%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 186 74% 15%;
+    --primary-foreground: 40 20% 94%;
+    --secondary: 150 18% 56%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 40 10% 88%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 42 48% 52%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 10 48% 48%;
+    --destructive-foreground: 40 20% 94%;
+    --border: 40 10% 82%;
+    --input: 40 10% 82%;
+    --ring: 186 74% 15%;
+    --radius: 0.75rem;
+    --sidebar-background: 186 74% 15%;
+    --sidebar-foreground: 40 20% 94%;
+    --sidebar-primary: 42 48% 52%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 186 50% 20%;
+    --sidebar-accent-foreground: 40 20% 94%;
+    --sidebar-border: 186 50% 20%;
+    --sidebar-ring: 42 48% 52%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: "Inter", system-ui, sans-serif;
+  }
 }

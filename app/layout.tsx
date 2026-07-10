@@ -1,6 +1,10 @@
 import type { Metadata } from "next"
+import { Inter, Anton } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ui/theme-provider"
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const anton = Anton({ subsets: ["latin"], weight: "400", variable: "--font-display" })
 
 export const metadata: Metadata = {
   title: "Premium Cafe POS",
@@ -9,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${anton.variable}`}>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>

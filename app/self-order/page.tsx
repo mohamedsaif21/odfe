@@ -1,5 +1,18 @@
+import type { Metadata } from "next"
+import { AdminLayout } from "@/components/layout/Admin-layout"
+import { PageContainer, PageHeader } from "@/components/layout/page-container"
+
+export const metadata: Metadata = { title: "Self Order" }
+
 export default function SelfOrderPage() {
   return (
-    <h1 className="p-4 text-2xl font-semibold">Self Order</h1>
-  );
+    <AdminLayout title="Self Order">
+      <PageContainer>
+        <PageHeader title="Self Order" description="Customer self-ordering portal" />
+        <div className="rounded-xl border border-dashed border-border bg-card/50 p-12 text-center">
+          <p className="text-sm text-muted-foreground">Self Order — full feature coming in the build plan</p>
+        </div>
+      </PageContainer>
+    </AdminLayout>
+  )
 }

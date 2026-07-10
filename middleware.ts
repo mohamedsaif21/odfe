@@ -15,6 +15,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  if (process.env.NEXT_PUBLIC_DEV_SKIP_AUTH === "true") {
+    if (pathname === "/") {
+      return NextResponse.redirect(new URL("/dashboard", request.url))
+    }
+    return NextResponse.next()
+  }
+
   const response = NextResponse.next({ request })
   const supabase = createMiddlewareClient(request, response)
   const {
