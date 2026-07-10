@@ -1,56 +1,83 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/lib/supabase/client"
 import { getCafeId } from "./_shared"
+import type { Payment } from "@/types/database"
 import type { PaymentMethodType } from "@/types/database"
+import type { DbClient, InsertTables, UpdateTables } from "./_shared"
 
-export interface PaymentMethod {
-  id: string
-  cafe_id: string
-  type: PaymentMethodType
-  label: string
-  is_active: boolean
-  config: Record<string, unknown> | null
-  created_at: string
+type PaymentWithOrder = Payment & {
+  orders: {
+    order_number: string
+    table_id: string | null
+    customer_id: string | null
+  } | null
 }
 
-export async function fetchPaymentMethods(): Promise<PaymentMethod[]> {
-  const supabase = createClient()
-  const cafeId = await getCafeId()
-  const { data, error } = await (supabase as any)
-    .from("payment_methods")
-    .select("*")
+export async function fetchPayments(dateFrom?: string, dateTo?: string, client?: DbClient): Promise<PaymentWithOrder[]> {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  let query = supabase
+    .from("payments")
+    .select("*, orders(order_number, table_id, customer_id)")
     .eq("cafe_id", cafeId)
-    .order("type")
+    .order("paid_at", { ascending: false })
+
+  if (dateFrom) query = query.gte("paid_at", dateFrom)
+  if (dateTo) query = query.lte("paid_at", dateTo)
+
+  const { data, error } = await query.returns<PaymentWithOrder[]>()
+
   if (error) throw new Error(error.message)
-  return data as PaymentMethod[]
+  return data ?? []
 }
 
-export async function createPaymentMethod(input: { type: PaymentMethodType; label: string }): Promise<PaymentMethod> {
-  const supabase = createClient()
-  const cafeId = await getCafeId()
-  const { data, error } = await (supabase as any)
+export async function fetchPaymentMethods(client?: DbClient): Promise<{ id: string; type: PaymentMethodType; label: string; is_active: boolean }[]> {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const { data, error } = await supabase
     .from("payment_methods")
-    .insert([{ ...input, cafe_id: cafeId, is_active: true, config: null }])
+    .select("id, type, label, is_active")
+    .eq("cafe_id", cafeId)
+    .eq("is_active", true)
+
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+export async function refundPayment(paymentId: string, client?: DbClient) {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const updates: UpdateTables<"payments"> = { status: "refunded" }
+
+  const { data, error } = await supabase
+    .from("payments")
+    .update(updates)
+    .eq("id", paymentId)
+    .eq("cafe_id", cafeId)
     .select()
     .single()
+
   if (error) throw new Error(error.message)
-  return data as PaymentMethod
+  return data
 }
 
-export async function togglePaymentMethod(id: string, is_active: boolean): Promise<void> {
-  const supabase = createClient()
-  const { error } = await (supabase as any)
-    .from("payment_methods")
-    .update({ is_active })
-    .eq("id", id)
-  if (error) throw new Error(error.message)
-}
+export async function getDailyRevenue(date: string, client?: DbClient): Promise<number> {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
 
-export async function deletePaymentMethod(id: string): Promise<void> {
-  const supabase = createClient()
-  const { error } = await (supabase as any)
-    .from("payment_methods")
-    .delete()
-    .eq("id", id)
+  const startOfDay = `${date}T00:00:00Z`
+  const endOfDay = `${date}T23:59:59Z`
+
+  const { data, error } = await supabase
+    .from("payments")
+    .select("amount")
+    .eq("cafe_id", cafeId)
+    .eq("status", "completed")
+    .gte("paid_at", startOfDay)
+    .lte("paid_at", endOfDay)
+
   if (error) throw new Error(error.message)
+  return (data ?? []).reduce((sum: number, p: { amount: number }) => sum + p.amount, 0)
 }

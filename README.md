@@ -66,13 +66,17 @@ Database interactions are entirely abstracted into clear domain-driven boundary 
 └── types/                    # Domain Type Specifications
     ├── database.ts           # Exact mirrored representation of the remote schema
     └── app.ts                # Ephemeral UI states, cart contracts, and API structures
-💎 Premium Component Design Tokens
+
+---
+
+## 💎 Premium Component Design Tokens
 The user interface relies entirely on tailored, production-grade design micro-primitives constructed around clean, desaturated aesthetics. Key styling properties focus heavily on sophisticated tones like deep Charcoal (#2D3748), rich Teal (#0D9488), Muted Sage, and soft Cream, completely skipping distracting primary colors.
 
 Button.tsx: Custom component featuring specific variations (default, outline, ghost, secondary) combined beautifully via tailwind-merge.
 Dialog.tsx & ConfirmDialog.tsx: Native React portals built around semantic focus controls, programmatic ESC-key handlers, and body overflow locks.
 Alert.tsx: Muted functional alert boxes matching status configurations via specialized semantic design vectors.
-🚀 Setting Up Local Development
+
+## 🚀 Setting Up Local Development
 1. Environmental Variables Configuration
 Create a .env.local file in the root of the workspace:
 

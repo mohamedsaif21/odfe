@@ -1,10 +1,7 @@
+import { createClient } from "@/lib/supabase/client"
 import type { AnyRole, EmployeeRole } from "@/types/database"
 import type { NavItem, RoleRedirect } from "@/types/app"
 
-/**
- * After login, each role lands on a different page.
- * Employees come from the `employees` table; customers from `customers`.
- */
 export const ROLE_REDIRECTS: RoleRedirect = {
   admin: "/dashboard",
   cashier: "/pos",
@@ -16,10 +13,6 @@ export function getDefaultRedirect(role: AnyRole): string {
   return ROLE_REDIRECTS[role] ?? "/login"
 }
 
-/**
- * All admin sidebar navigation items.
- * Roles array controls visibility — unused today, enforced in guards.
- */
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",        href: "/dashboard",         icon: "LayoutDashboard", roles: ["admin"] },
   { label: "POS",              href: "/pos",               icon: "ShoppingCart",    roles: ["admin", "cashier"] },
@@ -40,10 +33,6 @@ export function getNavItemsForRole(role: AnyRole): NavItem[] {
   return ADMIN_NAV_ITEMS.filter((item) => item.roles.includes(role))
 }
 
-/**
- * Determine a user's role from the profiles table.
- * Employees have a role of admin/cashier/kitchen; customers have "customer".
- */
 export function isEmployeeRole(role: AnyRole): role is EmployeeRole {
   return role === "admin" || role === "cashier" || role === "kitchen"
 }
@@ -56,9 +45,6 @@ export function isCustomerRole(role: AnyRole): boolean {
   return role === "customer"
 }
 
-/**
- * Human-readable role labels for UI display.
- */
 export const ROLE_LABELS: Record<AnyRole, string> = {
   admin: "Admin",
   cashier: "Cashier",
@@ -71,4 +57,56 @@ export const ROLE_COLORS: Record<AnyRole, string> = {
   cashier: "bg-odfe-sage text-odfe-charcoal",
   kitchen: "bg-odfe-gold text-odfe-charcoal",
   customer: "bg-odfe-charcoal-light text-odfe-cream",
+}
+
+// ─── Profile resolution ──────────────────────────────────────────────────
+
+export interface ResolvedProfile {
+  id: string
+  cafeId: string
+  role: AnyRole
+  fullName: string
+  email: string
+  avatarUrl: string | null
+  isActive: boolean
+}
+
+export async function resolveAuthenticatedProfile(
+  userId: string,
+  client?: ReturnType<typeof createClient>
+): Promise<ResolvedProfile> {
+  const supabase = client ?? createClient()
+
+  const { data: profile, error } = await (supabase
+    .from("profiles") as any)
+    .select("id, cafe_id, role, full_name, email, avatar_url, is_active")
+    .eq("id", userId)
+    .single()
+
+  if (error || !profile) {
+    throw new Error("Profile not found")
+  }
+
+  if (!profile.is_active) {
+    throw new Error("Account inactive")
+  }
+
+  const role = profile.role as AnyRole
+  if (!isEmployeeRole(role) && !isCustomerRole(role)) {
+    throw new Error("Unsupported role")
+  }
+
+  if (!profile.cafe_id) {
+    throw new Error("Missing cafe assignment")
+  }
+
+  return {
+    id: profile.id,
+    cafeId: profile.cafe_id,
+    role,
+    fullName: profile.full_name,
+    email: profile.email,
+    avatarUrl: profile.avatar_url,
+    isActive: profile.is_active,
+  }
 }

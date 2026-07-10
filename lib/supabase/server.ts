@@ -1,9 +1,10 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import type { Database } from "@/types/database"
+import { env, serverEnv } from "@/lib/config/env"
 
 /**
- * Supabase server client.
+ * Supabase server client (authenticated user).
  * Use in Server Components, Route Handlers, and Server Actions.
  *
  * Reads the session cookie automatically via next/headers.
@@ -13,8 +14,8 @@ export async function createClient() {
   const cookieStore = await cookies()
 
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.supabaseUrl,
+    env.supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -44,8 +45,8 @@ export async function createAdminClient() {
   const cookieStore = await cookies()
 
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    env.supabaseUrl,
+    serverEnv.serviceRoleKey,
     {
       cookies: {
         getAll() {

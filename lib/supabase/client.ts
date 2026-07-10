@@ -1,5 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr"
 import type { Database } from "@/types/database"
+import { env } from "@/lib/config/env"
 
 /**
  * Supabase browser client.
@@ -10,9 +11,13 @@ import type { Database } from "@/types/database"
  * Never use the service role key here.
  */
 export function createClient() {
+  if (!env.supabaseUrl || !env.supabaseAnonKey) {
+    throw new Error("Supabase environment variables are not configured")
+  }
+
   return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    env.supabaseUrl,
+    env.supabaseAnonKey
   )
 }
 

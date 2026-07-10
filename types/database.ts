@@ -58,6 +58,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["cafes"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["cafes"]["Insert"]>
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -72,6 +73,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["profiles"]["Row"], "created_at">
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>
+        Relationships: []
       }
       employees: {
         Row: {
@@ -84,6 +86,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["employees"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["employees"]["Insert"]>
+        Relationships: []
       }
       customers: {
         Row: {
@@ -98,6 +101,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["customers"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["customers"]["Insert"]>
+        Relationships: []
       }
       product_categories: {
         Row: {
@@ -112,6 +116,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["product_categories"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["product_categories"]["Insert"]>
+        Relationships: []
       }
       products: {
         Row: {
@@ -131,6 +136,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["products"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>
+        Relationships: []
       }
       floors: {
         Row: {
@@ -142,6 +148,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["floors"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["floors"]["Insert"]>
+        Relationships: []
       }
       cafe_tables: {
         Row: {
@@ -157,6 +164,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["cafe_tables"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["cafe_tables"]["Insert"]>
+        Relationships: []
       }
       orders: {
         Row: {
@@ -179,6 +187,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["orders"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -197,6 +206,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["order_items"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["order_items"]["Insert"]>
+        Relationships: []
       }
       kitchen_tickets: {
         Row: {
@@ -212,6 +222,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["kitchen_tickets"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["kitchen_tickets"]["Insert"]>
+        Relationships: []
       }
       kitchen_ticket_items: {
         Row: {
@@ -224,6 +235,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["kitchen_ticket_items"]["Row"], "id">
         Update: Partial<Database["public"]["Tables"]["kitchen_ticket_items"]["Insert"]>
+        Relationships: []
       }
       payment_methods: {
         Row: {
@@ -237,6 +249,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["payment_methods"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["payment_methods"]["Insert"]>
+        Relationships: []
       }
       payments: {
         Row: {
@@ -252,6 +265,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["payments"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["payments"]["Insert"]>
+        Relationships: []
       }
       coupons: {
         Row: {
@@ -269,6 +283,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["coupons"]["Row"], "id" | "used_count" | "created_at">
         Update: Partial<Database["public"]["Tables"]["coupons"]["Insert"]>
+        Relationships: []
       }
       promotions: {
         Row: {
@@ -284,6 +299,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["promotions"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["promotions"]["Insert"]>
+        Relationships: []
       }
       pos_sessions: {
         Row: {
@@ -300,6 +316,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["pos_sessions"]["Row"], "id">
         Update: Partial<Database["public"]["Tables"]["pos_sessions"]["Insert"]>
+        Relationships: []
       }
       self_order_tokens: {
         Row: {
@@ -312,6 +329,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["self_order_tokens"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["self_order_tokens"]["Insert"]>
+        Relationships: []
       }
       bookings: {
         Row: {
@@ -330,6 +348,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["bookings"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["bookings"]["Insert"]>
+        Relationships: []
       }
       settings: {
         Row: {
@@ -341,6 +360,7 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["settings"]["Row"], "id" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["settings"]["Insert"]>
+        Relationships: []
       }
     }
     Views: Record<string, never>

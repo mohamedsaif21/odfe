@@ -1,16 +1,15 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { resolveAuthenticatedProfile, getDefaultRedirect } from "@/lib/auth/role-mapper"
-import { useAuthStore } from "@/store/auth-store"
 
-export default function LoginPage() {
+export default function CustomerRegisterPage() {
   const router = useRouter()
-  const { setUser } = useAuthStore()
+  const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -22,30 +21,31 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient()
-      const { data: { session }, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
       })
 
-      if (authError || !session) {
-        throw new Error(authError?.message ?? "Invalid credentials")
+      if (signUpError || !user) {
+        throw new Error(signUpError?.message ?? "Registration failed")
       }
 
-      const profile = await resolveAuthenticatedProfile(session.user.id, supabase)
-
-      setUser({
-        id: profile.id,
-        email: profile.email,
-        role: profile.role,
-        fullName: profile.fullName,
-        cafeId: profile.cafeId,
-        cafeName: "",
-        avatarUrl: profile.avatarUrl,
+      const res = await fetch("/api/onboarding/customer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, email: email.trim(), phone: phone.trim() || null }),
       })
 
-      router.push(getDefaultRedirect(profile.role))
+      const json = await res.json()
+
+      if (!res.ok) {
+        throw new Error(json.error ?? "Customer onboarding failed")
+      }
+
+      const redirect = "/customer/login?registered=true"
+      router.push(redirect)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed")
+      setError(err instanceof Error ? err.message : "Registration failed")
     } finally {
       setLoading(false)
     }
@@ -56,18 +56,39 @@ export default function LoginPage() {
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
         <div className="mb-6 text-center">
           <h1 className="font-display text-3xl tracking-wide text-odfe-teal">OdFe</h1>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-odfe-sage">POS</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-odfe-sage">Customer Sign Up</p>
           <div className="mx-auto mt-3 h-0.5 w-8 rounded-full bg-odfe-gold" />
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600">Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Jane Doe"
+              required
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
+            />
+          </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-gray-600">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@cafe.com"
+              placeholder="you@example.com"
               required
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600">Phone (optional)</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+91 98765 43210"
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
             />
           </div>
@@ -79,6 +100,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
+              minLength={6}
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
             />
           </div>
@@ -90,13 +112,13 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-lg bg-odfe-teal py-2.5 text-sm font-semibold text-white transition hover:bg-odfe-teal-light disabled:opacity-50"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
         <p className="mt-4 text-center text-xs text-gray-400">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-odfe-teal underline underline-offset-2 hover:text-odfe-gold">
-            Register
+          Already have an account?{" "}
+          <Link href="/customer/login" className="text-odfe-teal underline underline-offset-2 hover:text-odfe-gold">
+            Sign in
           </Link>
         </p>
       </div>

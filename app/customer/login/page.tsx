@@ -1,14 +1,15 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { useState, type FormEvent, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { resolveAuthenticatedProfile, getDefaultRedirect } from "@/lib/auth/role-mapper"
+import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { useAuthStore } from "@/store/auth-store"
 
-export default function LoginPage() {
+function CustomerLoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { setUser } = useAuthStore()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -33,6 +34,10 @@ export default function LoginPage() {
 
       const profile = await resolveAuthenticatedProfile(session.user.id, supabase)
 
+      if (profile.role !== "customer") {
+        throw new Error("Please use staff login.")
+      }
+
       setUser({
         id: profile.id,
         email: profile.email,
@@ -43,7 +48,8 @@ export default function LoginPage() {
         avatarUrl: profile.avatarUrl,
       })
 
-      router.push(getDefaultRedirect(profile.role))
+      const redirect = searchParams.get("redirect") || "/self-order"
+      router.push(redirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
     } finally {
@@ -56,7 +62,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
         <div className="mb-6 text-center">
           <h1 className="font-display text-3xl tracking-wide text-odfe-teal">OdFe</h1>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-odfe-sage">POS</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-odfe-sage">Customer Login</p>
           <div className="mx-auto mt-3 h-0.5 w-8 rounded-full bg-odfe-gold" />
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -66,7 +72,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@cafe.com"
+              placeholder="you@example.com"
               required
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
             />
@@ -94,12 +100,26 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="mt-4 text-center text-xs text-gray-400">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-odfe-teal underline underline-offset-2 hover:text-odfe-gold">
-            Register
+          New here?{" "}
+          <Link href="/customer/register" className="text-odfe-teal underline underline-offset-2 hover:text-odfe-gold">
+            Create account
+          </Link>
+        </p>
+        <p className="mt-2 text-center text-xs text-gray-400">
+          Staff?{" "}
+          <Link href="/login" className="text-odfe-teal underline underline-offset-2">
+            Staff login
           </Link>
         </p>
       </div>
     </div>
+  )
+}
+
+export default function CustomerLoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading…</div>}>
+      <CustomerLoginForm />
+    </Suspense>
   )
 }

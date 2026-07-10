@@ -1,13 +1,5 @@
 "use client"
 
-/**
- * createOrderWithKitchenTicket — inserts orders → order_items → kitchen_tickets → kitchen_ticket_items
- * createPaymentForOrder         — inserts payments, updates orders.status=paid, clears table
- *
- * Column names match types/database.ts exactly. No Prisma. No raw SQL.
- * Each helper creates its own typed Supabase client to avoid generic loss.
- */
-
 import { createClient } from "@/lib/supabase/client"
 import type { CartLine, CartTotals, AppliedCoupon } from "@/types/app"
 import type { PaymentMethodType } from "@/types/database"
@@ -17,12 +9,14 @@ import type { PaymentMethodType } from "@/types/database"
 export interface CreateOrderInput {
   cafeId: string
   employeeId: string | null
+  customerId: string | null
   tableId: string | null
   tableLabel: string | null
-  customerId: string | null
+  sessionId?: string | null
   lines: CartLine[]
   totals: CartTotals
   coupon: AppliedCoupon | null
+  notes?: string | null
 }
 
 export interface CreateOrderResult {
@@ -44,142 +38,28 @@ export interface CreatePaymentResult {
   paymentId: string
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function generateOrderNumber(): string {
-  const ts = Date.now().toString(36).toUpperCase().slice(-5)
-  const rnd = Math.random().toString(36).toUpperCase().slice(2, 5)
-  return `ORD-${ts}${rnd}`
-}
-
-// ─── Step 1: orders ───────────────────────────────────────────────────────────
-
-export async function safeInsertOrder(input: CreateOrderInput): Promise<{ id: string; order_number: string }> {
-  const supabase = createClient()
-  const orderNumber = generateOrderNumber()
-
-  const payload = {
-    cafe_id:        input.cafeId,
-    order_number:   orderNumber,
-    status:         "sent_to_kitchen" as const,
-    employee_id:    input.employeeId,
-    table_id:       input.tableId,
-    customer_id:    input.customerId,
-    subtotal:       input.totals.subtotal,
-    discount_total: input.totals.discountTotal,
-    tax_total:      input.totals.taxTotal,
-    total:          input.totals.total,
-    coupon_code:    input.coupon?.code ?? null,
-    notes:          null,
-    session_id:     null,
-  }
-
-  console.log("Order payload", payload)
-
-  const { data, error } = await (supabase.from("orders") as any)
-    .insert(payload)
-    .select("id, order_number")
-    .single()
-
-  if (error) {
-    console.error("Order error", error)
-    throw new Error(error.message)
-  }
-
-  return data
-}
-
-// ─── Step 2: order_items ──────────────────────────────────────────────────────
-
-export async function safeInsertOrderItems(orderId: string, cafeId: string, lines: CartLine[]): Promise<void> {
-  const supabase = createClient()
-
-  const payload = lines.map((line) => ({
-    cafe_id:      cafeId,
-    order_id:     orderId,
-    product_id:   line.productId,
-    product_name: line.productName,
-    unit_price:   line.unitPrice,
-    quantity:     line.quantity,
-    discount:     line.discount,
-    tax_rate:     line.taxRate,
-    line_total:   line.unitPrice * line.quantity,
-    notes:        line.notes,
-  }))
-
-  console.log("Order items payload", payload)
-
-  const { error } = await (supabase.from("order_items") as any).insert(payload)
-
-  if (error) {
-    console.error("Order items error", error)
-    throw new Error(error.message)
-  }
-}
-
-// ─── Step 3: kitchen_tickets ──────────────────────────────────────────────────
-
-export async function safeInsertKitchenTicket(
-  orderId: string,
-  orderNumber: string,
-  cafeId: string,
-  tableLabel: string | null
-): Promise<{ id: string }> {
-  const supabase = createClient()
-
-  const payload = {
-    cafe_id:      cafeId,
-    order_id:     orderId,
-    order_number: orderNumber,
-    table_label:  tableLabel,
-    stage:        "to_cook" as const,
-    priority:     1,
-  }
-
-  console.log("Kitchen ticket payload", payload)
-
-  const { data, error } = await (supabase.from("kitchen_tickets") as any)
-    .insert(payload)
-    .select("id")
-    .single()
-
-  if (error) {
-    console.error("Kitchen ticket error", error)
-    throw new Error(error.message)
-  }
-
-  return data
-}
-
-// ─── Step 4: kitchen_ticket_items ─────────────────────────────────────────────
-
-export async function safeInsertKitchenTicketItems(
-  ticketId: string,
-  cafeId: string,
-  lines: CartLine[]
-): Promise<void> {
-  const supabase = createClient()
-
-  const payload = lines.map((line) => ({
-    cafe_id:      cafeId,
-    ticket_id:    ticketId,
-    product_name: line.productName,
-    quantity:     line.quantity,
-    notes:        line.notes,
-  }))
-
-  console.log("Kitchen ticket items payload", payload)
-
-  const { error } = await (supabase.from("kitchen_ticket_items") as any).insert(payload)
-
-  if (error) {
-    console.error("Kitchen ticket items error", error)
-    throw new Error(error.message)
-  }
-}
-
 // ─── Main: createOrderWithKitchenTicket ───────────────────────────────────────
 
+/**
+ * Creates an order and kitchen ticket using the Supabase RPC.
+ *
+ * Expected Supabase function:
+ *   create_order_with_kitchen_ticket(
+ *     p_cafe_id UUID,
+ *     p_employee_id UUID,
+ *     p_customer_id UUID,
+ *     p_table_id UUID,
+ *     p_table_label TEXT,
+ *     p_session_id UUID,
+ *     p_lines JSONB,
+ *     p_subtotal NUMERIC,
+ *     p_discount_total NUMERIC,
+ *     p_tax_total NUMERIC,
+ *     p_total NUMERIC,
+ *     p_coupon_code TEXT,
+ *     p_notes TEXT
+ *   ) RETURNS JSON { order_id, order_number, kitchen_ticket_id }
+ */
 export async function createOrderWithKitchenTicket(
   input: CreateOrderInput
 ): Promise<CreateOrderResult> {
@@ -190,63 +70,83 @@ export async function createOrderWithKitchenTicket(
     throw new Error("No cafe session found. Please log in again.")
   }
 
-  const order   = await safeInsertOrder(input)
-  await safeInsertOrderItems(order.id, input.cafeId, input.lines)
-  const ticket  = await safeInsertKitchenTicket(order.id, order.order_number, input.cafeId, input.tableLabel)
-  await safeInsertKitchenTicketItems(ticket.id, input.cafeId, input.lines)
+  const supabase = createClient()
 
-  return { orderId: order.id, orderNumber: order.order_number, kitchenTicketId: ticket.id }
+  const { data, error } = await (supabase.rpc as any)("create_order_with_kitchen_ticket", {
+    p_cafe_id: input.cafeId,
+    p_employee_id: input.employeeId,
+    p_customer_id: input.customerId,
+    p_table_id: input.tableId,
+    p_table_label: input.tableLabel,
+    p_session_id: input.sessionId ?? null,
+    p_lines: input.lines.map((l) => ({
+      product_id: l.productId,
+      product_name: l.productName,
+      unit_price: l.unitPrice,
+      quantity: l.quantity,
+      tax_rate: l.taxRate,
+      discount: l.discount,
+      line_total: l.unitPrice * l.quantity,
+      notes: l.notes,
+    })),
+    p_subtotal: input.totals.subtotal,
+    p_discount_total: input.totals.discountTotal,
+    p_tax_total: input.totals.taxTotal,
+    p_total: input.totals.total,
+    p_coupon_code: input.coupon?.code ?? null,
+    p_notes: input.notes ?? null,
+  })
+
+  if (error) {
+    if (error.message?.includes("function") && error.message?.includes("not found")) {
+      throw new Error(
+        "The order creation database function is not available. Apply the Supabase SQL migration first."
+      )
+    }
+    throw new Error(error.message)
+  }
+
+  const result = data as unknown as CreateOrderResult
+
+  return {
+    orderId: result.orderId,
+    orderNumber: result.orderNumber,
+    kitchenTicketId: result.kitchenTicketId,
+  }
 }
 
 // ─── createPaymentForOrder ────────────────────────────────────────────────────
 
-export async function createPaymentForOrder(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+export async function createPaymentForOrder(
+  input: CreatePaymentInput
+): Promise<CreatePaymentResult> {
   if (input.method === "card" && !input.reference?.trim()) {
     throw new Error("Card payment requires a transaction reference number.")
   }
 
   const supabase = createClient()
 
-  const paymentPayload = {
-    cafe_id:   input.cafeId,
-    order_id:  input.orderId,
-    method:    input.method,
-    amount:    input.amount,
-    reference: input.reference ?? null,
-    status:    "completed" as const,
-    paid_at:   new Date().toISOString(),
-  }
+  const { data, error } = await (supabase.rpc as any)("create_payment_for_order", {
+    p_cafe_id: input.cafeId,
+    p_order_id: input.orderId,
+    p_table_id: input.tableId,
+    p_method: input.method,
+    p_amount: input.amount,
+    p_reference: input.reference ?? null,
+  })
 
-  console.log("Payment payload", paymentPayload)
-
-  const { data: payment, error: paymentError } = await (supabase.from("payments") as any)
-    .insert(paymentPayload)
-    .select("id")
-    .single()
-
-  if (paymentError) {
-    console.error("Payment error", paymentError)
-    throw new Error(paymentError.message)
-  }
-
-  const { error: orderUpdateError } = await (supabase.from("orders") as any)
-    .update({ status: "paid" })
-    .eq("id", input.orderId)
-
-  if (orderUpdateError) {
-    console.error("Order status update error", orderUpdateError)
-    throw new Error(orderUpdateError.message)
-  }
-
-  if (input.tableId) {
-    const { error: tableError } = await (supabase.from("cafe_tables") as any)
-      .update({ status: "available" })
-      .eq("id", input.tableId)
-    if (tableError) {
-      // Non-fatal: log but don't block payment success
-      console.error("Table status update error", tableError)
+  if (error) {
+    if (error.message?.includes("function") && error.message?.includes("not found")) {
+      throw new Error(
+        "The payment creation database function is not available. Apply the Supabase SQL migration first."
+      )
     }
+    throw new Error(error.message)
   }
 
-  return { paymentId: payment.id }
+  const result = data as unknown as CreatePaymentResult
+
+  return {
+    paymentId: result.paymentId,
+  }
 }

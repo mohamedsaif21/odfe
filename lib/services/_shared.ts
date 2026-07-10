@@ -1,23 +1,53 @@
-/**
- * Shared utility: resolve the current user's cafe_id from Supabase auth.
- * Throws with the real error message if auth or profile lookup fails.
- */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/lib/supabase/client"
+import type { Database } from "@/types/database"
+import type { AnyRole } from "@/types/database"
+import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 
-export async function getCafeId(): Promise<string> {
-  const supabase = createClient()
-  const { data: { session }, error: authErr } = await supabase.auth.getSession()
-  if (authErr) throw new Error(authErr.message)
-  if (!session) throw new Error("Not authenticated. Please log in again.")
+export type DbClient = ReturnType<typeof createClient>
 
-  const { data: profile, error: profErr } = await (supabase as any)
-    .from("profiles")
-    .select("cafe_id")
-    .eq("id", session.user.id)
-    .single()
+export type Tables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"]
 
-  if (profErr) throw new Error(profErr.message)
-  if (!profile?.cafe_id) throw new Error("No cafe associated with this account.")
-  return profile.cafe_id as string
+export type InsertTables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Insert"]
+
+export type UpdateTables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"]
+
+export async function getAuthenticatedProfile(
+  client?: DbClient
+): Promise<{
+  id: string
+  cafeId: string
+  role: AnyRole
+  fullName: string
+  email: string
+}> {
+  const supabase = client ?? createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error("Not authenticated")
+  return resolveAuthenticatedProfile(session.user.id, supabase)
+}
+
+export async function getCafeId(client?: DbClient): Promise<string> {
+  const profile = await getAuthenticatedProfile(client)
+  if (!profile.cafeId) throw new Error("Missing cafe assignment")
+  return profile.cafeId
+}
+
+export async function requireRole(
+  allowedRoles: AnyRole[],
+  client?: DbClient
+): Promise<{ id: string; cafeId: string; role: AnyRole }> {
+  const profile = await getAuthenticatedProfile(client)
+  if (!allowedRoles.includes(profile.role)) {
+    throw new Error(`Access denied. Required role: ${allowedRoles.join(" or ")}`)
+  }
+  return profile
+}
+
+export function normaliseServiceError(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  return "An unexpected error occurred"
 }

@@ -1,80 +1,139 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/lib/supabase/client"
 import { getCafeId } from "./_shared"
 import type { Product } from "@/types/database"
+import type { DbClient, InsertTables, UpdateTables } from "./_shared"
 
-export type ProductInsert = {
-  category_id: string
-  name: string
-  description: string | null
-  price: number
-  tax_rate: number
-  discount: number
-  image_url: string | null
-  is_available: boolean
-  sort_order: number
-}
+export async function fetchProducts(categoryId?: string, client?: DbClient): Promise<Product[]> {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
 
-export async function fetchProducts(): Promise<Product[]> {
-  const supabase = createClient()
-  const cafeId = await getCafeId()
-  const { data, error } = await (supabase as any)
+  let query = supabase
     .from("products")
     .select("*")
     .eq("cafe_id", cafeId)
     .order("sort_order")
+
+  if (categoryId) query = query.eq("category_id", categoryId)
+
+  const { data, error } = await query
+
   if (error) throw new Error(error.message)
-  return data as Product[]
+  return data ?? []
 }
 
-export async function createProduct(input: ProductInsert): Promise<Product> {
-  const supabase = createClient()
-  const cafeId = await getCafeId()
-  const { data, error } = await (supabase as any)
+export async function fetchProduct(id: string, client?: DbClient): Promise<Product> {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const { data, error } = await supabase
     .from("products")
-    .insert([{ ...input, cafe_id: cafeId }])
+    .select("*")
+    .eq("id", id)
+    .eq("cafe_id", cafeId)
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function createProduct(
+  input: {
+    category_id: string
+    name: string
+    price: number
+    description?: string
+    tax_rate?: number
+    discount?: number
+    image_url?: string
+    sort_order?: number
+  },
+  client?: DbClient
+) {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const payload: InsertTables<"products"> = {
+    cafe_id: cafeId,
+    category_id: input.category_id,
+    name: input.name,
+    price: input.price,
+    description: input.description ?? null,
+    tax_rate: input.tax_rate ?? 0,
+    discount: input.discount ?? 0,
+    image_url: input.image_url ?? null,
+    is_available: true,
+    sort_order: input.sort_order ?? 0,
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .insert(payload)
     .select()
     .single()
+
   if (error) throw new Error(error.message)
-  return data as Product
+  return data
 }
 
-export async function updateProduct(id: string, input: Partial<ProductInsert>): Promise<void> {
-  const supabase = createClient()
-  const { error } = await (supabase as any)
+export async function updateProduct(
+  id: string,
+  input: Partial<{
+    name: string
+    price: number
+    description: string
+    category_id: string
+    tax_rate: number
+    discount: number
+    image_url: string
+    is_available: boolean
+    sort_order: number
+  }>,
+  client?: DbClient
+) {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const updates: UpdateTables<"products"> = input
+
+  const { data, error } = await supabase
     .from("products")
-    .update(input)
+    .update(updates)
     .eq("id", id)
+    .eq("cafe_id", cafeId)
+    .select()
+    .single()
+
   if (error) throw new Error(error.message)
+  return data
 }
 
-export async function deleteProduct(id: string): Promise<void> {
-  const supabase = createClient()
-  const { error } = await (supabase as any)
+export async function toggleProductAvailability(id: string, isAvailable: boolean, client?: DbClient) {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const updates: UpdateTables<"products"> = { is_available: isAvailable }
+
+  const { data, error } = await supabase
     .from("products")
-    .delete()
+    .update(updates)
     .eq("id", id)
+    .eq("cafe_id", cafeId)
+    .select()
+    .single()
+
   if (error) throw new Error(error.message)
+  return data
 }
 
-/**
- * Upload product image to Supabase Storage bucket "product-images".
- * Returns the public URL to store in products.image_url.
- */
-export async function uploadProductImage(file: File, productId: string): Promise<string> {
-  const supabase = createClient()
-  const ext = file.name.split(".").pop() ?? "jpg"
-  const path = `${productId}.${ext}`
+export async function deleteProduct(id: string, client?: DbClient) {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
 
-  const { error } = await (supabase as any).storage
-    .from("product-images")
-    .upload(path, file, { upsert: true, contentType: file.type })
+  const { error } = await supabase
+    .from("products")
+    .update({ is_available: false })
+    .eq("id", id)
+    .eq("cafe_id", cafeId)
 
   if (error) throw new Error(error.message)
-
-  const { data } = (supabase as any).storage
-    .from("product-images")
-    .getPublicUrl(path)
-
-  return data.publicUrl as string
 }

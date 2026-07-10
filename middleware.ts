@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { createMiddlewareClient } from "@/lib/supabase/middleware"
-import { isPublicPath, hasAccess, unauthorizedRedirect } from "@/lib/auth/guards"
+import { isPublicPath, hasAccess, unauthorizedRedirect, isQRPath } from "@/lib/auth/guards"
 import { getDefaultRedirect } from "@/lib/auth/role-mapper"
 import type { AnyRole } from "@/types/database"
 
@@ -12,6 +12,11 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/favicon") ||
     pathname.includes(".")
   ) {
+    return NextResponse.next()
+  }
+
+  // QR token paths are publicly accessible (menu display)
+  if (isQRPath(pathname)) {
     return NextResponse.next()
   }
 
@@ -37,6 +42,11 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!session) {
+    if (pathname.startsWith("/customer")) {
+      const loginUrl = new URL("/customer/login", request.url)
+      loginUrl.searchParams.set("redirect", pathname)
+      return NextResponse.redirect(loginUrl)
+    }
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("redirectTo", pathname)
     return NextResponse.redirect(loginUrl)
@@ -57,6 +67,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/public|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/health|api/public|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

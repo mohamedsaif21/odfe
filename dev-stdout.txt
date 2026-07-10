@@ -1,0 +1,18 @@
+
+> premium-cafe-pos@0.1.0 dev
+> next dev --port 3333
+
+  ▲ Next.js 14.2.0
+  - Local:        http://localhost:3333
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 4.7s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1178ms (132 modules)
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 9.1s (725 modules)
+ GET /dashboard 200 in 9634ms
+ GET /dashboard 200 in 9609ms
+ ○ Compiling /pos ...
+ ✓ Compiled /pos in 1680ms (747 modules)

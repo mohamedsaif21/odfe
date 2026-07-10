@@ -20,26 +20,38 @@ export const ROUTE_ACCESS: Record<string, AnyRole[]> = {
   "/customer-display": ["admin", "cashier"],
   "/brew-bar": ["admin", "kitchen"],
   "/self-order": ["customer"],
-  "/s": ["customer"],
+  "/customer/orders": ["customer"],
+  "/customer/profile": ["customer"],
 }
 
 /**
  * Paths that are always public.
  */
 export const PUBLIC_PATHS = [
+  "/",
   "/login",
   "/register",
+  "/customer/login",
+  "/customer/register",
+  "/s",
+  "/api/health",
+  "/api/public",
   "/_next",
   "/favicon",
-  "/api/public",
 ]
 
 export function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname.startsWith(p))
 }
 
+export function isQRPath(pathname: string): boolean {
+  return /^\/s\/[^/]+$/.test(pathname)
+}
+
 export function hasAccess(pathname: string, role: AnyRole): boolean {
   if (role === "admin") return true
+
+  if (isQRPath(pathname) || isPublicPath(pathname)) return true
 
   const matchedKey = Object.keys(ROUTE_ACCESS)
     .filter((prefix) => pathname.startsWith(prefix))
