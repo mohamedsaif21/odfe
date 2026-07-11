@@ -77,8 +77,8 @@ export async function resolveAuthenticatedProfile(
 ): Promise<ResolvedProfile> {
   const supabase = client ?? createClient()
 
-  const { data: profile, error } = await (supabase
-    .from("profiles") as any)
+  const { data: profile, error } = await supabase
+    .from("profiles")
     .select("id, cafe_id, role, full_name, email, avatar_url, is_active")
     .eq("id", userId)
     .single()

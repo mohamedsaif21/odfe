@@ -41,8 +41,8 @@ export default function SelfOrderPage() {
         })
 
         // Load cafe name
-        const { data: cafe } = await (supabase
-          .from("cafes") as any)
+        const { data: cafe } = await supabase
+          .from("cafes")
           .select("name")
           .eq("id", profile.cafeId)
           .single()

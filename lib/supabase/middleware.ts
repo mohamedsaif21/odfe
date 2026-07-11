@@ -1,30 +1,28 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr"
-import type { NextRequest, NextResponse } from "next/server"
+import { createServerClient } from "@supabase/ssr"
+import { type NextRequest, type NextResponse } from "next/server"
 import type { Database } from "@/types/database"
 
-/**
- * Supabase middleware client bound to request and response cookie stores.
- * This keeps auth cookies refreshed during route transitions.
- */
-export function createMiddlewareClient(
-  request: NextRequest,
-  response: NextResponse
-) {
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: CookieOptions) {
-          response.cookies.set({ name, value: "", ...options, maxAge: 0 })
-        },
+export function createMiddlewareClient(request: NextRequest, response: NextResponse) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase environment variables are not configured")
+  }
+
+  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
       },
-    }
-  )
+      setAll(cookiesToSet, headers) {
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options)
+        )
+        Object.entries(headers).forEach(([key, value]) =>
+          response.headers.set(key, value)
+        )
+      },
+    },
+  })
 }

@@ -1,21 +1,20 @@
 import type { Metadata } from "next"
-import { Inter, Anton } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/ui/theme-provider"
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
-const anton = Anton({ subsets: ["latin"], weight: "400", variable: "--font-display" })
+import { AuthProvider } from "@/components/auth/AuthProvider"
 
 export const metadata: Metadata = {
-  title: "Premium Cafe POS",
-  description: "Premium Cafe Point of Sale System",
+  title: {
+    default: "OdFe — Premium Cafe POS",
+    template: "%s | OdFe POS",
+  },
+  description: "Premium Cafe POS SaaS",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${anton.variable}`}>
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   )

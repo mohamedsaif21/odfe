@@ -35,8 +35,17 @@ export async function middleware(request: NextRequest) {
 
   if (isPublicPath(pathname)) {
     if (session && (pathname === "/login" || pathname === "/register")) {
-      const role = (session.user.user_metadata?.role ?? "cashier") as AnyRole
-      return NextResponse.redirect(new URL(getDefaultRedirect(role), request.url))
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single()
+
+      if (profile?.role) {
+        return NextResponse.redirect(
+          new URL(getDefaultRedirect(profile.role as AnyRole), request.url)
+        )
+      }
     }
     return response
   }
@@ -52,7 +61,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  const role = (session.user.user_metadata?.role ?? "cashier") as AnyRole
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, is_active")
+    .eq("id", session.user.id)
+    .single()
+
+  if (!profile || !profile.is_active) {
+    const url = new URL("/login", request.url)
+    url.searchParams.set("error", "account_inactive")
+    await supabase.auth.signOut()
+    return NextResponse.redirect(url)
+  }
+
+  const role = profile.role as AnyRole
 
   if (!hasAccess(pathname, role)) {
     return NextResponse.redirect(new URL(unauthorizedRedirect(role), request.url))
