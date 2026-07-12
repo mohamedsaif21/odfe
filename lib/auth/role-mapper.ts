@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/client"
 import type { AnyRole, EmployeeRole } from "@/types/database"
 import type { NavItem, RoleRedirect } from "@/types/app"
 
@@ -24,6 +23,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Employees",        href: "/employees",         icon: "UserCheck",       roles: ["admin"] },
   { label: "Payments",         href: "/payments",          icon: "CreditCard",      roles: ["admin"] },
   { label: "Coupons",          href: "/coupons",           icon: "Percent",         roles: ["admin"] },
+  { label: "Bookings",         href: "/bookings",          icon: "CalendarDays",    roles: ["admin"] },
   { label: "Brew Bar",         href: "/brew-bar",          icon: "Coffee",          roles: ["admin", "kitchen"] },
   { label: "Reports",          href: "/reports",           icon: "BarChart2",       roles: ["admin"] },
   { label: "Settings",         href: "/settings",          icon: "Settings",        roles: ["admin"] },
@@ -59,54 +59,17 @@ export const ROLE_COLORS: Record<AnyRole, string> = {
   customer: "bg-odfe-charcoal-light text-odfe-cream",
 }
 
-// ─── Profile resolution ──────────────────────────────────────────────────
-
-export interface ResolvedProfile {
-  id: string
-  cafeId: string
-  role: AnyRole
-  fullName: string
-  email: string
-  avatarUrl: string | null
-  isActive: boolean
-}
-
-export async function resolveAuthenticatedProfile(
-  userId: string,
-  client?: ReturnType<typeof createClient>
-): Promise<ResolvedProfile> {
-  const supabase = client ?? createClient()
-
-  const { data: profile, error } = await supabase
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function resolveAuthenticatedProfile(userId: string, supabase: any): Promise<{ role: AnyRole; cafe_id: string }> {
+  const { data, error } = await supabase
     .from("profiles")
-    .select("id, cafe_id, role, full_name, email, avatar_url, is_active")
+    .select("role, cafe_id, is_active")
     .eq("id", userId)
     .single()
 
-  if (error || !profile) {
-    throw new Error("Profile not found")
-  }
+  if (error || !data) throw new Error("Profile not found")
+  if (!data.is_active) throw new Error("Account is inactive")
+  if (!data.cafe_id) throw new Error("No cafe assigned")
 
-  if (!profile.is_active) {
-    throw new Error("Account inactive")
-  }
-
-  const role = profile.role as AnyRole
-  if (!isEmployeeRole(role) && !isCustomerRole(role)) {
-    throw new Error("Unsupported role")
-  }
-
-  if (!profile.cafe_id) {
-    throw new Error("Missing cafe assignment")
-  }
-
-  return {
-    id: profile.id,
-    cafeId: profile.cafe_id,
-    role,
-    fullName: profile.full_name,
-    email: profile.email,
-    avatarUrl: profile.avatar_url,
-    isActive: profile.is_active,
-  }
+  return { role: data.role as AnyRole, cafe_id: data.cafe_id }
 }
