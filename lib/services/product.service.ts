@@ -21,6 +21,25 @@ export async function fetchProducts(categoryId?: string, client?: DbClient): Pro
   return data ?? []
 }
 
+export async function fetchAvailableProducts(categoryId?: string, client?: DbClient): Promise<Product[]> {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  let query = supabase
+    .from("products")
+    .select("*")
+    .eq("cafe_id", cafeId)
+    .eq("is_available", true)
+    .order("sort_order")
+
+  if (categoryId) query = query.eq("category_id", categoryId)
+
+  const { data, error } = await query
+
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
 export async function fetchProduct(id: string, client?: DbClient): Promise<Product> {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)

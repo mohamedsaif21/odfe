@@ -35,6 +35,27 @@ export async function getCafeId(client?: DbClient): Promise<string> {
   return profile.cafeId
 }
 
+export async function getPosContext(client?: DbClient): Promise<{
+  cafeId: string
+  employeeId: string | null
+}> {
+  const supabase = client ?? createClient()
+  const profile = await getAuthenticatedProfile(supabase)
+
+  const { data, error } = await supabase
+    .from("employees")
+    .select("id")
+    .eq("profile_id", profile.id)
+    .single()
+
+  if (error && error.code !== "PGRST116") throw new Error(error.message)
+
+  return {
+    cafeId: profile.cafeId,
+    employeeId: data?.id ?? null,
+  }
+}
+
 export async function requireRole(
   allowedRoles: AnyRole[],
   client?: DbClient

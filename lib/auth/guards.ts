@@ -47,7 +47,11 @@ export function loginPageFor(pathname: string): string {
 }
 
 export function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some((p) => pathname.startsWith(p))
+  return PUBLIC_PATHS.some((p) => {
+    if (p === "/") return pathname === "/"
+    if (p.endsWith("/")) return pathname === p.slice(0, -1) || pathname.startsWith(p)
+    return pathname === p
+  })
 }
 
 export function hasAccess(pathname: string, role: AnyRole): boolean {

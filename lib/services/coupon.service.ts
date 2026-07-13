@@ -17,6 +17,23 @@ export async function fetchCoupons(client?: DbClient): Promise<Coupon[]> {
   return data ?? []
 }
 
+export async function fetchValidCoupons(client?: DbClient): Promise<Coupon[]> {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+  const now = new Date().toISOString()
+
+  const { data, error } = await supabase
+    .from("coupons")
+    .select("*")
+    .eq("cafe_id", cafeId)
+    .eq("is_active", true)
+    .or(`expires_at.is.null,expires_at.gte.${now}`)
+    .order("created_at", { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return (data ?? []).filter((coupon) => !coupon.max_uses || coupon.used_count < coupon.max_uses)
+}
+
 export async function createCoupon(
   input: {
     code: string

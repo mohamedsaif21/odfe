@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
 import { signInEmployee } from "@/lib/auth/auth.service"
 import { useAuthStore } from "@/store/auth-store"
 import { getDefaultRedirect } from "@/lib/auth/role-mapper"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { setUser, user } = useAuthStore()
@@ -129,5 +129,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-odfe-teal"><Loader2 className="animate-spin text-odfe-cream" size={24} /></div>}>
+      <LoginForm />
+    </Suspense>
   )
 }

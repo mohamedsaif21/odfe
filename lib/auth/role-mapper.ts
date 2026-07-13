@@ -60,10 +60,17 @@ export const ROLE_COLORS: Record<AnyRole, string> = {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function resolveAuthenticatedProfile(userId: string, supabase: any): Promise<{ role: AnyRole; cafe_id: string }> {
+export async function resolveAuthenticatedProfile(userId: string, supabase: any): Promise<{
+  id: string
+  email: string
+  role: AnyRole
+  cafeId: string
+  fullName: string
+  avatarUrl: string | null
+}> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("role, cafe_id, is_active")
+    .select("id, cafe_id, role, full_name, email, avatar_url, is_active")
     .eq("id", userId)
     .single()
 
@@ -71,5 +78,12 @@ export async function resolveAuthenticatedProfile(userId: string, supabase: any)
   if (!data.is_active) throw new Error("Account is inactive")
   if (!data.cafe_id) throw new Error("No cafe assigned")
 
-  return { role: data.role as AnyRole, cafe_id: data.cafe_id }
+  return {
+    id: data.id,
+    email: data.email,
+    role: data.role as AnyRole,
+    cafeId: data.cafe_id,
+    fullName: data.full_name,
+    avatarUrl: data.avatar_url,
+  }
 }

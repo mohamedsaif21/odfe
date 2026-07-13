@@ -99,9 +99,7 @@ export async function createOrderWithKitchenTicket(
 
   if (error) {
     if (error.message?.includes("function") && error.message?.includes("not found")) {
-      throw new Error(
-        "The order creation database function is not available. Apply the Supabase SQL migration first."
-      )
+      throw new Error("create_order_with_kitchen_ticket RPC is not configured.")
     }
     throw new Error(error.message)
   }

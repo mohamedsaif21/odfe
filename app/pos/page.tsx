@@ -4,15 +4,20 @@ import { useEffect, useState, useCallback } from "react"
 import {
   ShoppingCart, Send, CreditCard, Trash2,
   Plus, Minus, X, Tag, ChevronDown, Loader2,
-  CheckCircle, AlertCircle, Coffee
+  CheckCircle, AlertCircle, Coffee, Search
 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { useCartStore } from "@/store/cart-store"
+import { fetchAvailableProducts } from "@/lib/services/product.service"
+import { fetchCategories } from "@/lib/services/category.service"
+import { fetchTables } from "@/lib/services/table.service"
+import { fetchPaymentMethods } from "@/lib/services/payment.service"
+import { fetchValidCoupons, validateCoupon } from "@/lib/services/coupon.service"
+import { getPosContext } from "@/lib/services/_shared"
 import {
   createOrderWithKitchenTicket,
   createPaymentForOrder,
 } from "@/lib/orders/create-order"
-import type { Product, ProductCategory, CafeTable } from "@/types/database"
+import type { Product, ProductCategory, CafeTable, Coupon } from "@/types/database"
 import type { PaymentMethodType } from "@/types/database"
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -39,13 +44,15 @@ function Toast({
 
 // ─── Payment modal ─────────────────────────────────────────────────────────────
 
-function PaymentModal({ total, onConfirm, onClose, loading }: {
+function PaymentModal({ total, methods, onConfirm, onClose, loading }: {
   total: number
+  methods: { id: string; type: PaymentMethodType; label: string; is_active: boolean }[]
   onConfirm: (method: PaymentMethodType, reference: string) => void
   onClose: () => void
   loading: boolean
 }) {
-  const [method, setMethod] = useState<PaymentMethodType>("cash")
+  const enabledMethods = methods.filter((m) => m.type !== "split")
+  const [method, setMethod] = useState<PaymentMethodType>(enabledMethods[0]?.type ?? "cash")
   const [reference, setReference] = useState("")
   const [validationError, setValidationError] = useState("")
 
@@ -57,12 +64,6 @@ function PaymentModal({ total, onConfirm, onClose, loading }: {
     }
     onConfirm(method, reference.trim())
   }
-
-  const methods: { value: PaymentMethodType; label: string }[] = [
-    { value: "cash", label: "Cash" },
-    { value: "card", label: "Card" },
-    { value: "upi",  label: "UPI"  },
-  ]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -81,10 +82,10 @@ function PaymentModal({ total, onConfirm, onClose, loading }: {
           <div>
             <label className="mb-2 block text-xs font-medium text-gray-600">Payment Method</label>
             <div className="grid grid-cols-3 gap-2">
-              {methods.map((m) => (
-                <button key={m.value} onClick={() => { setMethod(m.value); setValidationError("") }}
+              {enabledMethods.map((m) => (
+                <button key={m.id} onClick={() => { setMethod(m.type); setValidationError("") }}
                   className={`rounded-lg border py-2.5 text-sm font-medium transition-colors ${
-                    method === m.value
+                    method === m.type
                       ? "border-odfe-teal bg-odfe-teal text-white"
                       : "border-gray-200 bg-white text-gray-700 hover:border-odfe-teal/40"
                   }`}>
@@ -140,11 +141,16 @@ export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<ProductCategory[]>([])
   const [tables, setTables] = useState<CafeTable[]>([])
+  const [paymentMethods, setPaymentMethods] = useState<{ id: string; type: PaymentMethodType; label: string; is_active: boolean }[]>([])
+  const [coupons, setCoupons] = useState<Coupon[]>([])
   const [cafeId, setCafeId] = useState<string | null>(null)
   const [employeeId, setEmployeeId] = useState<string | null>(null)
   const [dataLoading, setDataLoading] = useState(true)
+  const [dataError, setDataError] = useState<string | null>(null)
 
   const [activeCat, setActiveCat] = useState<string | null>(null)
+  const [productSearch, setProductSearch] = useState("")
+  const [couponCode, setCouponCode] = useState("")
   const [showTablePicker, setShowTablePicker] = useState(false)
   const [showPayment, setShowPayment] = useState(false)
   const [sending, setSending] = useState(false)
@@ -153,39 +159,69 @@ export default function POSPage() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
   const { lines, totals, selectedTable, appliedCoupon,
-    addProduct, incrementLine, decrementLine, removeLine, setTable, clearCart } = useCartStore()
+    addProduct, incrementLine, decrementLine, removeLine, setTable, applyCoupon, removeCoupon, clearCart } = useCartStore()
 
   // Load data
-  useEffect(() => {
-    async function load() {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { setDataLoading(false); return }
-
-      const { data: profile } = await supabase
-        .from("profiles").select("cafe_id").eq("id", session.user.id).single() as { data: { cafe_id: string } | null; error: unknown }
-      if (!profile) { setDataLoading(false); return }
-      setCafeId(profile.cafe_id)
-
-      const { data: emp } = await supabase
-        .from("employees").select("id").eq("profile_id", session.user.id).single() as { data: { id: string } | null; error: unknown }
-      if (emp) setEmployeeId(emp.id)
-
-      const [{ data: prods }, { data: cats }, { data: tbls }] = await Promise.all([
-        supabase.from("products").select("*").eq("cafe_id", profile.cafe_id).eq("is_available", true).order("sort_order"),
-        supabase.from("product_categories").select("*").eq("cafe_id", profile.cafe_id).eq("is_active", true).order("sort_order"),
-        supabase.from("cafe_tables").select("*").eq("cafe_id", profile.cafe_id).order("label"),
+  const loadPosData = useCallback(async () => {
+    setDataLoading(true)
+    setDataError(null)
+    try {
+      const [context, prods, cats, tbls, methods, validCoupons] = await Promise.all([
+        getPosContext(),
+        fetchAvailableProducts(),
+        fetchCategories(),
+        fetchTables(),
+        fetchPaymentMethods(),
+        fetchValidCoupons(),
       ])
-
-      setProducts(prods ?? [])
-      setCategories(cats ?? [])
-      setTables(tbls ?? [])
+      setCafeId(context.cafeId)
+      setEmployeeId(context.employeeId)
+      setProducts(prods)
+      setCategories(cats)
+      setTables(tbls)
+      setPaymentMethods(methods)
+      setCoupons(validCoupons)
+    } catch (err) {
+      setDataError(err instanceof Error ? err.message : "An unexpected error occurred")
+    } finally {
       setDataLoading(false)
     }
-    load()
   }, [])
 
-  const filtered = activeCat ? products.filter((p) => p.category_id === activeCat) : products
+  useEffect(() => {
+    loadPosData()
+  }, [loadPosData])
+
+  const filtered = products.filter((p) => {
+    const matchesCategory = !activeCat || p.category_id === activeCat
+    const matchesSearch = !productSearch.trim() || p.name.toLowerCase().includes(productSearch.trim().toLowerCase())
+    return matchesCategory && matchesSearch
+  })
+
+  async function handleApplyCoupon() {
+    const code = couponCode.trim()
+    if (!code) return
+    try {
+      const coupon = await validateCoupon(code, totals.subtotal)
+      if (!coupon) {
+        setToast({ type: "error", message: "Coupon is invalid, expired, fully used, or below minimum order amount." })
+        return
+      }
+      const discountAmount = coupon.discount_type === "percentage"
+        ? Math.min((totals.subtotal * coupon.value) / 100, totals.subtotal)
+        : Math.min(coupon.value, totals.subtotal)
+      applyCoupon({
+        code: coupon.code,
+        discountType: coupon.discount_type,
+        value: coupon.value,
+        discountAmount,
+      })
+      setCouponCode("")
+      setToast({ type: "success", message: `Coupon ${coupon.code} applied` })
+    } catch (err) {
+      setToast({ type: "error", message: err instanceof Error ? err.message : "An unexpected error occurred" })
+    }
+  }
 
   const handleSendToBrewBar = useCallback(async () => {
     if (!cafeId) { setToast({ type: "error", message: "No cafe session. Please log in again." }); return }
@@ -246,6 +282,16 @@ export default function POSPage() {
     </div>
   )
 
+  if (dataError) return (
+    <div className="flex h-screen flex-col items-center justify-center gap-3 bg-gray-50 p-6 text-center">
+      <AlertCircle size={24} className="text-red-600" />
+      <p className="max-w-md text-sm text-red-700">{dataError}</p>
+      <button onClick={loadPosData} className="rounded-lg bg-odfe-teal px-4 py-2 text-sm font-semibold text-white">
+        Retry
+      </button>
+    </div>
+  )
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
 
@@ -276,6 +322,16 @@ export default function POSPage() {
           ))}
         </div>
 
+        <div className="relative shrink-0 border-b border-gray-200 bg-white px-4 py-3">
+          <Search className="absolute left-7 top-6 h-4 w-4 text-gray-400" />
+          <input
+            value={productSearch}
+            onChange={(e) => setProductSearch(e.target.value)}
+            placeholder="Search products"
+            className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
+          />
+        </div>
+
         {/* Product grid */}
         <div className="flex-1 overflow-y-auto p-4">
           {filtered.length === 0 ? (
@@ -289,7 +345,12 @@ export default function POSPage() {
                 <button key={product.id} onClick={() => addProduct(product)}
                   className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-odfe-teal/40 hover:shadow-md active:translate-y-0">
                   <div className="flex h-20 items-center justify-center bg-gradient-to-br from-odfe-teal/10 to-odfe-sage/10">
-                    <Coffee size={24} className="text-odfe-teal/30" />
+                    {product.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Coffee size={24} className="text-odfe-teal/30" />
+                    )}
                   </div>
                   <div className="flex flex-1 flex-col p-3">
                     <p className="text-sm font-medium leading-tight text-gray-800">{product.name}</p>
@@ -358,6 +419,23 @@ export default function POSPage() {
         {lines.length > 0 && (
           <>
             <div className="space-y-1.5 border-t border-gray-100 px-4 py-3 text-sm">
+              <div className="flex gap-2 pb-2">
+                <input
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  list="pos-coupons"
+                  placeholder="Coupon code"
+                  className="min-w-0 flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
+                />
+                <datalist id="pos-coupons">
+                  {coupons.map((coupon) => (
+                    <option key={coupon.id} value={coupon.code} />
+                  ))}
+                </datalist>
+                <button onClick={handleApplyCoupon} className="rounded-lg border border-odfe-teal px-3 py-2 text-xs font-medium text-odfe-teal">
+                  Apply
+                </button>
+              </div>
               <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>₹{totals.subtotal.toFixed(2)}</span></div>
               {totals.discountTotal > 0 && (
                 <div className="flex justify-between text-green-600">
@@ -377,7 +455,7 @@ export default function POSPage() {
                 {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                 {sending ? "Sending…" : "Send to Brew Bar"}
               </button>
-              <button onClick={() => setShowPayment(true)} disabled={sending || paying}
+              <button onClick={() => setShowPayment(true)} disabled={sending || paying || paymentMethods.length === 0}
                 className="flex items-center justify-center gap-2 rounded-lg bg-odfe-gold py-3 text-sm font-semibold text-odfe-charcoal transition hover:bg-odfe-gold-light disabled:opacity-50">
                 <CreditCard size={15} />Complete Sale
               </button>
@@ -416,7 +494,7 @@ export default function POSPage() {
 
       {/* Payment modal */}
       {showPayment && (
-        <PaymentModal total={totals.total} loading={paying}
+        <PaymentModal total={totals.total} methods={paymentMethods} loading={paying}
           onClose={() => setShowPayment(false)} onConfirm={handleCompleteSale} />
       )}
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { Plus } from "lucide-react"
+import { Plus, RefreshCw } from "lucide-react"
 import { AdminLayout } from "@/components/layout/Admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
@@ -133,10 +133,16 @@ export default function TablesPage() {
       <PageContainer>
         <div className="mb-4 flex items-center justify-between">
           <PageHeader title="Tables" description="Manage cafe tables and floor layout" />
-          <Button onClick={openAddForm}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Table
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={loadData} disabled={isLoading}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Retry
+            </Button>
+            <Button onClick={openAddForm}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Table
+            </Button>
+          </div>
         </div>
 
         {error && (
