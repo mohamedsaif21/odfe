@@ -3,13 +3,17 @@ import type { Database } from "@/types/database"
 import type { KitchenTicketWithItems } from "@/types/app"
 
 type DbClient = SupabaseClient<Database>
+type TicketStage = "to_cook" | "preparing" | "completed"
 
 export type KitchenTicketRealtimeHandlers = {
   onTicketChange: () => void
+  /** Optional: observe channel connection status (SUBSCRIBED, TIMED_OUT, CHANNEL_ERROR, CLOSED). */
+  onStatusChange?: (status: string) => void
 }
 
 /**
  * Brew Bar realtime subscription for kitchen tickets.
+ * One channel, two table subscriptions (tickets + their items), both scoped to cafe_id.
  */
 export function subscribeKitchenTickets(
   supabase: DbClient,
@@ -42,15 +46,25 @@ export function subscribeKitchenTickets(
         handlers.onTicketChange()
       }
     )
-    .subscribe()
+    .subscribe((status) => {
+      handlers.onStatusChange?.(status)
+    })
 }
 
-export function unsubscribeKitchenTickets(channel: RealtimeChannel) {
-  channel.unsubscribe()
+/**
+ * Fully releases the channel (not just marks it unsubscribed) so a remount —
+ * React strict-mode double-invoke, Next.js fast refresh, or navigating away
+ * and back — doesn't leave a stale socket alongside a new one.
+ */
+export function unsubscribeKitchenTickets(supabase: DbClient, channel: RealtimeChannel) {
+  supabase.removeChannel(channel)
 }
 
 /**
  * Fetch all kitchen tickets with their items for the given cafe.
+ * elapsedSeconds is computed here from created_at as of fetch time; the Brew Bar
+ * page re-derives a live-ticking value from ticket.createdAt on top of this so
+ * the timer keeps moving between realtime refreshes rather than freezing.
  */
 export async function fetchKitchenTickets(
   supabase: DbClient,
@@ -78,6 +92,7 @@ export async function fetchKitchenTickets(
       notes: string | null
     }>
   }
+
   return ((tickets ?? []) as RawTicket[]).map((t) => ({
     id: t.id,
     orderId: t.order_id,
@@ -91,22 +106,37 @@ export async function fetchKitchenTickets(
       quantity: i.quantity,
       notes: i.notes,
     })),
-    elapsedSeconds: 0,
+    elapsedSeconds: Math.max(0, Math.floor((Date.now() - new Date(t.created_at).getTime()) / 1000)),
   }))
 }
 
 /**
- * Update a kitchen ticket's stage.
+ * Advances a kitchen ticket's stage AND writes the same value into orders.status,
+ * since orders.status shares the literal "to_cook" | "preparing" | "completed"
+ * values with kitchen_tickets.stage. This isn't a real transaction — two
+ * sequential updates — so if the orders write fails after the ticket write
+ * succeeds, we roll the ticket back to previousStage rather than leaving the
+ * ticket and its order disagreeing about where the order actually is.
  */
 export async function updateTicketStage(
   supabase: DbClient,
   ticketId: string,
-  stage: "to_cook" | "preparing" | "completed"
+  orderId: string,
+  stage: TicketStage,
+  previousStage: TicketStage
 ): Promise<void> {
-  const { error } = await (supabase
-    .from("kitchen_tickets") as any)
+  const { error: ticketError } = await (supabase.from("kitchen_tickets") as any)
     .update({ stage })
     .eq("id", ticketId)
 
-  if (error) throw new Error(error.message)
+  if (ticketError) throw new Error(ticketError.message)
+
+  const { error: orderError } = await (supabase.from("orders") as any)
+    .update({ status: stage })
+    .eq("id", orderId)
+
+  if (orderError) {
+    await (supabase.from("kitchen_tickets") as any).update({ stage: previousStage }).eq("id", ticketId)
+    throw new Error(orderError.message)
+  }
 }

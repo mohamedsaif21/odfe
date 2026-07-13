@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { getClient } from "@/lib/supabase/client"
 import { useAuthStore } from "@/store/auth-store"
 import { useOrderStore } from "@/store/order-store"
 import {
@@ -14,15 +14,23 @@ import type { KitchenTicketWithItems } from "@/types/app"
 
 export default function BrewBarPage() {
   const user = useAuthStore((s) => s.user)
-  const { kitchenTickets, setKitchenTickets, upsertTicket, removeTicket } = useOrderStore()
+  const { kitchenTickets, setKitchenTickets } = useOrderStore()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  // Ticks once a second purely to re-render elapsed time on each card —
+  // does not refetch data, just recomputes from ticket.createdAt.
+  useEffect(() => {
+    const interval = setInterval(() => setNowMs(Date.now()), 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   const refreshTickets = useCallback(async () => {
     if (!user?.cafeId) return
     try {
-      const supabase = createClient()
+      const supabase = getClient()
       const tickets = await fetchKitchenTickets(supabase, user.cafeId)
       setKitchenTickets(tickets)
       setError(null)
@@ -34,23 +42,29 @@ export default function BrewBarPage() {
   useEffect(() => {
     if (!user?.cafeId) return
 
+    const supabase = getClient()
     refreshTickets().finally(() => setLoading(false))
 
-    const supabase = createClient()
     const channel = subscribeKitchenTickets(supabase, user.cafeId, {
       onTicketChange: refreshTickets,
+      onStatusChange: (status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          // eslint-disable-next-line no-console
+          console.warn(`Brew Bar realtime channel ${status.toLowerCase()} — supabase-js will retry the connection.`)
+        }
+      },
     })
 
     return () => {
-      unsubscribeKitchenTickets(channel)
+      unsubscribeKitchenTickets(supabase, channel)
     }
   }, [user?.cafeId, refreshTickets])
 
-  async function handleStageUpdate(ticketId: string, stage: KitchenTicketWithItems["stage"]) {
-    setUpdatingId(ticketId)
+  async function handleStageUpdate(ticket: KitchenTicketWithItems, nextStage: KitchenTicketWithItems["stage"]) {
+    setUpdatingId(ticket.id)
     try {
-      const supabase = createClient()
-      await updateTicketStage(supabase, ticketId, stage)
+      const supabase = getClient()
+      await updateTicketStage(supabase, ticket.id, ticket.orderId, nextStage, ticket.stage)
       await refreshTickets()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update stage")
@@ -106,7 +120,8 @@ export default function BrewBarPage() {
             <TicketCard
               key={ticket.id}
               ticket={ticket}
-              onAdvance={() => handleStageUpdate(ticket.id, "preparing")}
+              nowMs={nowMs}
+              onAdvance={() => handleStageUpdate(ticket, "preparing")}
               updating={updatingId === ticket.id}
             />
           ))}
@@ -124,7 +139,8 @@ export default function BrewBarPage() {
             <TicketCard
               key={ticket.id}
               ticket={ticket}
-              onAdvance={() => handleStageUpdate(ticket.id, "completed")}
+              nowMs={nowMs}
+              onAdvance={() => handleStageUpdate(ticket, "completed")}
               updating={updatingId === ticket.id}
             />
           ))}
@@ -142,6 +158,7 @@ export default function BrewBarPage() {
             <TicketCard
               key={ticket.id}
               ticket={ticket}
+              nowMs={nowMs}
               completed
               updating={false}
             />
@@ -154,16 +171,19 @@ export default function BrewBarPage() {
 
 function TicketCard({
   ticket,
+  nowMs,
   onAdvance,
   completed,
   updating,
 }: {
   ticket: KitchenTicketWithItems
+  nowMs: number
   onAdvance?: () => void
   completed?: boolean
   updating: boolean
 }) {
-  const elapsed = formatElapsed(ticket.elapsedSeconds)
+  const liveElapsedSeconds = Math.max(0, Math.floor((nowMs - new Date(ticket.createdAt).getTime()) / 1000))
+  const elapsed = formatElapsed(liveElapsedSeconds)
 
   return (
     <div className={`rounded-lg border p-3 ${completed ? "border-green-200 bg-green-50" : "border-gray-200 bg-white"}`}>
@@ -176,9 +196,14 @@ function TicketCard({
       )}
       <ul className="mt-2 space-y-1">
         {ticket.items.map((item, i) => (
-          <li key={i} className="flex justify-between text-sm">
-            <span className="text-gray-800">{item.productName}</span>
-            <span className="font-medium text-gray-600">x{item.quantity}</span>
+          <li key={i} className="text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-800">{item.productName}</span>
+              <span className="font-medium text-gray-600">x{item.quantity}</span>
+            </div>
+            {item.notes && (
+              <p className="text-xs italic text-gray-400">Note: {item.notes}</p>
+            )}
           </li>
         ))}
       </ul>

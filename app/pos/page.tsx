@@ -224,8 +224,17 @@ export default function POSPage() {
   }
 
   const handleSendToBrewBar = useCallback(async () => {
+    if (sending) return
     if (!cafeId) { setToast({ type: "error", message: "No cafe session. Please log in again." }); return }
     if (lines.length === 0) { setToast({ type: "error", message: "Cart is empty." }); return }
+    if (!employeeId) {
+      setToast({ type: "error", message: "No employee record linked to this login. Contact an admin before taking orders." })
+      return
+    }
+    if (selectedTable && !tables.some((table) => table.id === selectedTable.id)) {
+      setToast({ type: "error", message: "Selected table is no longer available. Refresh tables and select again." })
+      return
+    }
     setSending(true)
     try {
       const result = await createOrderWithKitchenTicket({
@@ -241,7 +250,7 @@ export default function POSPage() {
     } finally {
       setSending(false)
     }
-  }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon])
+  }, [cafeId, employeeId, selectedTable, tables, lines, totals, appliedCoupon, sending])
 
   const handleCompleteSale = useCallback(async (method: PaymentMethodType, reference: string) => {
     if (!cafeId) { setToast({ type: "error", message: "No cafe session." }); return }

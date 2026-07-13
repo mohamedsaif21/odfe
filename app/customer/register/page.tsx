@@ -4,9 +4,12 @@ import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
+import { useAuthStore } from "@/store/auth-store"
 
 export default function CustomerRegisterPage() {
   const router = useRouter()
+  const { setUser } = useAuthStore()
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -42,8 +45,23 @@ export default function CustomerRegisterPage() {
         throw new Error(json.error ?? "Customer onboarding failed")
       }
 
-      const redirect = "/customer/login?registered=true"
-      router.push(redirect)
+      const profile = await resolveAuthenticatedProfile(user.id, supabase)
+
+      if (profile.role !== "customer") {
+        throw new Error("Customer profile was not created correctly")
+      }
+
+      setUser({
+        id: profile.id,
+        email: profile.email,
+        role: profile.role,
+        fullName: profile.fullName,
+        cafeId: profile.cafeId,
+        cafeName: "",
+        avatarUrl: profile.avatarUrl,
+      })
+
+      router.replace("/self-order")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed")
     } finally {
