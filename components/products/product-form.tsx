@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { createClient } from "@/lib/supabase/client"
 import type { Product, ProductCategory } from "@/types/database"
 
 export interface ProductFormInput {
@@ -44,6 +45,7 @@ const emptyForm = {
 export function ProductForm({ open, product, categories, isSubmitting, onClose, onSubmit }: ProductFormProps) {
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -89,6 +91,32 @@ export function ProductForm({ open, product, categories, isSubmitting, onClose, 
     })
   }
 
+  async function handleImageUpload(file: File | null) {
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    try {
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Select an image file.")
+      }
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error("Not authenticated")
+      const extension = file.name.split(".").pop() ?? "jpg"
+      const path = `${session.user.id}/${crypto.randomUUID()}.${extension}`
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(path, file, { cacheControl: "3600", upsert: false })
+      if (uploadError) throw new Error(uploadError.message)
+      const { data } = supabase.storage.from("product-images").getPublicUrl(path)
+      setForm((current) => ({ ...current, image_url: data.publicUrl }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Image upload failed")
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <Dialog open={open} onClose={onClose} title={product ? "Edit product" : "Add product"} className="max-w-2xl">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -129,6 +157,11 @@ export function ProductForm({ open, product, categories, isSubmitting, onClose, 
         <label className="space-y-1 text-sm font-medium text-charcoal">
           Image URL
           <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+        </label>
+        <label className="space-y-1 text-sm font-medium text-charcoal">
+          Upload image
+          <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files?.[0] ?? null)} disabled={uploading} />
+          {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
         </label>
         <label className="space-y-1 text-sm font-medium text-charcoal">
           Description

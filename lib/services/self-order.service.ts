@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/client"
 import type { DbClient } from "./_shared"
-import type { Product, ProductCategory, SelfOrderToken } from "@/types/database"
+import type { Coupon, Customer, Product, ProductCategory } from "@/types/database"
 
 type OrderListItem = {
   id: string
   order_number: string
   status: string
+  table_id: string | null
   total: number
   created_at: string
 }
@@ -14,6 +15,10 @@ type OrderWithItems = {
   id: string
   order_number: string
   status: string
+  table_id: string | null
+  subtotal: number
+  discount_total: number
+  tax_total: number
   total: number
   created_at: string
   order_items: Array<{
@@ -44,6 +49,8 @@ export interface PublicMenuProduct {
   price: number
   imageUrl: string | null
   categoryId: string
+  taxRate: number
+  discount: number
 }
 
 export interface PublicMenuCategory {
@@ -51,6 +58,12 @@ export interface PublicMenuCategory {
   name: string
   icon: string | null
   products: PublicMenuProduct[]
+}
+
+export type SelfOrderMode = "online_ordering" | "qr_menu"
+
+export interface SelfOrderSettings {
+  mode: SelfOrderMode
 }
 
 /**
@@ -120,6 +133,8 @@ export async function fetchPublicMenu(
     price: p.price,
     imageUrl: p.image_url,
     categoryId: p.category_id,
+    taxRate: p.tax_rate,
+    discount: p.discount,
   }))
 
   return (categoriesResult.data ?? []).map((cat: ProductCategory) => ({
@@ -128,6 +143,70 @@ export async function fetchPublicMenu(
     icon: cat.icon,
     products: products.filter((p) => p.categoryId === cat.id),
   }))
+}
+
+export async function fetchSelfOrderSettings(
+  cafeId: string,
+  client?: DbClient
+): Promise<SelfOrderSettings> {
+  const supabase = client ?? createClient()
+
+  const { data, error } = await supabase
+    .from("settings")
+    .select("key, value")
+    .eq("cafe_id", cafeId)
+
+  if (error) throw new Error(error.message)
+
+  const settings = data ?? []
+  const candidate = settings.find((row) =>
+    ["self_order", "self_order_settings", "customer_ordering", "ordering"].includes(row.key)
+  )
+  const value = candidate?.value as Record<string, unknown> | null | undefined
+  const rawMode = value?.mode ?? value?.self_order_mode
+  const mode = rawMode === "qr_menu" ? "qr_menu" : "online_ordering"
+
+  return { mode }
+}
+
+export async function fetchCustomerByProfileId(
+  profileId: string,
+  client?: DbClient
+): Promise<Customer> {
+  const supabase = client ?? createClient()
+
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("profile_id", profileId)
+    .single()
+
+  if (error || !data) throw new Error("Customer record not found")
+  return data
+}
+
+export async function validateSelfOrderCoupon(
+  cafeId: string,
+  code: string,
+  orderAmount: number,
+  client?: DbClient
+): Promise<Coupon | null> {
+  const supabase = client ?? createClient()
+
+  const { data, error } = await supabase
+    .from("coupons")
+    .select("*")
+    .eq("cafe_id", cafeId)
+    .eq("code", code.toUpperCase())
+    .eq("is_active", true)
+    .single()
+
+  if (error || !data) return null
+  if (data.max_uses && data.used_count >= data.max_uses) return null
+  if (data.expires_at && new Date(data.expires_at) < new Date()) return null
+  if (data.min_order_amount && orderAmount < data.min_order_amount) return null
+
+  return data
 }
 
 /**
@@ -196,6 +275,7 @@ export async function fetchCustomerOrders(
   id: string
   orderNumber: string
   status: string
+  tableLabel: string | null
   total: number
   createdAt: string
 }>> {
@@ -203,17 +283,30 @@ export async function fetchCustomerOrders(
 
   const { data, error } = await supabase
     .from("orders")
-    .select("id, order_number, status, total, created_at")
+    .select("id, order_number, status, table_id, total, created_at")
     .eq("customer_id", customerId)
     .order("created_at", { ascending: false })
     .returns<OrderListItem[]>()
 
   if (error) throw new Error(error.message)
+  const tableIds = Array.from(new Set((data ?? []).map((o) => o.table_id).filter(Boolean))) as string[]
+  let tableLabels: Record<string, string> = {}
+
+  if (tableIds.length > 0) {
+    const { data: tables, error: tableError } = await supabase
+      .from("cafe_tables")
+      .select("id, label")
+      .in("id", tableIds)
+
+    if (tableError) throw new Error(tableError.message)
+    tableLabels = Object.fromEntries((tables ?? []).map((table) => [table.id, table.label]))
+  }
 
   return (data ?? []).map((o) => ({
     id: o.id,
     orderNumber: o.order_number,
     status: o.status,
+    tableLabel: o.table_id ? tableLabels[o.table_id] ?? null : null,
     total: o.total,
     createdAt: o.created_at,
   }))
@@ -230,6 +323,11 @@ export async function fetchCustomerOrder(
   id: string
   orderNumber: string
   status: string
+  kitchenStage: "to_cook" | "preparing" | "completed" | null
+  tableLabel: string | null
+  subtotal: number
+  discountTotal: number
+  taxTotal: number
   total: number
   items: Array<{ productName: string; quantity: number; unitPrice: number }>
   createdAt: string
@@ -238,7 +336,7 @@ export async function fetchCustomerOrder(
 
   const { data, error } = await supabase
     .from("orders")
-    .select("id, order_number, status, total, created_at, order_items(product_name, quantity, unit_price)")
+    .select("id, order_number, status, table_id, subtotal, discount_total, tax_total, total, created_at, order_items(product_name, quantity, unit_price)")
     .eq("id", orderId)
     .eq("customer_id", customerId)
     .single()
@@ -246,11 +344,26 @@ export async function fetchCustomerOrder(
   if (error) return null
 
   const row = data as unknown as OrderWithItems
+  const [ticketResult, tableResult] = await Promise.all([
+    supabase
+      .from("kitchen_tickets")
+      .select("stage")
+      .eq("order_id", orderId)
+      .maybeSingle(),
+    row.table_id
+      ? supabase.from("cafe_tables").select("label").eq("id", row.table_id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ])
 
   return {
     id: row.id,
     orderNumber: row.order_number,
     status: row.status,
+    kitchenStage: (ticketResult.data?.stage as "to_cook" | "preparing" | "completed" | undefined) ?? null,
+    tableLabel: tableResult.data?.label ?? null,
+    subtotal: row.subtotal,
+    discountTotal: row.discount_total,
+    taxTotal: row.tax_total,
     total: row.total,
     items: (row.order_items ?? []).map((i) => ({
       productName: i.product_name,

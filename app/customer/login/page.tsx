@@ -38,6 +38,16 @@ function CustomerLoginForm() {
         throw new Error("Please use staff login.")
       }
 
+      const { data: customer, error: customerError } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("profile_id", profile.id)
+        .single()
+
+      if (customerError || !customer) {
+        throw new Error("Customer record not found.")
+      }
+
       setUser({
         id: profile.id,
         email: profile.email,
@@ -48,7 +58,7 @@ function CustomerLoginForm() {
         avatarUrl: profile.avatarUrl,
       })
 
-      const redirect = searchParams.get("redirect") || "/self-order"
+      const redirect = searchParams.get("redirect") || searchParams.get("redirectTo") || "/self-order"
       router.push(redirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
@@ -101,7 +111,7 @@ function CustomerLoginForm() {
         </form>
         <p className="mt-4 text-center text-xs text-gray-400">
           New here?{" "}
-          <Link href="/customer/register" className="text-odfe-teal underline underline-offset-2 hover:text-odfe-gold">
+          <Link href={`/customer/register${searchParams.toString() ? `?${searchParams.toString()}` : ""}`} className="text-odfe-teal underline underline-offset-2 hover:text-odfe-gold">
             Create account
           </Link>
         </p>

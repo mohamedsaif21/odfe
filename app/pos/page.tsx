@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import {
   ShoppingCart, Send, CreditCard, Trash2,
   Plus, Minus, X, Tag, ChevronDown, Loader2,
-  CheckCircle, AlertCircle, Coffee, Search
+  CheckCircle, AlertCircle, Coffee, Search, LogOut, Receipt
 } from "lucide-react"
 import { useCartStore } from "@/store/cart-store"
 import { fetchAvailableProducts } from "@/lib/services/product.service"
@@ -17,8 +18,21 @@ import {
   createOrderWithKitchenTicket,
   createPaymentForOrder,
 } from "@/lib/orders/create-order"
+import { createClient } from "@/lib/supabase/client"
 import type { Product, ProductCategory, CafeTable, Coupon } from "@/types/database"
 import type { PaymentMethodType } from "@/types/database"
+
+type PaymentTender = {
+  method: Exclude<PaymentMethodType, "split">
+  amount: number
+  reference: string | null
+}
+
+type ReceiptState = {
+  orderNumber: string
+  total: number
+  tenders: PaymentTender[]
+}
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 
@@ -47,22 +61,57 @@ function Toast({
 function PaymentModal({ total, methods, onConfirm, onClose, loading }: {
   total: number
   methods: { id: string; type: PaymentMethodType; label: string; is_active: boolean }[]
-  onConfirm: (method: PaymentMethodType, reference: string) => void
+  onConfirm: (tenders: PaymentTender[]) => void
   onClose: () => void
   loading: boolean
 }) {
   const enabledMethods = methods.filter((m) => m.type !== "split")
+  const splitEnabled = methods.some((m) => m.type === "split")
   const [method, setMethod] = useState<PaymentMethodType>(enabledMethods[0]?.type ?? "cash")
   const [reference, setReference] = useState("")
+  const [splitTenders, setSplitTenders] = useState<PaymentTender[]>([
+    { method: "cash", amount: total, reference: null },
+  ])
   const [validationError, setValidationError] = useState("")
 
   function handleConfirm() {
     setValidationError("")
+    if (method === "split") {
+      const cleaned = splitTenders
+        .map((t) => ({ ...t, amount: Number(t.amount), reference: t.reference?.trim() || null }))
+        .filter((t) => t.amount > 0)
+      const paid = cleaned.reduce((sum, t) => sum + t.amount, 0)
+      const invalidReference = cleaned.find((t) => (t.method === "card" || t.method === "upi") && !t.reference)
+
+      if (cleaned.length < 2) {
+        setValidationError("Split payment requires at least two payment lines.")
+        return
+      }
+      if (Math.abs(paid - total) > 0.01) {
+        setValidationError("Split payment amounts must equal the order total.")
+        return
+      }
+      if (invalidReference) {
+        setValidationError(`${invalidReference.method.toUpperCase()} payment requires a transaction reference number.`)
+        return
+      }
+      onConfirm(cleaned)
+      return
+    }
     if (method === "card" && !reference.trim()) {
       setValidationError("Card payment requires a transaction reference number.")
       return
     }
-    onConfirm(method, reference.trim())
+    if (method === "upi" && !reference.trim()) {
+      setValidationError("UPI payment requires a transaction reference number.")
+      return
+    }
+    onConfirm([{ method: method as Exclude<PaymentMethodType, "split">, amount: total, reference: reference.trim() || null }])
+  }
+
+  function updateSplitTender(index: number, patch: Partial<PaymentTender>) {
+    setSplitTenders((prev) => prev.map((t, i) => (i === index ? { ...t, ...patch } : t)))
+    setValidationError("")
   }
 
   return (
@@ -81,7 +130,7 @@ function PaymentModal({ total, methods, onConfirm, onClose, loading }: {
           </div>
           <div>
             <label className="mb-2 block text-xs font-medium text-gray-600">Payment Method</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {enabledMethods.map((m) => (
                 <button key={m.id} onClick={() => { setMethod(m.type); setValidationError("") }}
                   className={`rounded-lg border py-2.5 text-sm font-medium transition-colors ${
@@ -92,6 +141,16 @@ function PaymentModal({ total, methods, onConfirm, onClose, loading }: {
                   {m.label}
                 </button>
               ))}
+              {splitEnabled && (
+                <button onClick={() => { setMethod("split"); setValidationError("") }}
+                  className={`rounded-lg border py-2.5 text-sm font-medium transition-colors ${
+                    method === "split"
+                      ? "border-odfe-teal bg-odfe-teal text-white"
+                      : "border-gray-200 bg-white text-gray-700 hover:border-odfe-teal/40"
+                  }`}>
+                  Split
+                </button>
+              )}
             </div>
           </div>
           {method === "card" && (
@@ -107,10 +166,57 @@ function PaymentModal({ total, methods, onConfirm, onClose, loading }: {
           )}
           {method === "upi" && (
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-gray-600">UPI Reference (optional)</label>
+              <label className="mb-1.5 block text-xs font-medium text-gray-600">
+                UPI Reference <span className="text-red-500">*</span>
+              </label>
               <input value={reference} onChange={(e) => setReference(e.target.value)}
                 placeholder="e.g. UTR number"
                 className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal" />
+            </div>
+          )}
+          {method === "split" && (
+            <div className="space-y-2">
+              {splitTenders.map((tender, index) => (
+                <div key={index} className="grid grid-cols-[80px_1fr_1fr_28px] gap-2">
+                  <select
+                    value={tender.method}
+                    onChange={(e) => updateSplitTender(index, { method: e.target.value as PaymentTender["method"], reference: null })}
+                    className="rounded-lg border border-gray-200 px-2 py-2 text-xs"
+                  >
+                    {enabledMethods.map((m) => (
+                      <option key={m.id} value={m.type}>{m.label}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={tender.amount}
+                    onChange={(e) => updateSplitTender(index, { amount: Number(e.target.value) })}
+                    className="rounded-lg border border-gray-200 px-2 py-2 text-xs"
+                  />
+                  <input
+                    value={tender.reference ?? ""}
+                    onChange={(e) => updateSplitTender(index, { reference: e.target.value })}
+                    placeholder={tender.method === "cash" ? "No ref" : "Ref"}
+                    disabled={tender.method === "cash"}
+                    className="rounded-lg border border-gray-200 px-2 py-2 text-xs disabled:bg-gray-50"
+                  />
+                  <button
+                    onClick={() => setSplitTenders((prev) => prev.filter((_, i) => i !== index))}
+                    disabled={splitTenders.length === 1}
+                    className="rounded-lg border border-gray-200 text-gray-400 disabled:opacity-30"
+                  >
+                    <X size={13} className="mx-auto" />
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setSplitTenders((prev) => [...prev, { method: "cash", amount: 0, reference: null }])}
+                className="text-xs font-medium text-odfe-teal"
+              >
+                Add split line
+              </button>
             </div>
           )}
           {validationError && (
@@ -138,6 +244,7 @@ function PaymentModal({ total, methods, onConfirm, onClose, loading }: {
 // ─── Main POS page ─────────────────────────────────────────────────────────────
 
 export default function POSPage() {
+  const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<ProductCategory[]>([])
   const [tables, setTables] = useState<CafeTable[]>([])
@@ -155,7 +262,9 @@ export default function POSPage() {
   const [showPayment, setShowPayment] = useState(false)
   const [sending, setSending] = useState(false)
   const [payingOrderId, setPayingOrderId] = useState<string | null>(null)
+  const [payingOrderNumber, setPayingOrderNumber] = useState<string | null>(null)
   const [paying, setPaying] = useState(false)
+  const [receipt, setReceipt] = useState<ReceiptState | null>(null)
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
   const { lines, totals, selectedTable, appliedCoupon,
@@ -244,6 +353,7 @@ export default function POSPage() {
         customerId: null, lines, totals, coupon: appliedCoupon,
       })
       setPayingOrderId(result.orderId)
+      setPayingOrderNumber(result.orderNumber)
       setToast({ type: "success", message: `Order ${result.orderNumber} sent to Brew Bar ✓` })
     } catch (err) {
       setToast({ type: "error", message: err instanceof Error ? err.message : "Failed to send order." })
@@ -252,11 +362,12 @@ export default function POSPage() {
     }
   }, [cafeId, employeeId, selectedTable, tables, lines, totals, appliedCoupon, sending])
 
-  const handleCompleteSale = useCallback(async (method: PaymentMethodType, reference: string) => {
+  const handleCompleteSale = useCallback(async (tenders: PaymentTender[]) => {
     if (!cafeId) { setToast({ type: "error", message: "No cafe session." }); return }
     setPaying(true)
     try {
       let orderId = payingOrderId
+      let orderNumber = payingOrderNumber
       if (!orderId) {
         const result = await createOrderWithKitchenTicket({
           cafeId, employeeId,
@@ -265,22 +376,39 @@ export default function POSPage() {
           customerId: null, lines, totals, coupon: appliedCoupon,
         })
         orderId = result.orderId
+        orderNumber = result.orderNumber
       }
-      await createPaymentForOrder({
-        cafeId, orderId,
-        tableId: selectedTable?.id ?? null,
-        method, amount: totals.total, reference: reference || null,
-      })
+      let fullyPaid = false
+      for (const tender of tenders) {
+        const result = await createPaymentForOrder({
+          cafeId, orderId,
+          tableId: selectedTable?.id ?? null,
+          method: tender.method,
+          amount: tender.amount,
+          reference: tender.reference,
+        })
+        fullyPaid = result.fullyPaid
+      }
+      if (!fullyPaid) throw new Error("Payment saved, but the order is not fully paid yet.")
       setToast({ type: "success", message: "Payment completed. Sale closed ✓" })
+      setReceipt({ orderNumber: orderNumber ?? orderId, total: totals.total, tenders })
       setShowPayment(false)
       setPayingOrderId(null)
+      setPayingOrderNumber(null)
       clearCart()
+      await loadPosData()
     } catch (err) {
       setToast({ type: "error", message: err instanceof Error ? err.message : "Payment failed." })
     } finally {
       setPaying(false)
     }
-  }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon, payingOrderId, clearCart])
+  }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon, payingOrderId, payingOrderNumber, clearCart, loadPosData])
+
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/login")
+  }
 
   if (dataLoading) return (
     <div className="flex h-screen items-center justify-center bg-gray-50">
@@ -315,6 +443,10 @@ export default function POSPage() {
             <ChevronDown size={13} />
           </button>
           <div className="ml-auto text-xs text-odfe-cream/50">{cafeId ? "Connected" : "No session"}</div>
+          <button onClick={handleLogout}
+            className="flex items-center gap-1.5 rounded-full border border-odfe-cream/20 px-3 py-1 text-xs text-odfe-cream/80 hover:bg-white/10">
+            <LogOut size={13} />Logout
+          </button>
         </header>
 
         {/* Category tabs */}
@@ -505,6 +637,39 @@ export default function POSPage() {
       {showPayment && (
         <PaymentModal total={totals.total} methods={paymentMethods} loading={paying}
           onClose={() => setShowPayment(false)} onConfirm={handleCompleteSale} />
+      )}
+
+      {receipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b px-5 py-4">
+              <div className="flex items-center gap-2 font-semibold text-gray-900">
+                <Receipt size={18} className="text-odfe-teal" />
+                Receipt
+              </div>
+              <button onClick={() => setReceipt(null)}><X size={18} className="text-gray-400" /></button>
+            </div>
+            <div className="space-y-3 px-5 py-4 text-sm">
+              <div className="flex justify-between"><span className="text-gray-500">Order</span><span>{receipt.orderNumber}</span></div>
+              {receipt.tenders.map((tender, index) => (
+                <div key={index} className="flex justify-between">
+                  <span className="capitalize text-gray-500">{tender.method}{tender.reference ? ` (${tender.reference})` : ""}</span>
+                  <span>₹{tender.amount.toFixed(2)}</span>
+                </div>
+              ))}
+              <div className="flex justify-between border-t pt-3 font-semibold">
+                <span>Total paid</span>
+                <span>₹{receipt.total.toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="border-t px-5 py-4">
+              <button onClick={() => setReceipt(null)}
+                className="w-full rounded-lg bg-odfe-teal py-2.5 text-sm font-semibold text-white">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Toast */}

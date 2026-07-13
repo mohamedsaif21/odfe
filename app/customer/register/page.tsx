@@ -1,19 +1,21 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { useState, type FormEvent, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { useAuthStore } from "@/store/auth-store"
 
-export default function CustomerRegisterPage() {
+function CustomerRegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { setUser } = useAuthStore()
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -23,10 +25,22 @@ export default function CustomerRegisterPage() {
     setLoading(true)
 
     try {
+      if (password !== confirmPassword) {
+        throw new Error("Passwords do not match")
+      }
+
       const supabase = createClient()
+      const redirect = searchParams.get("redirect") || searchParams.get("redirectTo") || "/self-order"
+      const qrToken = redirect.startsWith("/s/") ? redirect.split("/s/")[1]?.split("?")[0] : null
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
+        options: {
+          data: {
+            role: "customer",
+            full_name: fullName.trim(),
+          },
+        },
       })
 
       if (signUpError || !user) {
@@ -36,7 +50,12 @@ export default function CustomerRegisterPage() {
       const res = await fetch("/api/onboarding/customer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email: email.trim(), phone: phone.trim() || null }),
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || null,
+          token: qrToken,
+        }),
       })
 
       const json = await res.json()
@@ -61,7 +80,7 @@ export default function CustomerRegisterPage() {
         avatarUrl: profile.avatarUrl,
       })
 
-      router.replace("/self-order")
+      router.replace(redirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed")
     } finally {
@@ -101,12 +120,13 @@ export default function CustomerRegisterPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-gray-600">Phone (optional)</label>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600">Phone</label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 98765 43210"
+              required
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
             />
           </div>
@@ -117,6 +137,18 @@ export default function CustomerRegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              required
+              minLength={6}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600">Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               required
               minLength={6}
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
@@ -135,11 +167,19 @@ export default function CustomerRegisterPage() {
         </form>
         <p className="mt-4 text-center text-xs text-gray-400">
           Already have an account?{" "}
-          <Link href="/customer/login" className="text-odfe-teal underline underline-offset-2 hover:text-odfe-gold">
+          <Link href={`/customer/login${searchParams.toString() ? `?${searchParams.toString()}` : ""}`} className="text-odfe-teal underline underline-offset-2 hover:text-odfe-gold">
             Sign in
           </Link>
         </p>
       </div>
     </div>
+  )
+}
+
+export default function CustomerRegisterPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loadingâ€¦</div>}>
+      <CustomerRegisterForm />
+    </Suspense>
   )
 }

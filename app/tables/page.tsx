@@ -18,6 +18,8 @@ import {
   deleteTable,
   generateQrCode,
 } from "@/lib/services/table.service"
+import { createClient } from "@/lib/supabase/client"
+import { getCafeId } from "@/lib/services/_shared"
 import type { CafeTable, Floor, TableStatus } from "@/types/database"
 
 export default function TablesPage() {
@@ -50,6 +52,31 @@ export default function TablesPage() {
 
   useEffect(() => {
     loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    let channel: ReturnType<ReturnType<typeof createClient>["channel"]> | null = null
+    let active = true
+
+    async function subscribe() {
+      const supabase = createClient()
+      const cafeId = await getCafeId(supabase)
+      if (!active) return
+      channel = supabase
+        .channel(`cafe-tables-${cafeId}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "cafe_tables", filter: `cafe_id=eq.${cafeId}` },
+          () => loadData(),
+        )
+        .subscribe()
+    }
+
+    subscribe().catch((err) => setError(err instanceof Error ? err.message : "Failed to subscribe to table updates"))
+    return () => {
+      active = false
+      if (channel) createClient().removeChannel(channel)
+    }
   }, [loadData])
 
   useEffect(() => {

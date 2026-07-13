@@ -7,6 +7,7 @@ const bodySchema = z.object({
   fullName: z.string().min(1).max(100),
   email: z.string().email(),
   phone: z.string().nullable().optional(),
+  token: z.string().nullable().optional(),
 })
 
 /**
@@ -15,13 +16,6 @@ const bodySchema = z.object({
  * Creates a customer profile and customer record after signUp.
  * Requires a valid authenticated session.
  *
- * Expected Supabase SQL function:
- *   onboard_customer(
- *     p_user_id UUID,
- *     p_full_name TEXT,
- *     p_email TEXT,
- *     p_phone TEXT
- *   ) RETURNS JSON { profile_id, customer_id }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -39,28 +33,97 @@ export async function POST(request: NextRequest) {
       return errorResponse("Invalid input", 400, { issues: parsed.error.issues })
     }
 
-    const { fullName, email, phone } = parsed.data
+    const { fullName, email, phone, token } = parsed.data
 
     const adminClient = await createAdminClient()
+    let cafeId: string | null = null
 
-    const { data: rpcResult, error: rpcError } = await (adminClient.rpc as any)("onboard_customer", {
-      p_user_id: session.user.id,
-      p_full_name: fullName,
-      p_email: email,
-      p_phone: phone ?? null,
-    })
+    if (token) {
+      const { data: tokenRow, error: tokenError } = await adminClient
+        .from("self_order_tokens")
+        .select("cafe_id, is_active")
+        .eq("token", token)
+        .single()
 
-    if (rpcError) {
-      if (rpcError.message?.includes("function") && rpcError.message?.includes("not found")) {
-        return errorResponse(
-          "Customer onboarding database function is not available. Apply the Supabase SQL migration first.",
-          503
-        )
+      if (tokenError || !tokenRow) return errorResponse("Invalid or expired QR code", 400)
+      if (!tokenRow.is_active) return errorResponse("This QR code is no longer active", 400)
+      cafeId = tokenRow.cafe_id
+    } else {
+      const { data: cafe, error: cafeError } = await adminClient
+        .from("cafes")
+        .select("id")
+        .order("created_at")
+        .limit(1)
+        .single()
+
+      if (cafeError || !cafe) {
+        return errorResponse(cafeError?.message ?? "No cafe configured", 500)
       }
-      return errorResponse(rpcError.message, 500)
+      cafeId = cafe.id
     }
 
-    return successResponse(rpcResult)
+    const profilePayload = {
+      id: session.user.id,
+      cafe_id: cafeId,
+      role: "customer" as const,
+      full_name: fullName,
+      email,
+      avatar_url: null,
+      is_active: true,
+    }
+
+    const { error: profileError } = await adminClient
+      .from("profiles")
+      .upsert(profilePayload, { onConflict: "id" })
+
+    if (profileError) {
+      return errorResponse(profileError.message, 500)
+    }
+
+    const { data: existingCustomer, error: existingCustomerError } = await adminClient
+      .from("customers")
+      .select("id")
+      .eq("profile_id", session.user.id)
+      .maybeSingle()
+
+    if (existingCustomerError) {
+      return errorResponse(existingCustomerError.message, 500)
+    }
+
+    if (existingCustomer) {
+      const { error: updateCustomerError } = await adminClient
+        .from("customers")
+        .update({
+          cafe_id: cafeId,
+          name: fullName,
+          email,
+          phone: phone ?? null,
+          loyalty_points: 0,
+        })
+        .eq("id", existingCustomer.id)
+
+      if (updateCustomerError) return errorResponse(updateCustomerError.message, 500)
+      return successResponse({ profile_id: session.user.id, customer_id: existingCustomer.id })
+    }
+
+    const { data: customer, error: customerError } = await adminClient
+      .from("customers")
+      .insert({
+        cafe_id: cafeId,
+        profile_id: session.user.id,
+        name: fullName,
+        email,
+        phone: phone ?? null,
+        loyalty_points: 0,
+      })
+      .select("id")
+      .single()
+
+    if (customerError || !customer) {
+      return errorResponse(customerError?.message ?? "Customer creation failed", 500)
+    }
+
+    return successResponse({ profile_id: session.user.id, customer_id: customer.id })
   } catch (err) {
     return errorResponse(
       err instanceof Error ? err.message : "Customer onboarding failed",

@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ─── Enums ───────────────────────────────────────────────────────────────────
 
-CREATE TYPE employee_role AS ENUM ('admin', 'cashier', 'kitchen');
+CREATE TYPE employee_role AS ENUM ('admin', 'cashier', 'kitchen', 'customer');
 CREATE TYPE order_status AS ENUM (
   'draft', 'sent_to_kitchen', 'to_cook', 'preparing',
   'completed', 'paid', 'cancelled'
@@ -131,6 +131,7 @@ CREATE TABLE orders (
   total           DECIMAL(10,2) NOT NULL DEFAULT 0,
   coupon_code     TEXT,
   notes           TEXT,
+  source          TEXT NOT NULL DEFAULT 'pos' CHECK (source IN ('pos', 'self_order')),
   session_id      TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -389,9 +390,67 @@ CREATE POLICY "cafe_scoped_select" ON customers
 CREATE POLICY "cafe_scoped_select" ON order_items
   FOR SELECT USING (cafe_id = auth_cafe_id());
 
+CREATE POLICY "cafe_scoped_select" ON kitchen_tickets
+  FOR SELECT USING (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_select" ON kitchen_ticket_items
+  FOR SELECT USING (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_select" ON payments
+  FOR SELECT USING (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_select" ON payment_methods
+  FOR SELECT USING (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_select" ON coupons
+  FOR SELECT USING (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_select" ON bookings
+  FOR SELECT USING (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_select" ON settings
+  FOR SELECT USING (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_select" ON self_order_tokens
+  FOR SELECT USING (cafe_id = auth_cafe_id());
+
+CREATE POLICY "cafe_scoped_insert" ON orders
+  FOR INSERT WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_insert" ON order_items
+  FOR INSERT WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_insert" ON kitchen_tickets
+  FOR INSERT WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_insert" ON kitchen_ticket_items
+  FOR INSERT WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_insert" ON bookings
+  FOR INSERT WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_insert" ON settings
+  FOR INSERT WITH CHECK (cafe_id = auth_cafe_id());
+
+CREATE POLICY "cafe_scoped_update" ON orders
+  FOR UPDATE USING (cafe_id = auth_cafe_id()) WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_update" ON kitchen_tickets
+  FOR UPDATE USING (cafe_id = auth_cafe_id()) WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_update" ON cafe_tables
+  FOR UPDATE USING (cafe_id = auth_cafe_id()) WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_update" ON bookings
+  FOR UPDATE USING (cafe_id = auth_cafe_id()) WITH CHECK (cafe_id = auth_cafe_id());
+CREATE POLICY "cafe_scoped_update" ON settings
+  FOR UPDATE USING (cafe_id = auth_cafe_id()) WITH CHECK (cafe_id = auth_cafe_id());
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('product-images', 'product-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "product_images_public_select" ON storage.objects
+  FOR SELECT USING (bucket_id = 'product-images');
+CREATE POLICY "product_images_authenticated_insert" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'product-images' AND auth.role() = 'authenticated');
+CREATE POLICY "product_images_authenticated_update" ON storage.objects
+  FOR UPDATE USING (bucket_id = 'product-images' AND auth.role() = 'authenticated')
+  WITH CHECK (bucket_id = 'product-images' AND auth.role() = 'authenticated');
+
 -- ════════════════════════════════════════════════════════════════════════════
 -- SEED DATA
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- Creates a cafe so the signup trigger has something to assign.
 INSERT INTO cafes (name, slug) VALUES ('OdFe Demo Cafe', 'odfe-demo');
+
+INSERT INTO settings (cafe_id, key, value)
+SELECT id, 'self_order', '{"mode":"online_ordering"}'::jsonb
+FROM cafes
+ON CONFLICT (cafe_id, key) DO NOTHING;

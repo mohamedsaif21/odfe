@@ -1,0 +1,12 @@
+.next
+node_modules
+npm-debug.log
+.env
+.env*.local
+.git
+coverage
+stdout.txt
+stderr.txt
+dev-stdout.txt
+dev-stderr.txt
+*.tsbuildinfo

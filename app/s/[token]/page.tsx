@@ -2,18 +2,34 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { LogOut } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { resolveSelfOrderToken, fetchPublicMenu } from "@/lib/services/self-order.service"
-import type { PublicMenuCategory } from "@/lib/services/self-order.service"
+import {
+  fetchCustomerByProfileId,
+  fetchPublicMenu,
+  fetchSelfOrderSettings,
+  resolveSelfOrderToken,
+  type PublicMenuCategory,
+  type SelfOrderMode,
+} from "@/lib/services/self-order.service"
+import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
+import { useAuthStore } from "@/store/auth-store"
+import { CustomerMenu } from "@/components/self-order/customer-menu"
+import type { Customer } from "@/types/database"
 
 export default function QrSelfOrderPage() {
   const params = useParams<{ token: string }>()
   const router = useRouter()
+  const { setUser, clearUser } = useAuthStore()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [cafeId, setCafeId] = useState("")
   const [cafeName, setCafeName] = useState("")
+  const [tableId, setTableId] = useState("")
   const [tableLabel, setTableLabel] = useState("")
   const [menu, setMenu] = useState<PublicMenuCategory[]>([])
+  const [mode, setMode] = useState<SelfOrderMode>("online_ordering")
+  const [customer, setCustomer] = useState<Customer | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -24,28 +40,46 @@ export default function QrSelfOrderPage() {
         const supabase = createClient()
         const resolved = await resolveSelfOrderToken(token, supabase)
 
-        // Check if user is authenticated
         const { data: { session } } = await supabase.auth.getSession()
-
         if (!session) {
           router.push(`/customer/login?redirect=/s/${token}`)
           return
         }
 
+        const profile = await resolveAuthenticatedProfile(session.user.id, supabase)
+        if (profile.role !== "customer") {
+          throw new Error("Please sign in with a customer account to use table ordering.")
+        }
+
+        const customerRow = await fetchCustomerByProfileId(profile.id, supabase)
+        setUser({
+          id: profile.id,
+          email: profile.email,
+          role: profile.role,
+          fullName: profile.fullName,
+          cafeId: profile.cafeId,
+          cafeName: "",
+          avatarUrl: profile.avatarUrl,
+        })
+
+        setCustomer(customerRow)
+        setCafeId(resolved.cafeId)
+        setTableId(resolved.tableId)
         setTableLabel(resolved.tableLabel)
 
-        // Load cafe name
-        const { data: cafe } = await (supabase
-          .from("cafes") as any)
+        const { data: cafe } = await supabase
+          .from("cafes")
           .select("name")
           .eq("id", resolved.cafeId)
           .single()
-
         if (cafe) setCafeName(cafe.name)
 
-        // Load public menu
-        const categories = await fetchPublicMenu(resolved.cafeId, supabase)
+        const [categories, settings] = await Promise.all([
+          fetchPublicMenu(resolved.cafeId, supabase),
+          fetchSelfOrderSettings(resolved.cafeId, supabase),
+        ])
         setMenu(categories)
+        setMode(settings.mode)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load menu")
       } finally {
@@ -54,12 +88,19 @@ export default function QrSelfOrderPage() {
     }
 
     init()
-  }, [params.token, router])
+  }, [params.token, router, setUser])
+
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    clearUser()
+    router.push("/customer/login")
+  }
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-odfe-cream">
-        <p className="text-sm text-gray-500">Loading menu…</p>
+        <p className="text-sm text-gray-500">Loading menu...</p>
       </div>
     )
   }
@@ -78,40 +119,35 @@ export default function QrSelfOrderPage() {
   return (
     <div className="min-h-screen bg-odfe-cream">
       <header className="bg-odfe-teal px-4 py-4">
-        <h1 className="font-display text-2xl text-odfe-cream">{cafeName || "OdFe"}</h1>
-        <p className="mt-1 text-sm text-odfe-cream/70">Table {tableLabel}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-display text-2xl text-odfe-cream">{cafeName || "OdFe"}</h1>
+            <p className="mt-1 text-sm text-odfe-cream/70">Table {tableLabel}</p>
+            <p className="text-sm text-odfe-cream/80">{customer?.name}</p>
+            <p className="text-xs text-odfe-cream/60">{customer?.email}</p>
+            <p className="text-xs text-odfe-gold">Loyalty points: {customer?.loyalty_points ?? 0}</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 rounded-full border border-odfe-cream/20 px-3 py-1.5 text-xs font-medium text-odfe-cream/80 hover:bg-white/10"
+          >
+            <LogOut size={13} />
+            Logout
+          </button>
+        </div>
       </header>
 
-      <main className="p-4">
-        {menu.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-20 text-center">
-            <p className="text-4xl">🍽️</p>
-            <p className="text-sm text-gray-400">No menu items available yet.</p>
-          </div>
-        ) : (
-          menu.map((cat) => (
-            <section key={cat.id} className="mb-6">
-              <h2 className="mb-3 font-display text-lg text-odfe-teal">{cat.name}</h2>
-              <div className="space-y-2">
-                {cat.products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{product.name}</p>
-                      {product.description && (
-                        <p className="text-xs text-gray-400">{product.description}</p>
-                      )}
-                    </div>
-                    <p className="font-display text-base text-odfe-gold">₹{product.price}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ))
-        )}
-      </main>
+      {customer && cafeId && (
+        <CustomerMenu
+          cafeId={cafeId}
+          cafeName={cafeName || "OdFe"}
+          tableId={tableId}
+          tableLabel={tableLabel}
+          customer={customer}
+          menu={menu}
+          mode={mode}
+        />
+      )}
     </div>
   )
 }
