@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { Save } from "lucide-react"
+import { CreditCard, Save } from "lucide-react"
 import { AdminLayout } from "@/components/layout/Admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Alert } from "@/components/ui/alert"
@@ -11,9 +11,17 @@ import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 import { getCafeId } from "@/lib/services/_shared"
-import type { Json, Tables } from "@/types/database"
+import type { Json, PaymentMethodType, Tables } from "@/types/database"
 
 type Setting = Tables<"settings">
+type PaymentMethod = Pick<Tables<"payment_methods">, "id" | "type" | "label" | "is_active">
+
+const DEFAULT_PAYMENT_METHODS: Array<{ type: PaymentMethodType; label: string }> = [
+  { type: "cash", label: "Cash" },
+  { type: "card", label: "Card" },
+  { type: "upi", label: "UPI" },
+  { type: "split", label: "Split" },
+]
 
 export default function SettingsPage() {
   const [cafeId, setCafeId] = useState<string | null>(null)
@@ -25,6 +33,7 @@ export default function SettingsPage() {
   const [keyName, setKeyName] = useState("self_order")
   const [jsonValue, setJsonValue] = useState('{\n  "mode": "online_ordering"\n}')
   const [selfOrderMode, setSelfOrderMode] = useState<"online_ordering" | "qr_menu">("online_ordering")
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -33,13 +42,23 @@ export default function SettingsPage() {
       const supabase = createClient()
       const activeCafeId = await getCafeId(supabase)
       setCafeId(activeCafeId)
-      const { data, error: settingsError } = await supabase
-        .from("settings")
-        .select("*")
-        .eq("cafe_id", activeCafeId)
-        .order("key")
+      const [settingsResult, methodsResult] = await Promise.all([
+        supabase
+          .from("settings")
+          .select("*")
+          .eq("cafe_id", activeCafeId)
+          .order("key"),
+        supabase
+          .from("payment_methods")
+          .select("id, type, label, is_active")
+          .eq("cafe_id", activeCafeId)
+          .order("label"),
+      ])
+      const { data, error: settingsError } = settingsResult
       if (settingsError) throw new Error(settingsError.message)
+      if (methodsResult.error) throw new Error(methodsResult.error.message)
       setSettings(data ?? [])
+      setPaymentMethods(methodsResult.data ?? [])
       const selfOrder = (data ?? []).find((setting) => setting.key === "self_order")
       const value = selfOrder?.value as Record<string, unknown> | undefined
       setSelfOrderMode(value?.mode === "qr_menu" ? "qr_menu" : "online_ordering")
@@ -96,6 +115,43 @@ export default function SettingsPage() {
     }
   }
 
+  async function setPaymentMethodActive(method: { type: PaymentMethodType; label: string }, isActive: boolean) {
+    if (!cafeId) return
+    setSaving(true)
+    setError(null)
+    try {
+      const supabase = createClient()
+      const existing = paymentMethods.find((row) => row.type === method.type)
+
+      if (existing) {
+        const { error: updateError } = await supabase
+          .from("payment_methods")
+          .update({ label: method.label, is_active: isActive })
+          .eq("id", existing.id)
+          .eq("cafe_id", cafeId)
+        if (updateError) throw new Error(updateError.message)
+      } else {
+        const { error: insertError } = await supabase
+          .from("payment_methods")
+          .insert({
+            cafe_id: cafeId,
+            type: method.type,
+            label: method.label,
+            is_active: isActive,
+            config: null,
+          })
+        if (insertError) throw new Error(insertError.message)
+      }
+
+      setSuccess(`${method.label} ${isActive ? "enabled" : "disabled"}`)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update payment method")
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <AdminLayout title="Settings">
       <PageContainer>
@@ -126,6 +182,33 @@ export default function SettingsPage() {
                 <Save className="mr-2 h-4 w-4" />Save JSON
               </Button>
             </div>
+          </div>
+        </div>
+
+        <div className="mb-6 rounded-lg border border-cream-200 bg-white p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <CreditCard className="h-4 w-4 text-odfe-teal" />
+            <h2 className="text-sm font-semibold">Payment methods</h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {DEFAULT_PAYMENT_METHODS.map((method) => {
+              const existing = paymentMethods.find((row) => row.type === method.type)
+              const active = existing?.is_active ?? false
+              return (
+                <div key={method.type} className="rounded-md border border-cream-200 p-3">
+                  <p className="text-sm font-medium">{method.label}</p>
+                  <p className="mb-3 text-xs text-charcoal/50">{active ? "Enabled" : "Disabled"}</p>
+                  <Button
+                    size="sm"
+                    variant={active ? "outline" : "default"}
+                    onClick={() => setPaymentMethodActive(method, !active)}
+                    disabled={saving}
+                  >
+                    {active ? "Disable" : "Enable"}
+                  </Button>
+                </div>
+              )
+            })}
           </div>
         </div>
 

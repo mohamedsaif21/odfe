@@ -17,6 +17,26 @@ export async function fetchFloors(client?: DbClient): Promise<Floor[]> {
   return data ?? []
 }
 
+export async function createFloor(input: { name: string; sort_order?: number }, client?: DbClient) {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const payload: InsertTables<"floors"> = {
+    cafe_id: cafeId,
+    name: input.name,
+    sort_order: input.sort_order ?? 0,
+  }
+
+  const { data, error } = await supabase
+    .from("floors")
+    .insert(payload)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function fetchTables(floorId?: string, client?: DbClient): Promise<CafeTable[]> {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
@@ -114,5 +134,24 @@ export async function generateQrCode(tableId: string, client?: DbClient): Promis
     .single()
 
   if (error) throw new Error(error.message)
+
+  await ensureSelfOrderToken(tableId, token, supabase)
+
   return token
+}
+
+export async function ensureSelfOrderToken(tableId: string, token: string, client?: DbClient) {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const { error: tokenError } = await supabase
+    .from("self_order_tokens")
+    .upsert({
+      cafe_id: cafeId,
+      table_id: tableId,
+      token,
+      is_active: true,
+    }, { onConflict: "token" })
+
+  if (tokenError) throw new Error(tokenError.message)
 }

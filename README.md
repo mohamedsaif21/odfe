@@ -16,6 +16,8 @@ An enterprise-grade, highly responsive **Multi-Tenant Point of Sale (POS) and Ki
 Every database table—from core `cafes` configuration to transactional `orders` and `kitchen_tickets`—features strict isolation using a tenant grouping vector (`cafe_id`). 
 * **Automatic Scoping:** Server operations leverage `createServerClient` via `@supabase/ssr` to read session tokens directly from secure HTTP-only cookies, automatically evaluating Supabase Row-Level Security (RLS) policies based on the authenticated context.
 * **Administrative Operations:** High-privilege administrative tasks utilize a secure `createAdminClient` via the Supabase Service Role Key, entirely bypassing RLS on isolated, trusted server-side execution cycles.
+* **RLS Hardening:** Apply `supabase/rls_hardening.sql` after the base schema/seed SQL. It replaces broad cafe-wide policies with role-specific policies for admin, cashier, kitchen, customer, and public QR visitors.
+* **E2E Journey SQL:** Apply `supabase/e2e_journey_support.sql` after the base schema/seed SQL. It provides the admin onboarding and employee creation RPCs used by the app.
 
 ### 2. Decoupled, Atomic State Management Engine
 The client layer implements a granular, decoupled reactive store system powered by **Zustand**. Instead of relying on monolithic state topologies, runtime contexts are separated across highly focused, atomic memory stores:

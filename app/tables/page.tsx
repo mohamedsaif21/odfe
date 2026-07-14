@@ -12,11 +12,13 @@ import { TableList } from "@/components/tables/table-list"
 import { QrDialog } from "@/components/tables/qr-dialog"
 import {
   fetchFloors,
+  createFloor,
   fetchTables,
   createTable,
   updateTable,
   deleteTable,
   generateQrCode,
+  ensureSelfOrderToken,
 } from "@/lib/services/table.service"
 import { createClient } from "@/lib/supabase/client"
 import { getCafeId } from "@/lib/services/_shared"
@@ -35,6 +37,8 @@ export default function TablesPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [qrTable, setQrTable] = useState<CafeTable | null>(null)
   const [qrLoadingId, setQrLoadingId] = useState<string | null>(null)
+  const [floorName, setFloorName] = useState("")
+  const [floorSaving, setFloorSaving] = useState(false)
 
   const loadData = useCallback(async () => {
     setIsLoading(true)
@@ -107,6 +111,23 @@ export default function TablesPage() {
     await loadData()
   }
 
+  async function handleCreateFloor() {
+    const name = floorName.trim()
+    if (!name) return
+    setFloorSaving(true)
+    setError(null)
+    try {
+      await createFloor({ name, sort_order: floors.length })
+      setFloorName("")
+      setSuccessMsg("Floor added")
+      await loadData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create floor")
+    } finally {
+      setFloorSaving(false)
+    }
+  }
+
   async function handleStatusChange(table: CafeTable, status: TableStatus) {
     setError(null)
     const previous = table.status
@@ -139,7 +160,16 @@ export default function TablesPage() {
   async function handleShowQr(table: CafeTable) {
     setError(null)
     if (table.qr_token) {
-      setQrTable(table)
+      setQrLoadingId(table.id)
+      try {
+        await ensureSelfOrderToken(table.id, table.qr_token)
+        setQrTable(table)
+        return
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to prepare QR token")
+      } finally {
+        setQrLoadingId(null)
+      }
       return
     }
     setQrLoadingId(table.id)
@@ -182,6 +212,21 @@ export default function TablesPage() {
             <Alert type="success" message={successMsg} onDismiss={() => setSuccessMsg(null)} />
           </div>
         )}
+
+        <div className="mb-4 rounded-lg border border-cream-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold text-charcoal">Create floor</h2>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              value={floorName}
+              onChange={(event) => setFloorName(event.target.value)}
+              placeholder="Ground floor"
+              className="h-10 flex-1 rounded-md border border-cream-200 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:ring-2 focus:ring-teal"
+            />
+            <Button onClick={handleCreateFloor} disabled={floorSaving || !floorName.trim()}>
+              {floorSaving ? "Saving..." : "Add Floor"}
+            </Button>
+          </div>
+        </div>
 
         {isLoading ? (
           <div className="rounded-xl border border-dashed border-cream-200 bg-card/50 p-12 text-center">
