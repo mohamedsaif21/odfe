@@ -268,6 +268,8 @@ export default function POSPage() {
   const [sending, setSending] = useState(false)
   const [payingOrderId, setPayingOrderId] = useState<string | null>(null)
   const [payingOrderNumber, setPayingOrderNumber] = useState<string | null>(null)
+  const [payingOrderTotal, setPayingOrderTotal] = useState<number | null>(null)
+  const [, setPayingTicketId] = useState<string | null>(null)
   const [paying, setPaying] = useState(false)
   const [receipt, setReceipt] = useState<ReceiptState | null>(null)
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
@@ -356,11 +358,15 @@ export default function POSPage() {
       const result = await createOrderWithKitchenTicket({
         cafeId, employeeId,
         tableId: selectedTable?.id ?? null,
-        tableLabel: selectedTable?.label ?? null,
-        customerId: null, lines, totals, coupon: appliedCoupon,
+        customerId: null,
+        lines,
+        coupon: appliedCoupon,
+        source: "pos",
       })
       setPayingOrderId(result.orderId)
       setPayingOrderNumber(result.orderNumber)
+      setPayingOrderTotal(result.totals.total)
+      setPayingTicketId(result.ticketId)
       setToast({ type: "success", message: `Order ${result.orderNumber} sent to Brew Bar ✓` })
     } catch (err) {
       setToast({ type: "error", message: err instanceof Error ? err.message : "Failed to send order." })
@@ -370,20 +376,26 @@ export default function POSPage() {
   }, [cafeId, employeeId, selectedTable, tables, lines, totals, appliedCoupon, sending])
 
   const handleCompleteSale = useCallback(async (tenders: PaymentTender[]) => {
+    if (paying) return
     if (!cafeId) { setToast({ type: "error", message: "No cafe session." }); return }
     setPaying(true)
     try {
       let orderId = payingOrderId
       let orderNumber = payingOrderNumber
+      let orderTotal = payingOrderTotal ?? totals.total
       if (!orderId) {
         const result = await createOrderWithKitchenTicket({
           cafeId, employeeId,
           tableId: selectedTable?.id ?? null,
-          tableLabel: selectedTable?.label ?? null,
-          customerId: null, lines, totals, coupon: appliedCoupon,
+          customerId: null,
+          lines,
+          coupon: appliedCoupon,
+          source: "pos",
         })
         orderId = result.orderId
         orderNumber = result.orderNumber
+        orderTotal = result.totals.total
+        setPayingTicketId(result.ticketId)
       }
       let fullyPaid = false
       for (const tender of tenders) {
@@ -398,10 +410,12 @@ export default function POSPage() {
       }
       if (!fullyPaid) throw new Error("Payment saved, but the order is not fully paid yet.")
       setToast({ type: "success", message: "Payment completed. Sale closed ✓" })
-      setReceipt({ orderNumber: orderNumber ?? orderId, total: totals.total, tenders })
+      setReceipt({ orderNumber: orderNumber ?? orderId, total: orderTotal, tenders })
       setShowPayment(false)
       setPayingOrderId(null)
       setPayingOrderNumber(null)
+      setPayingOrderTotal(null)
+      setPayingTicketId(null)
       clearCart()
       await loadPosData()
     } catch (err) {
@@ -409,7 +423,7 @@ export default function POSPage() {
     } finally {
       setPaying(false)
     }
-  }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon, payingOrderId, payingOrderNumber, clearCart, loadPosData])
+  }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon, payingOrderId, payingOrderNumber, payingOrderTotal, paying, clearCart, loadPosData])
 
   async function handleExit() {
     if (effectiveRole === "admin") {

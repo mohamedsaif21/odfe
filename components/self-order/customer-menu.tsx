@@ -104,11 +104,10 @@ export function CustomerMenu({ cafeId, cafeName, tableId, tableLabel, customer, 
         employeeId: null,
         customerId: customer.id,
         tableId,
-        tableLabel,
         lines,
-        totals,
         coupon: appliedCoupon,
-        notes: "source:self_order",
+        notes: null,
+        source: "self_order",
       })
       clearCart()
       router.push(`/customer/orders/${result.orderId}`)

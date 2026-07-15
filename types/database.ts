@@ -37,6 +37,8 @@ export type DiscountType = "percentage" | "flat"
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled"
 
+export type OrderSource = "pos" | "self_order"
+
 // ─── Table row types ────────────────────────────────────────────────────────
 
 export interface Database {
@@ -181,6 +183,7 @@ export interface Database {
           total: number
           coupon_code: string | null
           notes: string | null
+          source: OrderSource
           session_id: string | null
           created_at: string
           updated_at: string
@@ -364,7 +367,34 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      create_order_with_kitchen_ticket: {
+        Args: {
+          p_cafe_id: string
+          p_table_id: string | null
+          p_customer_id: string | null
+          p_employee_id: string | null
+          p_session_id: string | null
+          p_coupon_code: string | null
+          p_notes: string | null
+          p_source: "pos" | "self_order"
+          p_items: Array<{
+            product_id: string
+            quantity: number
+            notes: string | null
+          }>
+        }
+        Returns: {
+          order_id: string
+          order_number: string
+          ticket_id: string
+          subtotal: number
+          discount_total: number
+          tax_total: number
+          total: number
+        }
+      }
+    }
     Enums: Record<string, never>
   }
 }

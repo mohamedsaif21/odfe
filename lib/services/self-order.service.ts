@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
+import { createOrderWithKitchenTicket } from "@/lib/orders/create-order"
 import type { DbClient } from "./_shared"
 import type { Coupon, Customer, Product, ProductCategory } from "@/types/database"
 
@@ -231,38 +232,30 @@ export async function createSelfOrder(input: {
   total: number
   notes?: string | null
 }): Promise<{ orderId: string; orderNumber: string }> {
-  const supabase = createClient()
+  const result = await createOrderWithKitchenTicket({
+    cafeId: input.cafeId,
+    employeeId: null,
+    customerId: input.customerId,
+    tableId: input.tableId,
+    lines: input.lines.map((line) => ({
+      id: line.productId,
+      productId: line.productId,
+      productName: line.productName,
+      unitPrice: line.unitPrice,
+      quantity: line.quantity,
+      taxRate: line.taxRate,
+      discount: line.discount,
+      notes: line.notes,
+    })),
+    coupon: null,
+    notes: input.notes ?? null,
+    source: "self_order",
+  })
 
-  const { data, error } = await (supabase.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }>)(
-    "create_order_with_kitchen_ticket",
-    {
-      p_cafe_id: input.cafeId,
-      p_employee_id: null,
-      p_customer_id: input.customerId,
-      p_table_id: input.tableId,
-      p_table_label: input.tableLabel,
-      p_session_id: null,
-      p_lines: input.lines,
-      p_subtotal: input.subtotal,
-      p_discount_total: 0,
-      p_tax_total: 0,
-      p_total: input.total,
-      p_coupon_code: null,
-      p_notes: input.notes ?? null,
-    }
-  )
-
-  if (error) {
-    if (error.message?.includes("function") && error.message?.includes("not found")) {
-      throw new Error(
-        "The order creation database function is not available. Apply the Supabase SQL migration first."
-      )
-    }
-    throw new Error(error.message)
+  return {
+    orderId: result.orderId,
+    orderNumber: result.orderNumber,
   }
-
-  const result = data as { orderId: string; orderNumber: string }
-  return result
 }
 
 /**

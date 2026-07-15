@@ -1,28 +1,28 @@
 "use client"
 
 import { createClient } from "@/lib/supabase/client"
-import type { CartLine, CartTotals, AppliedCoupon } from "@/types/app"
+import type { AppliedCoupon, CartLine, CartTotals } from "@/types/app"
 import type { PaymentMethodType } from "@/types/database"
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+export type OrderSource = "pos" | "self_order"
 
 export interface CreateOrderInput {
   cafeId: string
   employeeId: string | null
   customerId: string | null
   tableId: string | null
-  tableLabel: string | null
   sessionId?: string | null
   lines: CartLine[]
-  totals: CartTotals
   coupon: AppliedCoupon | null
   notes?: string | null
+  source: OrderSource
 }
 
 export interface CreateOrderResult {
   orderId: string
   orderNumber: string
   ticketId: string
+  totals: Omit<CartTotals, "itemCount">
 }
 
 export interface CreatePaymentInput {
@@ -39,30 +39,18 @@ export interface CreatePaymentResult {
   fullyPaid: boolean
 }
 
-function generateOrderNumber(): string {
-  const now = new Date()
-  const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`
-  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase()
-  return `ORD-${datePart}-${randomPart}`
+function isMissingRpcError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  const message = error.message?.toLowerCase() ?? ""
+  return (
+    error.code === "PGRST202" ||
+    (message.includes("function") &&
+      (message.includes("not found") ||
+        message.includes("does not exist") ||
+        message.includes("could not find")))
+  )
 }
 
-// ─── Main: createOrderWithKitchenTicket ───────────────────────────────────────
-
-/**
- * Creates an order end-to-end: orders → order_items → kitchen_tickets →
- * kitchen_ticket_items, as four sequential Supabase inserts.
- *
- * There is no `create_order_with_kitchen_ticket` Postgres function in this
- * project (confirmed against types/database.ts Functions block — it's empty),
- * so this does the equivalent work as ordinary table inserts instead of an RPC.
- *
- * Because these are separate inserts rather than one transaction, a failure
- * partway through triggers compensating deletes of whatever already succeeded,
- * so a failed order never gets left half-written. This is a best-effort
- * client-side rollback, not real transactional atomicity — if you need that
- * guarantee (e.g. under concurrent load), this should move into an actual
- * Postgres function/RPC later.
- */
 export async function createOrderWithKitchenTicket(
   input: CreateOrderInput
 ): Promise<CreateOrderResult> {
@@ -75,114 +63,56 @@ export async function createOrderWithKitchenTicket(
   if (!input.employeeId && !input.customerId) {
     throw new Error("Order must be linked to an employee or customer.")
   }
+  if (input.source === "pos" && !input.employeeId) {
+    throw new Error("Employee session is required to create a POS order.")
+  }
+  if (input.source === "self_order" && !input.customerId) {
+    throw new Error("Customer session is required to place an order.")
+  }
+  if (input.source === "self_order" && !input.tableId) {
+    throw new Error("Table is required to place a self-order.")
+  }
 
   const supabase = createClient()
-  const orderNumber = generateOrderNumber()
+  const { data, error } = await supabase.rpc("create_order_with_kitchen_ticket", {
+    p_cafe_id: input.cafeId,
+    p_table_id: input.tableId,
+    p_customer_id: input.customerId,
+    p_employee_id: input.employeeId,
+    p_session_id: input.sessionId ?? null,
+    p_coupon_code: input.coupon?.code ?? null,
+    p_notes: input.notes ?? null,
+    p_source: input.source,
+    p_items: input.lines.map((line) => ({
+      product_id: line.productId,
+      quantity: line.quantity,
+      notes: line.notes,
+    })),
+  })
 
-  // 1. Insert order
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      cafe_id: input.cafeId,
-      employee_id: input.employeeId,
-      customer_id: input.customerId,
-      table_id: input.tableId,
-      session_id: input.sessionId ?? null,
-      order_number: orderNumber,
-      status: "sent_to_kitchen",
-      subtotal: input.totals.subtotal,
-      discount_total: input.totals.discountTotal,
-      tax_total: input.totals.taxTotal,
-      total: input.totals.total,
-      coupon_code: input.coupon?.code ?? null,
-      notes: input.notes ?? null,
-    })
-    .select()
-    .single()
-
-  if (orderError || !order) {
-    throw new Error(orderError?.message ?? "Failed to create order.")
+  if (error) {
+    if (isMissingRpcError(error)) {
+      throw new Error("Order processing function is not configured.")
+    }
+    throw new Error(error.message)
   }
 
-  if (input.tableId) {
-    await supabase
-      .from("cafe_tables")
-      .update({ status: "occupied" })
-      .eq("id", input.tableId)
-      .eq("cafe_id", input.cafeId)
-  }
-
-  // 2. Insert order_items
-  const orderItemsPayload = input.lines.map((l) => ({
-    cafe_id: input.cafeId,
-    order_id: order.id,
-    product_id: l.productId,
-    product_name: l.productName,
-    unit_price: l.unitPrice,
-    quantity: l.quantity,
-    discount: l.discount,
-    tax_rate: l.taxRate,
-    line_total: l.unitPrice * l.quantity,
-    notes: l.notes,
-  }))
-
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItemsPayload)
-
-  if (itemsError) {
-    await supabase.from("orders").delete().eq("id", order.id)
-    throw new Error(itemsError.message)
-  }
-
-  // 3. Insert kitchen_ticket
-  const { data: ticket, error: ticketError } = await supabase
-    .from("kitchen_tickets")
-    .insert({
-      cafe_id: input.cafeId,
-      order_id: order.id,
-      order_number: order.order_number,
-      table_label: input.tableLabel,
-      stage: "to_cook",
-      priority: 0,
-    })
-    .select()
-    .single()
-
-  if (ticketError || !ticket) {
-    await supabase.from("order_items").delete().eq("order_id", order.id)
-    await supabase.from("orders").delete().eq("id", order.id)
-    throw new Error(ticketError?.message ?? "Failed to create kitchen ticket.")
-  }
-
-  // 4. Insert kitchen_ticket_items
-  const ticketItemsPayload = input.lines.map((l) => ({
-    cafe_id: input.cafeId,
-    ticket_id: ticket.id,
-    product_name: l.productName,
-    quantity: l.quantity,
-    notes: l.notes,
-  }))
-
-  const { error: ticketItemsError } = await supabase.from("kitchen_ticket_items").insert(ticketItemsPayload)
-
-  if (ticketItemsError) {
-    await supabase.from("kitchen_tickets").delete().eq("id", ticket.id)
-    await supabase.from("order_items").delete().eq("order_id", order.id)
-    await supabase.from("orders").delete().eq("id", order.id)
-    throw new Error(ticketItemsError.message)
+  if (!data) {
+    throw new Error("Order processing function returned no result.")
   }
 
   return {
-    orderId: order.id,
-    orderNumber: order.order_number,
-    ticketId: ticket.id,
+    orderId: data.order_id,
+    orderNumber: data.order_number,
+    ticketId: data.ticket_id,
+    totals: {
+      subtotal: Number(data.subtotal),
+      discountTotal: Number(data.discount_total),
+      taxTotal: Number(data.tax_total),
+      total: Number(data.total),
+    },
   }
 }
-
-// ─── createPaymentForOrder ────────────────────────────────────────────────────
-// Unchanged in this pass — still calls the create_payment_for_order RPC.
-// Out of scope for Sprint 2 Part 1 (order creation only). This RPC's existence
-// hasn't been verified the way create_order_with_kitchen_ticket was — worth the
-// same grep check before Part 2/3 of this sprint touches payments.
 
 export async function createPaymentForOrder(
   input: CreatePaymentInput
