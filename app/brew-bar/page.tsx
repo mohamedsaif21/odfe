@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { LogOut } from "lucide-react"
+import { ArrowLeft, LogOut } from "lucide-react"
 import { getClient } from "@/lib/supabase/client"
 import { useAuthStore } from "@/store/auth-store"
 import { useOrderStore } from "@/store/order-store"
+import { signOut } from "@/lib/auth/auth.service"
 import {
   fetchKitchenTickets,
   subscribeKitchenTickets,
@@ -17,6 +18,7 @@ import type { KitchenTicketWithItems } from "@/types/app"
 export default function BrewBarPage() {
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
+  const clearUser = useAuthStore((s) => s.clearUser)
   const { kitchenTickets, setKitchenTickets } = useOrderStore()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -76,10 +78,15 @@ export default function BrewBarPage() {
     }
   }
 
-  async function handleLogout() {
-    const supabase = getClient()
-    await supabase.auth.signOut()
-    router.push("/login")
+  async function handleExit() {
+    if (user?.role === "admin") {
+      router.push("/dashboard")
+      return
+    }
+
+    await signOut()
+    clearUser()
+    router.replace("/login")
   }
 
   const toCook = kitchenTickets.filter((t) => t.stage === "to_cook")
@@ -89,7 +96,7 @@ export default function BrewBarPage() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
-        <BrewBarLogout onLogout={handleLogout} />
+        <BrewBarExit role={user?.role} onExit={handleExit} />
         <p className="text-sm text-gray-500">Loading Brew Bar…</p>
       </div>
     )
@@ -98,7 +105,7 @@ export default function BrewBarPage() {
   if (error) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
-        <BrewBarLogout onLogout={handleLogout} />
+        <BrewBarExit role={user?.role} onExit={handleExit} />
         <div className="text-center">
           <p className="text-sm text-red-600">{error}</p>
           <button onClick={refreshTickets} className="mt-2 text-sm text-odfe-teal underline">
@@ -112,7 +119,7 @@ export default function BrewBarPage() {
   if (kitchenTickets.length === 0) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-gray-50 gap-2">
-        <BrewBarLogout onLogout={handleLogout} />
+        <BrewBarExit role={user?.role} onExit={handleExit} />
         <p className="text-4xl text-gray-200">☕</p>
         <p className="text-sm text-gray-400">No orders yet — waiting for the first ticket…</p>
       </div>
@@ -121,7 +128,7 @@ export default function BrewBarPage() {
 
   return (
     <div className="flex h-screen gap-4 overflow-x-auto bg-gray-50 p-4">
-      <BrewBarLogout onLogout={handleLogout} />
+      <BrewBarExit role={user?.role} onExit={handleExit} />
       {/* To Cook */}
       <div className="flex w-80 shrink-0 flex-col rounded-xl bg-white shadow">
         <div className="border-b px-4 py-3">
@@ -182,14 +189,16 @@ export default function BrewBarPage() {
   )
 }
 
-function BrewBarLogout({ onLogout }: { onLogout: () => void }) {
+function BrewBarExit({ role, onExit }: { role?: string; onExit: () => void }) {
+  const isAdmin = role === "admin"
+
   return (
     <button
-      onClick={onLogout}
+      onClick={onExit}
       className="fixed right-4 top-4 z-20 flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
     >
-      <LogOut size={13} />
-      Logout
+      {isAdmin ? <ArrowLeft size={13} /> : <LogOut size={13} />}
+      {isAdmin ? "Dashboard" : "Logout"}
     </button>
   )
 }

@@ -38,6 +38,7 @@ export async function getCafeId(client?: DbClient): Promise<string> {
 export async function getPosContext(client?: DbClient): Promise<{
   cafeId: string
   employeeId: string | null
+  role: AnyRole
 }> {
   const supabase = client ?? createClient()
   const profile = await getAuthenticatedProfile(supabase)
@@ -53,6 +54,7 @@ export async function getPosContext(client?: DbClient): Promise<{
   return {
     cafeId: profile.cafeId,
     employeeId: data?.id ?? null,
+    role: profile.role,
   }
 }
 

@@ -5,21 +5,23 @@ import { useRouter } from "next/navigation"
 import {
   ShoppingCart, Send, CreditCard, Trash2,
   Plus, Minus, X, Tag, ChevronDown, Loader2,
-  CheckCircle, AlertCircle, Coffee, Search, LogOut, Receipt
+  CheckCircle, AlertCircle, Coffee, Search, LogOut, Receipt,
+  ArrowLeft
 } from "lucide-react"
 import { useCartStore } from "@/store/cart-store"
+import { useAuthStore } from "@/store/auth-store"
 import { fetchAvailableProducts } from "@/lib/services/product.service"
 import { fetchCategories } from "@/lib/services/category.service"
 import { fetchTables } from "@/lib/services/table.service"
 import { fetchPaymentMethods } from "@/lib/services/payment.service"
 import { fetchValidCoupons, validateCoupon } from "@/lib/services/coupon.service"
 import { getPosContext } from "@/lib/services/_shared"
+import { signOut } from "@/lib/auth/auth.service"
 import {
   createOrderWithKitchenTicket,
   createPaymentForOrder,
 } from "@/lib/orders/create-order"
-import { createClient } from "@/lib/supabase/client"
-import type { Product, ProductCategory, CafeTable, Coupon } from "@/types/database"
+import type { Product, ProductCategory, CafeTable, Coupon, AnyRole } from "@/types/database"
 import type { PaymentMethodType } from "@/types/database"
 
 type PaymentTender = {
@@ -245,6 +247,8 @@ function PaymentModal({ total, methods, onConfirm, onClose, loading }: {
 
 export default function POSPage() {
   const router = useRouter()
+  const user = useAuthStore((s) => s.user)
+  const clearUser = useAuthStore((s) => s.clearUser)
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<ProductCategory[]>([])
   const [tables, setTables] = useState<CafeTable[]>([])
@@ -252,6 +256,7 @@ export default function POSPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [cafeId, setCafeId] = useState<string | null>(null)
   const [employeeId, setEmployeeId] = useState<string | null>(null)
+  const [sessionRole, setSessionRole] = useState<AnyRole | null>(null)
   const [dataLoading, setDataLoading] = useState(true)
   const [dataError, setDataError] = useState<string | null>(null)
 
@@ -269,6 +274,7 @@ export default function POSPage() {
 
   const { lines, totals, selectedTable, appliedCoupon,
     addProduct, incrementLine, decrementLine, removeLine, setTable, applyCoupon, removeCoupon, clearCart } = useCartStore()
+  const effectiveRole = sessionRole ?? user?.role
 
   // Load data
   const loadPosData = useCallback(async () => {
@@ -285,6 +291,7 @@ export default function POSPage() {
       ])
       setCafeId(context.cafeId)
       setEmployeeId(context.employeeId)
+      setSessionRole(context.role)
       setProducts(prods)
       setCategories(cats)
       setTables(tbls)
@@ -404,10 +411,15 @@ export default function POSPage() {
     }
   }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon, payingOrderId, payingOrderNumber, clearCart, loadPosData])
 
-  async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/login")
+  async function handleExit() {
+    if (effectiveRole === "admin") {
+      router.push("/dashboard")
+      return
+    }
+
+    await signOut()
+    clearUser()
+    router.replace("/login")
   }
 
   if (dataLoading) return (
@@ -443,9 +455,17 @@ export default function POSPage() {
             <ChevronDown size={13} />
           </button>
           <div className="ml-auto text-xs text-odfe-cream/50">{cafeId ? "Connected" : "No session"}</div>
-          <button onClick={handleLogout}
+          <button onClick={handleExit}
             className="flex items-center gap-1.5 rounded-full border border-odfe-cream/20 px-3 py-1 text-xs text-odfe-cream/80 hover:bg-white/10">
-            <LogOut size={13} />Logout
+            {effectiveRole === "admin" ? (
+              <>
+                <ArrowLeft size={13} />Dashboard
+              </>
+            ) : (
+              <>
+                <LogOut size={13} />Logout
+              </>
+            )}
           </button>
         </header>
 
