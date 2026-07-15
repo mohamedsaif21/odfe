@@ -7,6 +7,10 @@ import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { useAuthStore } from "@/store/auth-store"
 
+function safeCustomerRedirect(value: string | null): string {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : "/self-order"
+}
+
 function CustomerRegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -30,7 +34,7 @@ function CustomerRegisterForm() {
       }
 
       const supabase = createClient()
-      const redirect = searchParams.get("redirect") || searchParams.get("redirectTo") || "/self-order"
+      const redirect = safeCustomerRedirect(searchParams.get("redirect") || searchParams.get("redirectTo"))
       const qrToken = redirect.startsWith("/s/") ? redirect.split("/s/")[1]?.split("?")[0] : null
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),

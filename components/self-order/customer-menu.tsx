@@ -43,7 +43,8 @@ export function CustomerMenu({ cafeId, cafeName, tableId, tableLabel, customer, 
   const [couponCode, setCouponCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [placing, setPlacing] = useState(false)
-  const orderingEnabled = mode === "online_ordering"
+  const hasTableContext = Boolean(tableId)
+  const orderingEnabled = mode === "online_ordering" && hasTableContext
 
   const {
     lines,
@@ -92,6 +93,10 @@ export function CustomerMenu({ cafeId, cafeName, tableId, tableLabel, customer, 
   async function handlePlaceOrder() {
     if (!orderingEnabled || placing) return
     setError(null)
+    if (!tableId) {
+      setError("Scan the QR code on your table to place an order.")
+      return
+    }
     if (lines.length === 0) {
       setError("Add items to your cart before placing an order.")
       return
@@ -153,6 +158,11 @@ export function CustomerMenu({ cafeId, cafeName, tableId, tableLabel, customer, 
               QR menu mode is view-only. Please call staff to place an order.
             </p>
           )}
+          {mode === "online_ordering" && !hasTableContext && (
+            <p className="mt-3 rounded-lg bg-odfe-gold/10 px-3 py-2 text-xs text-odfe-charcoal">
+              Scan the QR code on your table to place an order.
+            </p>
+          )}
         </div>
 
         {filteredProducts.length === 0 ? (
@@ -207,7 +217,11 @@ export function CustomerMenu({ cafeId, cafeName, tableId, tableLabel, customer, 
           )}
         </div>
         {!orderingEnabled ? (
-          <div className="p-6 text-center text-sm text-gray-400">Cart is disabled in QR menu mode.</div>
+          <div className="p-6 text-center text-sm text-gray-400">
+            {mode === "qr_menu"
+              ? "Cart is disabled in QR menu mode."
+              : "Scan the QR code on your table to place an order."}
+          </div>
         ) : lines.length === 0 ? (
           <div className="p-6 text-center text-sm text-gray-400">Add items to begin.</div>
         ) : (
@@ -250,7 +264,7 @@ export function CustomerMenu({ cafeId, cafeName, tableId, tableLabel, customer, 
               {error && <p className="text-xs text-red-600">{error}</p>}
               <button
                 onClick={handlePlaceOrder}
-                disabled={placing}
+                disabled={placing || !orderingEnabled}
                 className="mt-2 w-full rounded-lg bg-odfe-gold py-3 text-sm font-semibold text-odfe-charcoal disabled:opacity-50"
               >
                 {placing ? "Placing order..." : "Place order"}

@@ -29,11 +29,10 @@ type OrderWithItems = {
   }>
 }
 
-type TokenQueryResult = {
+type TokenResolutionResult = {
   cafe_id: string
   table_id: string
-  is_active: boolean
-  cafe_tables: { label: string }
+  table_label: string
 }
 
 export interface ResolvedToken {
@@ -76,27 +75,23 @@ export async function resolveSelfOrderToken(
 ): Promise<ResolvedToken> {
   const supabase = client ?? createClient()
 
-  const { data, error } = await supabase
-    .from("self_order_tokens")
-    .select("cafe_id, table_id, is_active, cafe_tables!inner(label)")
-    .eq("token", token)
-    .single()
+  const { data, error } = await supabase.rpc("resolve_public_self_order_token", {
+    p_token: token,
+  })
 
   if (error || !data) {
     throw new Error("Invalid or expired QR code")
   }
 
-  const row = data as unknown as TokenQueryResult
+  const row: TokenResolutionResult | undefined = Array.isArray(data) ? data[0] : data
 
-  if (!row.is_active) {
-    throw new Error("This QR code is no longer active")
-  }
+  if (!row) throw new Error("Invalid or expired QR code")
 
   return {
     cafeId: row.cafe_id,
     tableId: row.table_id,
-    tableLabel: row.cafe_tables.label,
-    isActive: row.is_active,
+    tableLabel: row.table_label,
+    isActive: true,
   }
 }
 

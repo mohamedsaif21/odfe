@@ -38,11 +38,16 @@ export default function QrSelfOrderPage() {
         if (!token) throw new Error("Invalid QR code")
 
         const supabase = createClient()
-        const resolved = await resolveSelfOrderToken(token, supabase)
+        let resolved: Awaited<ReturnType<typeof resolveSelfOrderToken>>
+        try {
+          resolved = await resolveSelfOrderToken(token, supabase)
+        } catch {
+          throw new Error("Invalid or inactive table QR code.")
+        }
 
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
-          router.push(`/customer/login?redirect=/s/${token}`)
+          router.push(`/customer/login?redirect=${encodeURIComponent(`/s/${token}`)}`)
           return
         }
 
@@ -122,7 +127,7 @@ export default function QrSelfOrderPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl text-odfe-cream">{cafeName || "OdFe"}</h1>
-            <p className="mt-1 text-sm text-odfe-cream/70">Table {tableLabel}</p>
+            <p className="mt-1 text-sm text-odfe-cream/70">Ordering for Table {tableLabel}</p>
             <p className="text-sm text-odfe-cream/80">{customer?.name}</p>
             <p className="text-xs text-odfe-cream/60">{customer?.email}</p>
             <p className="text-xs text-odfe-gold">Loyalty points: {customer?.loyalty_points ?? 0}</p>

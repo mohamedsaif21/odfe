@@ -394,6 +394,22 @@ export interface Database {
           total: number
         }
       }
+      resolve_public_self_order_token: {
+        Args: {
+          p_token: string
+        }
+        Returns:
+          | {
+              cafe_id: string
+              table_id: string
+              table_label: string
+            }
+          | Array<{
+              cafe_id: string
+              table_id: string
+              table_label: string
+            }>
+      }
     }
     Enums: Record<string, never>
   }

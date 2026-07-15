@@ -7,6 +7,10 @@ import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { useAuthStore } from "@/store/auth-store"
 
+function safeCustomerRedirect(value: string | null): string {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : "/self-order"
+}
+
 function CustomerLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -58,8 +62,8 @@ function CustomerLoginForm() {
         avatarUrl: profile.avatarUrl,
       })
 
-      const redirect = searchParams.get("redirect") || searchParams.get("redirectTo") || "/self-order"
-      router.push(redirect)
+      const redirect = safeCustomerRedirect(searchParams.get("redirect") || searchParams.get("redirectTo"))
+      router.replace(redirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
     } finally {
