@@ -1,14 +1,102 @@
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/client"
 import type { Database } from "@/types/database"
 import type { KitchenTicketWithItems } from "@/types/app"
 
 type DbClient = SupabaseClient<Database>
 type TicketStage = "to_cook" | "preparing" | "completed"
+type TicketChangeCallback = () => void
 
 export type KitchenTicketRealtimeHandlers = {
   onTicketChange: () => void
   /** Optional: observe channel connection status (SUBSCRIBED, TIMED_OUT, CHANNEL_ERROR, CLOSED). */
   onStatusChange?: (status: string) => void
+}
+
+export function subscribeToKitchenChanges(
+  cafeId: string,
+  onChange: TicketChangeCallback,
+  onError?: (error: unknown) => void
+): RealtimeChannel {
+  const supabase = createClient()
+
+  return supabase
+    .channel(`brew-bar:${cafeId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "kitchen_tickets",
+        filter: `cafe_id=eq.${cafeId}`,
+      },
+      () => onChange()
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "kitchen_ticket_items",
+        filter: `cafe_id=eq.${cafeId}`,
+      },
+      () => onChange()
+    )
+    .subscribe((status, error) => {
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.log("[Brew Bar Realtime]", status)
+      }
+
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[Brew Bar Realtime Error]", error)
+        onError?.(error)
+      }
+    })
+}
+
+export function subscribeToCustomerOrder(
+  orderId: string,
+  onChange: () => void,
+  onError?: (error: unknown) => void
+): RealtimeChannel {
+  const supabase = createClient()
+
+  return supabase
+    .channel(`customer-order:${orderId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "orders",
+        filter: `id=eq.${orderId}`,
+      },
+      () => onChange()
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "kitchen_tickets",
+        filter: `order_id=eq.${orderId}`,
+      },
+      () => onChange()
+    )
+    .subscribe((status, error) => {
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.log("[Customer Tracking Realtime]", status)
+      }
+
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[Customer Tracking Realtime Error]", error)
+        onError?.(error)
+      }
+    })
 }
 
 /**

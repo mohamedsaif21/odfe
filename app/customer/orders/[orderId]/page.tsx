@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
+import { subscribeToCustomerOrder } from "@/lib/orders/realtime"
 import { fetchCustomerByProfileId, fetchCustomerOrder } from "@/lib/services/self-order.service"
 
 type OrderView = NonNullable<Awaited<ReturnType<typeof fetchCustomerOrder>>>
@@ -62,22 +63,14 @@ export default function CustomerOrderDetailPage() {
     if (!customerId) return
     const supabase = createClient()
     const refresh = () => loadOrder(customerId).catch((err) => setError(err instanceof Error ? err.message : "Failed to refresh order"))
-    const channel = supabase
-      .channel(`customer-order-${params.orderId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "orders", filter: `id=eq.${params.orderId}` },
-        refresh,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "kitchen_tickets", filter: `order_id=eq.${params.orderId}` },
-        refresh,
-      )
-      .subscribe()
+    const channel = subscribeToCustomerOrder(
+      params.orderId,
+      refresh,
+      (err) => setError(err instanceof Error ? err.message : "Realtime connection failed.")
+    )
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }, [customerId, loadOrder, params.orderId])
 

@@ -9,8 +9,7 @@ import { useOrderStore } from "@/store/order-store"
 import { signOut } from "@/lib/auth/auth.service"
 import {
   fetchKitchenTickets,
-  subscribeKitchenTickets,
-  unsubscribeKitchenTickets,
+  subscribeToKitchenChanges,
   updateTicketStage,
 } from "@/lib/orders/realtime"
 import type { KitchenTicketWithItems } from "@/types/app"
@@ -19,6 +18,8 @@ export default function BrewBarPage() {
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
   const clearUser = useAuthStore((s) => s.clearUser)
+  const cafeId = user?.cafeId ?? null
+  const supabase = getClient()
   const { kitchenTickets, setKitchenTickets } = useOrderStore()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,45 +33,46 @@ export default function BrewBarPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const refreshTickets = useCallback(async () => {
-    if (!user?.cafeId) return
+  const loadTickets = useCallback(async () => {
+    if (!cafeId) return
     try {
-      const supabase = getClient()
-      const tickets = await fetchKitchenTickets(supabase, user.cafeId)
+      const tickets = await fetchKitchenTickets(supabase, cafeId)
       setKitchenTickets(tickets)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load tickets")
     }
-  }, [user?.cafeId, setKitchenTickets])
+  }, [cafeId, setKitchenTickets, supabase])
 
   useEffect(() => {
-    if (!user?.cafeId) return
+    if (!cafeId) return
 
-    const supabase = getClient()
-    refreshTickets().finally(() => setLoading(false))
+    void loadTickets().finally(() => setLoading(false))
 
-    const channel = subscribeKitchenTickets(supabase, user.cafeId, {
-      onTicketChange: refreshTickets,
-      onStatusChange: (status) => {
-        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          // eslint-disable-next-line no-console
-          console.warn(`Brew Bar realtime channel ${status.toLowerCase()} — supabase-js will retry the connection.`)
-        }
+    const channel = subscribeToKitchenChanges(
+      cafeId,
+      () => {
+        void loadTickets()
       },
-    })
+      (err) => {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Realtime connection failed."
+        )
+      }
+    )
 
     return () => {
-      unsubscribeKitchenTickets(supabase, channel)
+      void supabase.removeChannel(channel)
     }
-  }, [user?.cafeId, refreshTickets])
+  }, [cafeId, loadTickets, supabase])
 
   async function handleStageUpdate(ticket: KitchenTicketWithItems, nextStage: KitchenTicketWithItems["stage"]) {
     setUpdatingId(ticket.id)
     try {
-      const supabase = getClient()
       await updateTicketStage(supabase, ticket.id, ticket.orderId, nextStage, ticket.stage)
-      await refreshTickets()
+      await loadTickets()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update stage")
     } finally {
@@ -108,7 +110,7 @@ export default function BrewBarPage() {
         <BrewBarExit role={user?.role} onExit={handleExit} />
         <div className="text-center">
           <p className="text-sm text-red-600">{error}</p>
-          <button onClick={refreshTickets} className="mt-2 text-sm text-odfe-teal underline">
+          <button onClick={loadTickets} className="mt-2 text-sm text-odfe-teal underline">
             Retry
           </button>
         </div>
