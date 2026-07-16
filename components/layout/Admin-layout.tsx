@@ -1,6 +1,7 @@
 "use client"
 
 import { AdminSidebar } from "./admin-sidebar"
+import { CashierLayout } from "./cashier-layout"
 import { TopHeader } from "./top-header"
 import { useAuthStore } from "@/store/auth-store"
 import type { AuthUser } from "@/types/app"
@@ -36,6 +37,10 @@ export function AdminLayout({ children, user, title, role }: AdminLayoutProps) {
         <p className="text-sm text-muted-foreground">Loading...</p>
       </div>
     )
+  }
+
+  if (effectiveRole === "cashier") {
+    return <CashierLayout user={effectiveUser} title={title}>{children}</CashierLayout>
   }
 
   return (

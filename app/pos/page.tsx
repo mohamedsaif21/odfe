@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { useCartStore } from "@/store/cart-store"
 import { useAuthStore } from "@/store/auth-store"
+import { CashierNav } from "@/components/layout/cashier-nav"
 import { fetchAvailableProducts } from "@/lib/services/product.service"
 import { fetchCategories } from "@/lib/services/category.service"
 import { fetchTables } from "@/lib/services/table.service"
@@ -459,15 +460,22 @@ export default function POSPage() {
 
       {/* Left: Products */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-odfe-teal px-5 py-3">
+        <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-200 bg-odfe-teal px-3 py-2 sm:flex-nowrap sm:gap-3 sm:px-5 sm:py-3">
           <Coffee size={18} className="text-odfe-gold" />
           <span className="text-xl text-odfe-cream" style={{ fontFamily: "Anton, sans-serif" }}>OdFe POS</span>
+          {effectiveRole === "cashier" && <CashierNav />}
           <button onClick={() => setShowTablePicker(true)}
-            className="ml-4 flex items-center gap-1.5 rounded-full border border-odfe-gold/40 bg-odfe-gold/10 px-3 py-1 text-sm text-odfe-gold-light hover:bg-odfe-gold/20">
+            className="flex items-center gap-1.5 rounded-full border border-odfe-gold/40 bg-odfe-gold/10 px-3 py-1 text-sm text-odfe-gold-light hover:bg-odfe-gold/20 sm:ml-4">
             {selectedTable ? `Table ${selectedTable.label}` : "Select Table"}
             <ChevronDown size={13} />
           </button>
-          <div className="ml-auto text-xs text-odfe-cream/50">{cafeId ? "Connected" : "No session"}</div>
+          {effectiveRole === "cashier" && (
+            <button onClick={() => router.push("/orders")}
+              className="hidden rounded-full border border-odfe-cream/20 px-3 py-1 text-xs font-medium text-odfe-cream/80 hover:bg-white/10 sm:inline-flex">
+              Orders
+            </button>
+          )}
+          <div className="ml-auto hidden text-xs text-odfe-cream/50 sm:block">{cafeId ? "Connected" : "No session"}</div>
           <button onClick={handleExit}
             className="flex items-center gap-1.5 rounded-full border border-odfe-cream/20 px-3 py-1 text-xs text-odfe-cream/80 hover:bg-white/10">
             {effectiveRole === "admin" ? (
