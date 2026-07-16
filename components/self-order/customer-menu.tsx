@@ -104,7 +104,7 @@ export function CustomerMenu({ cafeId, cafeName, tableId, tableLabel, customer, 
 
     setPlacing(true)
     try {
-      const result = await createOrderWithKitchenTicket({
+      const createdOrder = await createOrderWithKitchenTicket({
         cafeId,
         employeeId: null,
         customerId: customer.id,
@@ -114,8 +114,17 @@ export function CustomerMenu({ cafeId, cafeName, tableId, tableLabel, customer, 
         notes: null,
         source: "self_order",
       })
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("Created self-order result:", createdOrder)
+      }
+
+      if (!createdOrder.orderId) {
+        throw new Error("Unable to open the created order.")
+      }
+
       clearCart()
-      router.push(`/customer/orders/${result.orderId}`)
+      router.push(`/customer/orders/${createdOrder.orderId}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to place order.")
     } finally {

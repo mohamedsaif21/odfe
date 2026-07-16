@@ -1,5 +1,8 @@
+"use client"
+
 import { AdminSidebar } from "./admin-sidebar"
 import { TopHeader } from "./top-header"
+import { useAuthStore } from "@/store/auth-store"
 import type { AuthUser } from "@/types/app"
 import type { AnyRole } from "@/types/database"
 
@@ -22,11 +25,24 @@ interface AdminLayoutProps {
  *   └──────────────────────────────────┘
  */
 export function AdminLayout({ children, user, title, role }: AdminLayoutProps) {
+  const storeUser = useAuthStore((state) => state.user)
+  const isLoading = useAuthStore((state) => state.isLoading)
+  const effectiveUser = user ?? storeUser
+  const effectiveRole = role ?? effectiveUser?.role
+
+  if (!effectiveRole && isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-background">
-      <AdminSidebar role={role ?? user?.role ?? "admin"} cafeName={user?.cafeName} />
+      <AdminSidebar role={effectiveRole ?? "admin"} cafeName={effectiveUser?.cafeName} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopHeader user={user} title={title} />
+        <TopHeader user={effectiveUser} title={title} />
         <div className="flex-1 overflow-y-auto">{children}</div>
       </div>
     </div>

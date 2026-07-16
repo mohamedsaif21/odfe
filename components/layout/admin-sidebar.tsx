@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
   Tag, LayoutGrid, Users, UserCheck, CreditCard, Percent,
-  Coffee, BarChart2, Settings, ChevronRight,
+  Coffee, BarChart2, Settings, ChevronRight, Monitor,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -16,7 +16,7 @@ import { getNavItemsForRole } from "@/lib/auth/role-mapper"
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
   Tag, LayoutGrid, Users, UserCheck, CreditCard, Percent,
-  Coffee, BarChart2, Settings,
+  Coffee, BarChart2, Settings, Monitor,
 }
 
 interface AdminSidebarProps {
@@ -67,7 +67,7 @@ export function AdminSidebar({
     ["/products", "/categories", "/tables"].includes(i.href)
   )
   const peopleItems = navItems.filter((i) =>
-    ["/customers", "/employees"].includes(i.href)
+    ["/customers", "/customer-display", "/employees"].includes(i.href)
   )
   const financeItems = navItems.filter((i) =>
     ["/payments", "/coupons"].includes(i.href)

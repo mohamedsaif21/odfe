@@ -12,7 +12,15 @@ type PaymentWithOrder = Payment & {
   } | null
 }
 
-export async function fetchPayments(dateFrom?: string, dateTo?: string, client?: DbClient): Promise<PaymentWithOrder[]> {
+export async function fetchPayments(
+  filters: {
+    dateFrom?: string
+    dateTo?: string
+    method?: PaymentMethodType
+    status?: Payment["status"]
+  } = {},
+  client?: DbClient
+): Promise<PaymentWithOrder[]> {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
 
@@ -22,8 +30,10 @@ export async function fetchPayments(dateFrom?: string, dateTo?: string, client?:
     .eq("cafe_id", cafeId)
     .order("paid_at", { ascending: false })
 
-  if (dateFrom) query = query.gte("paid_at", dateFrom)
-  if (dateTo) query = query.lte("paid_at", dateTo)
+  if (filters.dateFrom) query = query.gte("paid_at", filters.dateFrom)
+  if (filters.dateTo) query = query.lte("paid_at", filters.dateTo)
+  if (filters.method) query = query.eq("method", filters.method)
+  if (filters.status) query = query.eq("status", filters.status)
 
   const { data, error } = await query.returns<PaymentWithOrder[]>()
 

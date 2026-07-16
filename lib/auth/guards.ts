@@ -6,7 +6,7 @@ export const ROUTE_ACCESS: Record<string, AnyRole[]> = {
   "/categories":        ["admin"],
   "/tables":            ["admin"],
   "/employees":         ["admin"],
-  "/payments":          ["admin"],
+  "/payments":          ["admin", "cashier"],
   "/coupons":           ["admin"],
   "/bookings":          ["admin"],
   "/reports":           ["admin"],

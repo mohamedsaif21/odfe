@@ -365,7 +365,7 @@ export default function POSPage() {
       })
       setPayingOrderId(result.orderId)
       setPayingOrderNumber(result.orderNumber)
-      setPayingOrderTotal(result.totals.total)
+      setPayingOrderTotal(result.total)
       setPayingTicketId(result.ticketId)
       setToast({ type: "success", message: `Order ${result.orderNumber} sent to Brew Bar ✓` })
     } catch (err) {
@@ -394,14 +394,13 @@ export default function POSPage() {
         })
         orderId = result.orderId
         orderNumber = result.orderNumber
-        orderTotal = result.totals.total
+        orderTotal = result.total
         setPayingTicketId(result.ticketId)
       }
       let fullyPaid = false
       for (const tender of tenders) {
         const result = await createPaymentForOrder({
           cafeId, orderId,
-          tableId: selectedTable?.id ?? null,
           method: tender.method,
           amount: tender.amount,
           reference: tender.reference,

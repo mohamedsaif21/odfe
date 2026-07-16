@@ -1,10 +1,20 @@
 "use client"
 
 import { createClient } from "@/lib/supabase/client"
-import type { AppliedCoupon, CartLine, CartTotals } from "@/types/app"
+import type { AppliedCoupon, CartLine } from "@/types/app"
 import type { PaymentMethodType } from "@/types/database"
 
 export type OrderSource = "pos" | "self_order"
+
+type CreateOrderRpcRow = {
+  order_id: string
+  order_number: string
+  ticket_id: string
+  subtotal: number
+  discount_total: number
+  tax_total: number
+  total: number
+}
 
 export interface CreateOrderInput {
   cafeId: string
@@ -22,13 +32,15 @@ export interface CreateOrderResult {
   orderId: string
   orderNumber: string
   ticketId: string
-  totals: Omit<CartTotals, "itemCount">
+  subtotal: number
+  discountTotal: number
+  taxTotal: number
+  total: number
 }
 
 export interface CreatePaymentInput {
   cafeId: string
   orderId: string
-  tableId: string | null
   method: PaymentMethodType
   amount: number
   reference: string | null
@@ -36,7 +48,13 @@ export interface CreatePaymentInput {
 
 export interface CreatePaymentResult {
   paymentId: string
+  orderId: string
+  amountPaid: number
+  totalPaid: number
+  orderTotal: number
+  remaining: number
   fullyPaid: boolean
+  orderStatus: "draft" | "sent_to_kitchen" | "to_cook" | "preparing" | "completed" | "paid" | "cancelled"
 }
 
 function isMissingRpcError(error: { code?: string; message?: string } | null): boolean {
@@ -86,7 +104,7 @@ export async function createOrderWithKitchenTicket(
     p_items: input.lines.map((line) => ({
       product_id: line.productId,
       quantity: line.quantity,
-      notes: line.notes,
+      notes: line.notes ?? null,
     })),
   })
 
@@ -97,20 +115,27 @@ export async function createOrderWithKitchenTicket(
     throw new Error(error.message)
   }
 
-  if (!data) {
-    throw new Error("Order processing function returned no result.")
+  if (process.env.NODE_ENV === "development") {
+    console.log("Raw create order RPC response:", data)
+  }
+
+  const row = (Array.isArray(data) ? data[0] : data) as CreateOrderRpcRow | undefined
+
+  if (!row?.order_id) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Invalid create order RPC response:", data)
+    }
+    throw new Error("Order was created but no order ID was returned.")
   }
 
   return {
-    orderId: data.order_id,
-    orderNumber: data.order_number,
-    ticketId: data.ticket_id,
-    totals: {
-      subtotal: Number(data.subtotal),
-      discountTotal: Number(data.discount_total),
-      taxTotal: Number(data.tax_total),
-      total: Number(data.total),
-    },
+    orderId: row.order_id,
+    orderNumber: row.order_number,
+    ticketId: row.ticket_id,
+    subtotal: Number(row.subtotal),
+    discountTotal: Number(row.discount_total),
+    taxTotal: Number(row.tax_total),
+    total: Number(row.total),
   }
 }
 
@@ -134,13 +159,19 @@ export async function createPaymentForOrder(
 
   const { data: order, error: orderError } = await supabase
     .from("orders")
-    .select("id, total")
+    .select("id, cafe_id, table_id, status, total")
     .eq("id", input.orderId)
     .eq("cafe_id", input.cafeId)
     .single()
 
   if (orderError || !order) {
     throw new Error(orderError?.message ?? "Order not found.")
+  }
+  if (order.status === "paid") {
+    throw new Error("Order is already paid.")
+  }
+  if (order.status === "cancelled") {
+    throw new Error("Cancelled orders cannot be paid.")
   }
 
   const { data: payment, error: paymentError } = await supabase
@@ -171,7 +202,10 @@ export async function createPaymentForOrder(
   if (paymentsError) throw new Error(paymentsError.message)
 
   const paidTotal = (payments ?? []).reduce((sum, row) => sum + Number(row.amount), 0)
-  const fullyPaid = paidTotal + 0.001 >= Number(order.total)
+  const orderTotal = Number(order.total)
+  const remaining = Math.max(orderTotal - paidTotal, 0)
+  const fullyPaid = paidTotal + 0.001 >= orderTotal
+  let orderStatus: CreatePaymentResult["orderStatus"] = order.status as CreatePaymentResult["orderStatus"]
 
   if (fullyPaid) {
     const { error: updateOrderError } = await supabase
@@ -181,12 +215,13 @@ export async function createPaymentForOrder(
       .eq("cafe_id", input.cafeId)
 
     if (updateOrderError) throw new Error(updateOrderError.message)
+    orderStatus = "paid"
 
-    if (input.tableId) {
+    if (order.table_id) {
       const { error: tableError } = await supabase
         .from("cafe_tables")
         .update({ status: "available" })
-        .eq("id", input.tableId)
+        .eq("id", order.table_id)
         .eq("cafe_id", input.cafeId)
 
       if (tableError) throw new Error(tableError.message)
@@ -195,6 +230,51 @@ export async function createPaymentForOrder(
 
   return {
     paymentId: payment.id,
+    orderId: input.orderId,
+    amountPaid: input.amount,
+    totalPaid: paidTotal,
+    orderTotal,
+    remaining,
     fullyPaid,
+    orderStatus,
+  }
+}
+
+export async function cancelOrderAndReleaseTable(input: {
+  cafeId: string
+  orderId: string
+}): Promise<void> {
+  const supabase = createClient()
+
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("id, table_id, status")
+    .eq("id", input.orderId)
+    .eq("cafe_id", input.cafeId)
+    .single()
+
+  if (orderError || !order) {
+    throw new Error(orderError?.message ?? "Order not found.")
+  }
+  if (order.status === "paid") {
+    throw new Error("Paid orders cannot be cancelled.")
+  }
+
+  const { error: cancelError } = await supabase
+    .from("orders")
+    .update({ status: "cancelled" })
+    .eq("id", input.orderId)
+    .eq("cafe_id", input.cafeId)
+
+  if (cancelError) throw new Error(cancelError.message)
+
+  if (order.table_id) {
+    const { error: tableError } = await supabase
+      .from("cafe_tables")
+      .update({ status: "available" })
+      .eq("id", order.table_id)
+      .eq("cafe_id", input.cafeId)
+
+    if (tableError) throw new Error(tableError.message)
   }
 }

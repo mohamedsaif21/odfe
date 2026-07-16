@@ -20,13 +20,14 @@ export default function CustomerOrderDetailPage() {
   const params = useParams<{ orderId: string }>()
   const router = useRouter()
   const [customerId, setCustomerId] = useState<string | null>(null)
+  const [cafeId, setCafeId] = useState<string | null>(null)
   const [order, setOrder] = useState<OrderView | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadOrder = useCallback(async (id: string) => {
+  const loadOrder = useCallback(async (id: string, activeCafeId: string) => {
     const supabase = createClient()
-    const orderRow = await fetchCustomerOrder(params.orderId, id, supabase)
+    const orderRow = await fetchCustomerOrder(params.orderId, id, activeCafeId, supabase)
     if (!orderRow) throw new Error("Order not found")
     setOrder(orderRow)
   }, [params.orderId])
@@ -49,7 +50,8 @@ export default function CustomerOrderDetailPage() {
 
         const customer = await fetchCustomerByProfileId(profile.id, supabase)
         setCustomerId(customer.id)
-        await loadOrder(customer.id)
+        setCafeId(profile.cafeId)
+        await loadOrder(customer.id, profile.cafeId)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load order")
       } finally {
@@ -60,9 +62,9 @@ export default function CustomerOrderDetailPage() {
   }, [loadOrder, params.orderId, router])
 
   useEffect(() => {
-    if (!customerId) return
+    if (!customerId || !cafeId) return
     const supabase = createClient()
-    const refresh = () => loadOrder(customerId).catch((err) => setError(err instanceof Error ? err.message : "Failed to refresh order"))
+    const refresh = () => loadOrder(customerId, cafeId).catch((err) => setError(err instanceof Error ? err.message : "Failed to refresh order"))
     const channel = subscribeToCustomerOrder(
       params.orderId,
       refresh,
@@ -72,7 +74,7 @@ export default function CustomerOrderDetailPage() {
     return () => {
       void supabase.removeChannel(channel)
     }
-  }, [customerId, loadOrder, params.orderId])
+  }, [cafeId, customerId, loadOrder, params.orderId])
 
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center bg-odfe-cream text-sm text-gray-500">Loading order...</div>
@@ -95,6 +97,10 @@ export default function CustomerOrderDetailPage() {
         <h1 className="font-display text-2xl text-odfe-cream">Order {order.orderNumber}</h1>
         <p className="mt-1 text-sm capitalize text-odfe-cream/70">{order.status.replaceAll("_", " ")}</p>
         <p className="text-xs text-odfe-cream/60">{order.tableLabel ? `Table ${order.tableLabel}` : "No table"}</p>
+        <p className="text-xs text-odfe-cream/60">{new Date(order.createdAt).toLocaleString()}</p>
+        {order.status === "paid" && (
+          <p className="mt-2 text-sm font-medium text-odfe-gold">Payment completed · Receipt {order.orderNumber}</p>
+        )}
       </header>
       <main className="space-y-4 p-4">
         <div className="rounded-xl bg-white p-4 shadow-sm">
@@ -114,9 +120,14 @@ export default function CustomerOrderDetailPage() {
         <div className="rounded-xl bg-white p-4 shadow-sm">
           <div className="divide-y divide-gray-100">
             {order.items.map((item, index) => (
-              <div key={`${item.productName}-${index}`} className="flex justify-between py-3 text-sm">
-                <span>{item.quantity} x {item.productName}</span>
-                <span>₹{(item.quantity * item.unitPrice).toFixed(2)}</span>
+              <div key={`${item.productName}-${index}`} className="py-3 text-sm">
+                <div className="flex justify-between">
+                  <span>{item.quantity} x {item.productName}</span>
+                  <span>₹{(item.quantity * item.unitPrice).toFixed(2)}</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-400">
+                  Unit ₹{Number(item.unitPrice).toFixed(2)} · Discount {Number(item.discount).toFixed(2)}% · Tax {Number(item.taxRate).toFixed(2)}%
+                </p>
               </div>
             ))}
           </div>
@@ -126,6 +137,11 @@ export default function CustomerOrderDetailPage() {
             <div className="flex justify-between text-gray-500"><span>Tax</span><span>₹{Number(order.taxTotal).toFixed(2)}</span></div>
             <div className="flex justify-between border-t pt-2 text-lg font-semibold"><span>Total</span><span>₹{Number(order.total).toFixed(2)}</span></div>
           </div>
+          {order.status === "paid" && (
+            <div className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+              Payment completed for ₹{Number(order.total).toFixed(2)}. Reference: {order.orderNumber}
+            </div>
+          )}
         </div>
       </main>
     </div>

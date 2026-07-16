@@ -8,8 +8,12 @@ type OrderListItem = {
   order_number: string
   status: string
   table_id: string | null
+  source: string
   total: number
   created_at: string
+  order_items: Array<{
+    quantity: number
+  }>
 }
 
 type OrderWithItems = {
@@ -26,6 +30,8 @@ type OrderWithItems = {
     product_name: string
     quantity: number
     unit_price: number
+    discount: number
+    tax_rate: number
   }>
 }
 
@@ -264,6 +270,8 @@ export async function fetchCustomerOrders(
   orderNumber: string
   status: string
   tableLabel: string | null
+  itemCount: number
+  source: string
   total: number
   createdAt: string
 }>> {
@@ -271,7 +279,7 @@ export async function fetchCustomerOrders(
 
   const { data, error } = await supabase
     .from("orders")
-    .select("id, order_number, status, table_id, total, created_at")
+    .select("id, order_number, status, table_id, source, total, created_at, order_items(quantity)")
     .eq("customer_id", customerId)
     .order("created_at", { ascending: false })
     .returns<OrderListItem[]>()
@@ -295,6 +303,8 @@ export async function fetchCustomerOrders(
     orderNumber: o.order_number,
     status: o.status,
     tableLabel: o.table_id ? tableLabels[o.table_id] ?? null : null,
+    itemCount: (o.order_items ?? []).reduce((sum, item) => sum + Number(item.quantity), 0),
+    source: o.source,
     total: o.total,
     createdAt: o.created_at,
   }))
@@ -306,6 +316,7 @@ export async function fetchCustomerOrders(
 export async function fetchCustomerOrder(
   orderId: string,
   customerId: string,
+  cafeId: string,
   client?: DbClient
 ): Promise<{
   id: string
@@ -317,16 +328,17 @@ export async function fetchCustomerOrder(
   discountTotal: number
   taxTotal: number
   total: number
-  items: Array<{ productName: string; quantity: number; unitPrice: number }>
+  items: Array<{ productName: string; quantity: number; unitPrice: number; discount: number; taxRate: number }>
   createdAt: string
 } | null> {
   const supabase = client ?? createClient()
 
   const { data, error } = await supabase
     .from("orders")
-    .select("id, order_number, status, table_id, subtotal, discount_total, tax_total, total, created_at, order_items(product_name, quantity, unit_price)")
+    .select("id, order_number, status, table_id, subtotal, discount_total, tax_total, total, created_at, order_items(product_name, quantity, unit_price, discount, tax_rate)")
     .eq("id", orderId)
     .eq("customer_id", customerId)
+    .eq("cafe_id", cafeId)
     .single()
 
   if (error) return null
@@ -357,6 +369,8 @@ export async function fetchCustomerOrder(
       productName: i.product_name,
       quantity: i.quantity,
       unitPrice: i.unit_price,
+      discount: i.discount,
+      taxRate: i.tax_rate,
     })),
     createdAt: row.created_at,
   }

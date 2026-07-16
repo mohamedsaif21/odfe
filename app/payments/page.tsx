@@ -17,6 +17,7 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([])
   const [orders, setOrders] = useState<Record<string, Order>>({})
   const [search, setSearch] = useState("")
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
   const [method, setMethod] = useState("")
   const [status, setStatus] = useState("")
   const [loading, setLoading] = useState(true)
@@ -46,9 +47,8 @@ export default function PaymentsPage() {
     load()
   }, [])
 
-  const todayKey = new Date().toISOString().slice(0, 10)
   const dailyRevenue = payments
-    .filter((payment) => payment.status === "completed" && payment.paid_at?.slice(0, 10) === todayKey)
+    .filter((payment) => payment.status === "completed" && (!date || payment.paid_at?.slice(0, 10) === date))
     .reduce((sum, payment) => sum + Number(payment.amount), 0)
 
   const filtered = useMemo(() => {
@@ -56,11 +56,12 @@ export default function PaymentsPage() {
     return payments.filter((payment) => {
       const orderNumber = orders[payment.order_id]?.order_number ?? ""
       const matchesSearch = !query || [orderNumber, payment.method, payment.reference ?? ""].some((value) => value.toLowerCase().includes(query))
+      const matchesDate = !date || payment.paid_at?.slice(0, 10) === date
       const matchesMethod = !method || payment.method === method
       const matchesStatus = !status || payment.status === status
-      return matchesSearch && matchesMethod && matchesStatus
+      return matchesSearch && matchesDate && matchesMethod && matchesStatus
     })
-  }, [method, orders, payments, search, status])
+  }, [date, method, orders, payments, search, status])
 
   return (
     <AdminLayout title="Payments">
@@ -71,11 +72,12 @@ export default function PaymentsPage() {
           <Card><CardHeader><CardTitle className="text-sm">Payments</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{payments.length}</CardContent></Card>
           <Card><CardHeader><CardTitle className="text-sm">Completed</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{payments.filter((p) => p.status === "completed").length}</CardContent></Card>
         </div>
-        <div className="mb-4 grid gap-3 lg:grid-cols-[1fr_180px_180px]">
+        <div className="mb-4 grid gap-3 lg:grid-cols-[1fr_180px_180px_180px]">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-charcoal/40" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search payments" className="pl-9" />
           </div>
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <Select value={method} onChange={(e) => setMethod(e.target.value)}>
             <option value="">All methods</option>
             {(["cash", "card", "upi"] satisfies PaymentMethodType[]).map((value) => <option key={value} value={value}>{value.toUpperCase()}</option>)}

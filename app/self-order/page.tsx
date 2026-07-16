@@ -105,13 +105,17 @@ export default function SelfOrderPage() {
             <p className="text-xs text-odfe-cream/60">{customer?.email ?? user?.email}</p>
             <p className="text-xs text-odfe-gold">Loyalty points: {customer?.loyalty_points ?? 0}</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 rounded-full border border-odfe-cream/20 px-3 py-1.5 text-xs font-medium text-odfe-cream/80 hover:bg-white/10"
-          >
-            <LogOut size={13} />
-            Logout
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => router.push("/customer/orders")} className="rounded-full border border-odfe-cream/20 px-3 py-1.5 text-xs font-medium text-odfe-cream/80 hover:bg-white/10">My Orders</button>
+            <button onClick={() => router.push("/customer/profile")} className="rounded-full border border-odfe-cream/20 px-3 py-1.5 text-xs font-medium text-odfe-cream/80 hover:bg-white/10">Profile</button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 rounded-full border border-odfe-cream/20 px-3 py-1.5 text-xs font-medium text-odfe-cream/80 hover:bg-white/10"
+            >
+              <LogOut size={13} />
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
