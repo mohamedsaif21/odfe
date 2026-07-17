@@ -12,6 +12,8 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { ProductForm, type ProductFormInput } from "@/components/products/product-form"
 import { ProductList } from "@/components/products/product-list"
 import { fetchCategories } from "@/lib/services/category.service"
+import { getCafeId } from "@/lib/services/_shared"
+import { deleteProductImage, uploadProductImage } from "@/lib/services/product-image.service"
 import {
   createProduct,
   deleteProduct,
@@ -71,12 +73,72 @@ export default function ProductsPage() {
     setIsSubmitting(true)
     setError(null)
     try {
+      const productPayload = {
+        category_id: input.category_id,
+        name: input.name,
+        description: input.description,
+        price: input.price,
+        tax_rate: input.tax_rate,
+        discount: input.discount,
+        sort_order: input.sort_order,
+        is_available: input.is_available,
+      }
+
       if (editingProduct) {
-        await updateProduct(editingProduct.id, input)
+        const cafeId = await getCafeId()
+        let uploadedImageUrl: string | null = null
+        try {
+          if (input.imageFile) {
+            const uploaded = await uploadProductImage({
+              cafeId,
+              productId: editingProduct.id,
+              file: input.imageFile,
+            })
+            uploadedImageUrl = uploaded.publicUrl
+          }
+
+          const nextImageUrl = input.removeImage
+            ? null
+            : uploadedImageUrl ?? editingProduct.image_url
+
+          await updateProduct(editingProduct.id, {
+            ...productPayload,
+            image_url: nextImageUrl,
+          })
+
+          if ((input.removeImage || uploadedImageUrl) && editingProduct.image_url) {
+            await deleteProductImage(editingProduct.image_url)
+          }
+        } catch (err) {
+          if (uploadedImageUrl) {
+            await deleteProductImage(uploadedImageUrl).catch((cleanupError) => {
+              if (process.env.NODE_ENV === "development") {
+                console.error("Failed to clean up orphan product image:", cleanupError)
+              }
+            })
+          }
+          throw err
+        }
         setSuccess("Product updated")
       } else {
-        await createProduct(input)
-        setSuccess("Product added")
+        const created = await createProduct({ ...productPayload, image_url: null })
+        if (input.imageFile) {
+          const cafeId = await getCafeId()
+          const uploaded = await uploadProductImage({
+            cafeId,
+            productId: created.id,
+            file: input.imageFile,
+          })
+          await updateProduct(created.id, { image_url: uploaded.publicUrl }).catch(async (err) => {
+            await deleteProductImage(uploaded.publicUrl).catch((cleanupError) => {
+              if (process.env.NODE_ENV === "development") {
+                console.error("Failed to clean up orphan product image:", cleanupError)
+              }
+            })
+            throw err
+          })
+        }
+        setSuccess(input.imageFile ? "Product added" : "Product added without image")
       }
       setFormOpen(false)
       setEditingProduct(null)

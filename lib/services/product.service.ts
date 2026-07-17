@@ -63,8 +63,9 @@ export async function createProduct(
     description?: string
     tax_rate?: number
     discount?: number
-    image_url?: string
+    image_url?: string | null
     sort_order?: number
+    is_available?: boolean
   },
   client?: DbClient
 ) {
@@ -80,7 +81,7 @@ export async function createProduct(
     tax_rate: input.tax_rate ?? 0,
     discount: input.discount ?? 0,
     image_url: input.image_url ?? null,
-    is_available: true,
+    is_available: input.is_available ?? true,
     sort_order: input.sort_order ?? 0,
   }
 
@@ -103,7 +104,7 @@ export async function updateProduct(
     category_id: string
     tax_rate: number
     discount: number
-    image_url: string
+    image_url: string | null
     is_available: boolean
     sort_order: number
   }>,

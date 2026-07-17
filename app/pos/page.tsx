@@ -18,6 +18,7 @@ import { fetchPaymentMethods } from "@/lib/services/payment.service"
 import { fetchValidCoupons, validateCoupon } from "@/lib/services/coupon.service"
 import { getPosContext } from "@/lib/services/_shared"
 import { signOut } from "@/lib/auth/auth.service"
+import { getProductImageUrl } from "@/lib/utils/product-image"
 import {
   createOrderWithKitchenTicket,
   createPaymentForOrder,
@@ -35,6 +36,20 @@ type ReceiptState = {
   orderNumber: string
   total: number
   tenders: PaymentTender[]
+}
+
+function ProductTileImage({ product }: { product: Product }) {
+  return (
+    <img
+      src={getProductImageUrl(product.image_url)}
+      alt={product.name}
+      loading="lazy"
+      onError={(event) => {
+        event.currentTarget.src = "/assets/products/fallback/product-placeholder.webp"
+      }}
+      className="h-full w-full object-cover" // Preserving existing class
+    />
+  )
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -527,12 +542,7 @@ export default function POSPage() {
                 <button key={product.id} onClick={() => addProduct(product)}
                   className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-odfe-teal/40 hover:shadow-md active:translate-y-0">
                   <div className="flex h-20 items-center justify-center bg-gradient-to-br from-odfe-teal/10 to-odfe-sage/10">
-                    {product.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <Coffee size={24} className="text-odfe-teal/30" />
-                    )}
+                    <ProductTileImage product={product} />
                   </div>
                   <div className="flex flex-1 flex-col p-3">
                     <p className="text-sm font-medium leading-tight text-gray-800">{product.name}</p>

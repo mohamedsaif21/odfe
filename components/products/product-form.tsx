@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { createClient } from "@/lib/supabase/client"
+import { validateProductImage } from "@/lib/services/product-image.service"
 import type { Product, ProductCategory } from "@/types/database"
 
 export interface ProductFormInput {
@@ -16,7 +16,8 @@ export interface ProductFormInput {
   price: number
   tax_rate: number
   discount: number
-  image_url?: string
+  imageFile?: File | null
+  removeImage?: boolean
   sort_order: number
   is_available?: boolean
 }
@@ -37,7 +38,6 @@ const emptyForm = {
   price: "0",
   tax_rate: "0",
   discount: "0",
-  image_url: "",
   sort_order: "0",
   is_available: true,
 }
@@ -45,11 +45,16 @@ const emptyForm = {
 export function ProductForm({ open, product, categories, isSubmitting, onClose, onSubmit }: ProductFormProps) {
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const [removeImage, setRemoveImage] = useState(false)
 
   useEffect(() => {
     if (!open) return
     setError(null)
+    setImageFile(null)
+    setImagePreviewUrl(null)
+    setRemoveImage(false)
     setForm(
       product
         ? {
@@ -59,13 +64,19 @@ export function ProductForm({ open, product, categories, isSubmitting, onClose, 
             price: String(product.price),
             tax_rate: String(product.tax_rate),
             discount: String(product.discount),
-            image_url: product.image_url ?? "",
             sort_order: String(product.sort_order),
             is_available: product.is_available,
           }
         : { ...emptyForm, category_id: categories[0]?.id ?? "" },
     )
   }, [categories, open, product])
+
+  useEffect(() => {
+    if (!imageFile) return
+    const objectUrl = URL.createObjectURL(imageFile)
+    setImagePreviewUrl(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [imageFile])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -85,37 +96,30 @@ export function ProductForm({ open, product, categories, isSubmitting, onClose, 
       price: Number(form.price),
       tax_rate: Number(form.tax_rate),
       discount: Number(form.discount),
-      image_url: form.image_url.trim() || undefined,
+      imageFile,
+      removeImage,
       sort_order: Number(form.sort_order),
       is_available: form.is_available,
     })
   }
 
-  async function handleImageUpload(file: File | null) {
-    if (!file) return
-    setUploading(true)
+  function handleImageSelection(file: File | null) {
     setError(null)
     try {
-      if (!file.type.startsWith("image/")) {
-        throw new Error("Select an image file.")
+      if (!file) {
+        setImageFile(null)
+        return
       }
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error("Not authenticated")
-      const extension = file.name.split(".").pop() ?? "jpg"
-      const path = `${session.user.id}/${crypto.randomUUID()}.${extension}`
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(path, file, { cacheControl: "3600", upsert: false })
-      if (uploadError) throw new Error(uploadError.message)
-      const { data } = supabase.storage.from("product-images").getPublicUrl(path)
-      setForm((current) => ({ ...current, image_url: data.publicUrl }))
+      validateProductImage(file)
+      setRemoveImage(false)
+      setImageFile(file)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Image upload failed")
-    } finally {
-      setUploading(false)
+      setImageFile(null)
+      setError(err instanceof Error ? err.message : "Image validation failed")
     }
   }
+
+  const currentImageUrl = removeImage ? null : product?.image_url ?? null
 
   return (
     <Dialog open={open} onClose={onClose} title={product ? "Edit product" : "Add product"} className="max-w-2xl">
@@ -154,15 +158,48 @@ export function ProductForm({ open, product, categories, isSubmitting, onClose, 
             <Input type="number" step="1" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} />
           </label>
         </div>
-        <label className="space-y-1 text-sm font-medium text-charcoal">
-          Image URL
-          <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
-        </label>
-        <label className="space-y-1 text-sm font-medium text-charcoal">
-          Upload image
-          <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files?.[0] ?? null)} disabled={uploading} />
-          {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
-        </label>
+        <div className="space-y-3 rounded-md border border-cream-200 p-3">
+          <p className="text-sm font-medium text-charcoal">Product image</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="overflow-hidden rounded-md bg-cream/50">
+              {currentImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={currentImageUrl} alt={product?.name ?? "Current product"} className="h-32 w-full object-cover" />
+              ) : (
+                <div className="flex h-32 items-center justify-center text-xs text-muted-foreground">Fallback image</div>
+              )}
+              <p className="px-2 py-1 text-xs text-muted-foreground">Current image</p>
+            </div>
+            <div className="overflow-hidden rounded-md bg-cream/50">
+              {imagePreviewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={imagePreviewUrl} alt="New product preview" className="h-32 w-full object-cover" />
+              ) : (
+                <div className="flex h-32 items-center justify-center text-xs text-muted-foreground">New image preview</div>
+              )}
+              <p className="px-2 py-1 text-xs text-muted-foreground">{imageFile ? imageFile.name : "No new image selected"}</p>
+            </div>
+          </div>
+          <Input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => handleImageSelection(e.target.files?.[0] ?? null)}
+            disabled={isSubmitting}
+          />
+          {product?.image_url && (
+            <label className="flex items-center gap-2 text-sm text-charcoal">
+              <input
+                type="checkbox"
+                checked={removeImage}
+                onChange={(e) => {
+                  setRemoveImage(e.target.checked)
+                  if (e.target.checked) setImageFile(null)
+                }}
+              />
+              Remove current image
+            </label>
+          )}
+        </div>
         <label className="space-y-1 text-sm font-medium text-charcoal">
           Description
           <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
