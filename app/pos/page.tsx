@@ -18,7 +18,7 @@ import { fetchPaymentMethods } from "@/lib/services/payment.service"
 import { fetchValidCoupons, validateCoupon } from "@/lib/services/coupon.service"
 import { getPosContext } from "@/lib/services/_shared"
 import { signOut } from "@/lib/auth/auth.service"
-import { getProductImageUrl } from "@/lib/utils/product-image"
+import { ProductImage } from "@/components/products/product-image"
 import {
   createOrderWithKitchenTicket,
   createPaymentForOrder,
@@ -40,14 +40,10 @@ type ReceiptState = {
 
 function ProductTileImage({ product }: { product: Product }) {
   return (
-    <img
-      src={getProductImageUrl(product.image_url)}
+    <ProductImage
+      src={product.image_url}
       alt={product.name}
-      loading="lazy"
-      onError={(event) => {
-        event.currentTarget.src = "/assets/products/fallback/product-placeholder.webp"
-      }}
-      className="h-full w-full object-cover" // Preserving existing class
+      className="h-full w-full object-cover"
     />
   )
 }

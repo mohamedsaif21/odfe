@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
-import { Eye, EyeOff, Pencil, Trash2, Image as ImageIcon } from "lucide-react"
+import { Eye, EyeOff, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { ProductImage } from "@/components/products/product-image"
 import type { Product, ProductCategory } from "@/types/database"
 
 interface ProductListProps {
@@ -12,25 +12,6 @@ interface ProductListProps {
   onEdit: (product: Product) => void
   onDelete: (product: Product) => void
   onToggleAvailability: (product: Product) => void
-}
-
-function ProductImage({ product }: { product: Product }) {
-  const [failed, setFailed] = useState(false)
-
-  if (!product.image_url || failed) {
-    return <ImageIcon className="h-8 w-8 text-charcoal/25" />
-  }
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={product.image_url}
-      alt={product.name}
-      loading="lazy"
-      onError={() => setFailed(true)}
-      className="h-full w-full object-cover"
-    />
-  )
 }
 
 export function ProductList({ products, categories, onEdit, onDelete, onToggleAvailability }: ProductListProps) {
@@ -49,7 +30,7 @@ export function ProductList({ products, categories, onEdit, onDelete, onToggleAv
       {products.map((product) => (
         <div key={product.id} className="overflow-hidden rounded-lg border border-cream-200 bg-white">
           <div className="flex h-36 items-center justify-center bg-cream/50">
-            <ProductImage product={product} />
+            <ProductImage src={product.image_url} alt={product.name} />
           </div>
           <div className="space-y-3 p-4">
             <div className="flex items-start justify-between gap-3">

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Coffee, Minus, Plus, Search, ShoppingCart, Tag, Trash2, X } from "lucide-react"
 import { useCartStore } from "@/store/cart-store"
 import { createOrderWithKitchenTicket } from "@/lib/orders/create-order"
-import { getProductImageUrl } from "@/lib/utils/product-image"
+import { ProductImage } from "@/components/products/product-image"
 import { validateSelfOrderCoupon, type PublicMenuCategory, type PublicMenuProduct, type SelfOrderMode } from "@/lib/services/self-order.service"
 import type { Customer, Product } from "@/types/database"
 
@@ -38,17 +38,10 @@ function productForCart(product: PublicMenuProduct, cafeId: string): Product {
 }
 
 function MenuProductImage({ product }: { product: PublicMenuProduct }) {
-  const [failed, setFailed] = useState(false)
-
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={getProductImageUrl(product.imageUrl)}
+    <ProductImage
+      src={product.imageUrl}
       alt={product.name}
-      loading="lazy"
-      onError={(event) => {
-        event.currentTarget.src = "/assets/products/fallback/product-placeholder.webp"
-      }}
       className="h-full w-full object-cover"
     />
   )

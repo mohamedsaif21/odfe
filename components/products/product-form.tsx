@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { ProductImage } from "@/components/products/product-image"
 import { validateProductImage } from "@/lib/services/product-image.service"
 import type { Product, ProductCategory } from "@/types/database"
 
@@ -162,12 +163,11 @@ export function ProductForm({ open, product, categories, isSubmitting, onClose, 
           <p className="text-sm font-medium text-charcoal">Product image</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="overflow-hidden rounded-md bg-cream/50">
-              {currentImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={currentImageUrl} alt={product?.name ?? "Current product"} className="h-32 w-full object-cover" />
-              ) : (
-                <div className="flex h-32 items-center justify-center text-xs text-muted-foreground">Fallback image</div>
-              )}
+              <ProductImage
+                src={currentImageUrl}
+                alt={product?.name ?? "Current product"}
+                className="h-32 w-full object-cover"
+              />
               <p className="px-2 py-1 text-xs text-muted-foreground">Current image</p>
             </div>
             <div className="overflow-hidden rounded-md bg-cream/50">
