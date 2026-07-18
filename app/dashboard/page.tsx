@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { AdminLayout } from "@/components/layout/Admin-layout"
+import { BrandedLoader } from "@/components/branding/branded-loader"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -67,7 +68,7 @@ export default function DashboardPage() {
           <CardHeader><CardTitle className="text-base">Recent orders</CardTitle></CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading recent orders...</p>
+              <BrandedLoader message="Loading recent orders..." size="sm" />
             ) : orders.length === 0 ? (
               <p className="text-sm text-muted-foreground">No recent orders</p>
             ) : (

@@ -3,6 +3,8 @@
 import { useState, type FormEvent, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { BrandedLoader } from "@/components/branding/branded-loader"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { useAuthStore } from "@/store/auth-store"
@@ -96,7 +98,7 @@ function CustomerRegisterForm() {
     <div className="flex min-h-screen items-center justify-center bg-odfe-cream p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
         <div className="mb-6 text-center">
-          <h1 className="font-display text-3xl tracking-wide text-odfe-teal">OdFe</h1>
+          <OdfeLogo variant="full" size="md" priority className="mx-auto" />
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-odfe-sage">Customer Sign Up</p>
           <div className="mx-auto mt-3 h-0.5 w-8 rounded-full bg-odfe-gold" />
         </div>
@@ -182,7 +184,7 @@ function CustomerRegisterForm() {
 
 export default function CustomerRegisterPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loadingâ€¦</div>}>
+    <Suspense fallback={<BrandedLoader fullScreen message="Loading..." />}>
       <CustomerRegisterForm />
     </Suspense>
   )

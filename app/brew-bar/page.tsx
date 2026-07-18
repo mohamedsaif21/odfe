@@ -3,12 +3,15 @@
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, LogOut } from "lucide-react"
+import { BrandedLoader } from "@/components/branding/branded-loader"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { getClient } from "@/lib/supabase/client"
 import { useAuthStore } from "@/store/auth-store"
 import { useOrderStore } from "@/store/order-store"
 import { signOut } from "@/lib/auth/auth.service"
 import {
   fetchKitchenTickets,
+  formatKitchenElapsed,
   subscribeToKitchenChanges,
   updateTicketStage,
 } from "@/lib/orders/realtime"
@@ -24,14 +27,17 @@ export default function BrewBarPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
-  const [nowMs, setNowMs] = useState(() => Date.now())
+  const [, setTimerTick] = useState(0)
 
   // Ticks once a second purely to re-render elapsed time on each card —
   // does not refetch data, just recomputes from ticket.createdAt.
   useEffect(() => {
-    const interval = setInterval(() => setNowMs(Date.now()), 1000)
+    const hasActiveTickets = kitchenTickets.some((ticket) => ticket.stage !== "completed")
+    if (!hasActiveTickets) return
+
+    const interval = setInterval(() => setTimerTick((tick) => tick + 1), 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [kitchenTickets])
 
   const loadTickets = useCallback(async () => {
     if (!cafeId) return
@@ -93,13 +99,23 @@ export default function BrewBarPage() {
 
   const toCook = kitchenTickets.filter((t) => t.stage === "to_cook")
   const preparing = kitchenTickets.filter((t) => t.stage === "preparing")
-  const completed = kitchenTickets.filter((t) => t.stage === "completed")
+  const completed = kitchenTickets
+    .filter((t) => t.stage === "completed")
+    .sort((a, b) => {
+      const bTime = new Date(b.completedAt ?? b.updatedAt).getTime()
+      const aTime = new Date(a.completedAt ?? a.updatedAt).getTime()
+      return bTime - aTime
+    })
+
+  if (loading) {
+    return <BrandedLoader fullScreen message="Loading Brew Bar..." />
+  }
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
         <BrewBarExit role={user?.role} onExit={handleExit} />
-        <p className="text-sm text-gray-500">Loading Brew Bar…</p>
+        <p className="text-sm text-gray-500">Loading...</p>
       </div>
     )
   }
@@ -134,7 +150,10 @@ export default function BrewBarPage() {
       {/* To Cook */}
       <div className="flex w-80 shrink-0 flex-col rounded-xl bg-white shadow">
         <div className="border-b px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">To Cook</h2>
+          <div className="flex items-center gap-2">
+            <OdfeLogo variant="icon" size="sm" alt="" className="h-5 w-5" />
+            <h2 className="text-sm font-semibold text-gray-900">To Cook</h2>
+          </div>
           <p className="text-xs text-gray-400">{toCook.length} tickets</p>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -142,7 +161,6 @@ export default function BrewBarPage() {
             <TicketCard
               key={ticket.id}
               ticket={ticket}
-              nowMs={nowMs}
               onAdvance={() => handleStageUpdate(ticket, "preparing")}
               updating={updatingId === ticket.id}
             />
@@ -153,7 +171,10 @@ export default function BrewBarPage() {
       {/* Preparing */}
       <div className="flex w-80 shrink-0 flex-col rounded-xl bg-white shadow">
         <div className="border-b px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">Preparing</h2>
+          <div className="flex items-center gap-2">
+            <OdfeLogo variant="icon" size="sm" alt="" className="h-5 w-5" />
+            <h2 className="text-sm font-semibold text-gray-900">Preparing</h2>
+          </div>
           <p className="text-xs text-gray-400">{preparing.length} tickets</p>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -161,7 +182,6 @@ export default function BrewBarPage() {
             <TicketCard
               key={ticket.id}
               ticket={ticket}
-              nowMs={nowMs}
               onAdvance={() => handleStageUpdate(ticket, "completed")}
               updating={updatingId === ticket.id}
             />
@@ -172,7 +192,10 @@ export default function BrewBarPage() {
       {/* Completed */}
       <div className="flex w-80 shrink-0 flex-col rounded-xl bg-white shadow">
         <div className="border-b px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">Completed</h2>
+          <div className="flex items-center gap-2">
+            <OdfeLogo variant="icon" size="sm" alt="" className="h-5 w-5" />
+            <h2 className="text-sm font-semibold text-gray-900">Completed</h2>
+          </div>
           <p className="text-xs text-gray-400">{completed.length} tickets</p>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -180,7 +203,6 @@ export default function BrewBarPage() {
             <TicketCard
               key={ticket.id}
               ticket={ticket}
-              nowMs={nowMs}
               completed
               updating={false}
             />
@@ -207,19 +229,16 @@ function BrewBarExit({ role, onExit }: { role?: string; onExit: () => void }) {
 
 function TicketCard({
   ticket,
-  nowMs,
   onAdvance,
   completed,
   updating,
 }: {
   ticket: KitchenTicketWithItems
-  nowMs: number
   onAdvance?: () => void
   completed?: boolean
   updating: boolean
 }) {
-  const liveElapsedSeconds = Math.max(0, Math.floor((nowMs - new Date(ticket.createdAt).getTime()) / 1000))
-  const elapsed = formatElapsed(liveElapsedSeconds)
+  const elapsed = formatKitchenElapsed(ticket)
 
   return (
     <div className={`rounded-lg border p-3 ${completed ? "border-green-200 bg-green-50" : "border-gray-200 bg-white"}`}>
@@ -254,10 +273,4 @@ function TicketCard({
       )}
     </div>
   )
-}
-
-function formatElapsed(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
 }

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { BrandedLoader } from "@/components/branding/branded-loader"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { subscribeToCustomerOrder } from "@/lib/orders/realtime"
@@ -77,7 +79,7 @@ export default function CustomerOrderDetailPage() {
   }, [cafeId, customerId, loadOrder, params.orderId])
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center bg-odfe-cream text-sm text-gray-500">Loading order...</div>
+    return <BrandedLoader fullScreen message="Loading order..." />
   }
 
   if (error || !order) {
@@ -94,7 +96,8 @@ export default function CustomerOrderDetailPage() {
   return (
     <div className="min-h-screen bg-odfe-cream">
       <header className="bg-odfe-teal px-4 py-4">
-        <h1 className="font-display text-2xl text-odfe-cream">Order {order.orderNumber}</h1>
+        <OdfeLogo variant="full" size="sm" priority />
+        <h1 className="mt-2 text-sm font-medium text-odfe-cream">Order {order.orderNumber}</h1>
         <p className="mt-1 text-sm capitalize text-odfe-cream/70">{order.status.replaceAll("_", " ")}</p>
         <p className="text-xs text-odfe-cream/60">{order.tableLabel ? `Table ${order.tableLabel}` : "No table"}</p>
         <p className="text-xs text-odfe-cream/60">{new Date(order.createdAt).toLocaleString()}</p>

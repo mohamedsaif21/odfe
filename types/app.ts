@@ -96,6 +96,9 @@ export interface KitchenTicketWithItems {
   stage: "to_cook" | "preparing" | "completed"
   priority: number
   createdAt: string
+  updatedAt: string
+  preparingAt: string | null
+  completedAt: string | null
   items: Array<{
     productName: string
     quantity: number

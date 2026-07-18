@@ -3,6 +3,30 @@ import { getCafeId } from "./_shared"
 import type { Coupon } from "@/types/database"
 import type { DbClient, InsertTables, UpdateTables } from "./_shared"
 
+function mapCouponDatabaseError(error: { code?: string; message?: string; details?: string | null }) {
+  const message = error.message ?? ""
+  const details = error.details ?? ""
+  const combined = `${message} ${details}`.toLowerCase()
+
+  if (process.env.NODE_ENV === "development") {
+    console.error("Coupon database error:", error)
+  }
+
+  if (combined.includes("coupons_percentage_range")) {
+    return "Percentage discount must be between 1 and 100."
+  }
+
+  if (error.code === "23505" || combined.includes("duplicate key") || combined.includes("unique constraint")) {
+    return "A coupon with this code already exists."
+  }
+
+  if (combined.includes("expiry") || combined.includes("expires_at")) {
+    return "Expiry date must be in the future."
+  }
+
+  return message || "Failed to save coupon."
+}
+
 export async function fetchCoupons(client?: DbClient): Promise<Coupon[]> {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
@@ -65,7 +89,7 @@ export async function createCoupon(
     .select()
     .single()
 
-  if (error) throw new Error(error.message)
+  if (error) throw new Error(mapCouponDatabaseError(error))
   return data
 }
 

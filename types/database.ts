@@ -222,8 +222,13 @@ export interface Database {
           priority: number
           created_at: string
           updated_at: string
+          preparing_at: string | null
+          completed_at: string | null
         }
-        Insert: Omit<Database["public"]["Tables"]["kitchen_tickets"]["Row"], "id" | "created_at" | "updated_at">
+        Insert: Omit<Database["public"]["Tables"]["kitchen_tickets"]["Row"], "id" | "created_at" | "updated_at" | "preparing_at" | "completed_at"> & {
+          preparing_at?: string | null
+          completed_at?: string | null
+        }
         Update: Partial<Database["public"]["Tables"]["kitchen_tickets"]["Insert"]>
         Relationships: []
       }
@@ -409,6 +414,15 @@ export interface Database {
               table_id: string
               table_label: string
             }>
+      }
+      advance_kitchen_ticket: {
+        Args: {
+          p_ticket_id: string
+          p_order_id: string
+          p_next_stage: KitchenStage
+          p_previous_stage: KitchenStage
+        }
+        Returns: undefined
       }
     }
     Enums: Record<string, never>

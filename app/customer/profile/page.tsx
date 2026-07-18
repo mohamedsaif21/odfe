@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { LogOut } from "lucide-react"
+import { BrandedLoader } from "@/components/branding/branded-loader"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { fetchCustomerByProfileId } from "@/lib/services/self-order.service"
@@ -47,7 +49,7 @@ export default function CustomerProfilePage() {
   }
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center bg-odfe-cream text-sm text-gray-500">Loading profile...</div>
+    return <BrandedLoader fullScreen message="Loading profile..." />
   }
 
   return (
@@ -55,7 +57,7 @@ export default function CustomerProfilePage() {
       <header className="bg-odfe-teal px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl text-odfe-cream">Profile</h1>
+            <OdfeLogo variant="full" size="sm" priority />
             <p className="mt-1 text-sm text-odfe-cream/70">{customer?.name ?? "Customer"}</p>
           </div>
           <div className="flex items-center gap-2">

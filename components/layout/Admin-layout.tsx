@@ -3,6 +3,7 @@
 import { AdminSidebar } from "./admin-sidebar"
 import { CashierLayout } from "./cashier-layout"
 import { TopHeader } from "./top-header"
+import { BrandedLoader } from "@/components/branding/branded-loader"
 import { useAuthStore } from "@/store/auth-store"
 import type { AuthUser } from "@/types/app"
 import type { AnyRole } from "@/types/database"
@@ -32,11 +33,7 @@ export function AdminLayout({ children, user, title, role }: AdminLayoutProps) {
   const effectiveRole = role ?? effectiveUser?.role
 
   if (!effectiveRole && isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </div>
-    )
+    return <BrandedLoader fullScreen message="Loading..." />
   }
 
   if (effectiveRole === "cashier") {

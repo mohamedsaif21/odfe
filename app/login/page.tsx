@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
+import { BrandedLoader } from "@/components/branding/branded-loader"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { signInEmployee } from "@/lib/auth/auth.service"
 import { useAuthStore } from "@/store/auth-store"
 import { getDefaultRedirect } from "@/lib/auth/role-mapper"
@@ -56,12 +58,7 @@ function LoginForm() {
 
         {/* Logo */}
         <div className="mb-8 text-center">
-          <h1
-            className="text-4xl text-odfe-teal"
-            style={{ fontFamily: "Anton, sans-serif" }}
-          >
-            OdFe
-          </h1>
+          <OdfeLogo variant="full" size="md" priority className="mx-auto" />
           <div className="mx-auto mt-2 h-0.5 w-8 rounded-full bg-odfe-gold" />
           <p className="mt-3 text-sm text-odfe-charcoal/60">Staff Login</p>
         </div>
@@ -134,7 +131,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-odfe-teal"><Loader2 className="animate-spin text-odfe-cream" size={24} /></div>}>
+    <Suspense fallback={<BrandedLoader fullScreen message="Loading..." />}>
       <LoginForm />
     </Suspense>
   )

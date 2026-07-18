@@ -8,10 +8,11 @@ import {
   Coffee, BarChart2, Settings, ChevronRight, Monitor,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { cn } from "@/lib/utils"
+import { getNavItemsForRole } from "@/lib/auth/role-mapper"
 import type { NavItem } from "@/types/app"
 import type { AnyRole } from "@/types/database"
-import { getNavItemsForRole } from "@/lib/auth/role-mapper"
 
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
@@ -54,12 +55,12 @@ function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
 
 export function AdminSidebar({
   role = "admin",
-  cafeName = "OdFe Cafe",
+  cafeName = "Premium Cafe POS",
+  collapsed = false,
 }: AdminSidebarProps) {
   const pathname = usePathname()
   const navItems = getNavItemsForRole(role)
 
-  // Group items for visual separation
   const coreItems = navItems.filter((i) =>
     ["/dashboard", "/pos", "/orders"].includes(i.href)
   )
@@ -86,26 +87,18 @@ export function AdminSidebar({
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col bg-odfe-teal">
-      {/* Logo mark — the design signature: Anton type + gold underline rule */}
       <div className="border-b border-white/10 px-5 py-5">
-        <div className="flex items-end gap-1.5">
-          <span
-            className="font-display text-2xl leading-none tracking-wide text-odfe-cream"
-            style={{ fontFamily: "Anton, sans-serif" }}
-          >
-            OdFe
-          </span>
-          <span className="mb-0.5 text-[10px] uppercase tracking-[0.2em] text-odfe-sage-light">
-            POS
-          </span>
-        </div>
-        {/* Gold rule — the one deliberate design risk: a single 2px gold line
-            under the logo. Too thin to shout, too precise to ignore. */}
+        <Link
+          href={role === "cashier" ? "/pos" : "/dashboard"}
+          aria-label={role === "cashier" ? "Go to OdFe POS" : "Go to OdFe dashboard"}
+          className="inline-flex"
+        >
+          <OdfeLogo variant={collapsed ? "icon" : "full"} size={collapsed ? "md" : "md"} priority />
+        </Link>
         <div className="mt-2 h-0.5 w-8 rounded-full bg-odfe-gold" />
         <p className="mt-2 truncate text-xs text-odfe-cream/50">{cafeName}</p>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {groups.map((group, gi) => (
           <div key={gi} className={cn(gi > 0 && "mt-4")}>
@@ -131,10 +124,9 @@ export function AdminSidebar({
         ))}
       </nav>
 
-      {/* Footer hint */}
       <div className="border-t border-white/10 px-5 py-3">
         <p className="text-[10px] text-odfe-cream/25">
-          Premium Cafe POS · Day 1
+          Premium Cafe POS
         </p>
       </div>
     </aside>

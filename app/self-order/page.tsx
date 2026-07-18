@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { LogOut } from "lucide-react"
+import { BrandedLoader } from "@/components/branding/branded-loader"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { createClient } from "@/lib/supabase/client"
 import { useAuthStore } from "@/store/auth-store"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
@@ -88,11 +90,7 @@ export default function SelfOrderPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-odfe-cream">
-        <p className="text-sm text-gray-500">Loading...</p>
-      </div>
-    )
+    return <BrandedLoader fullScreen message="Loading..." />
   }
 
   return (
@@ -100,7 +98,7 @@ export default function SelfOrderPage() {
       <header className="bg-odfe-teal px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl text-odfe-cream">{cafeName || "OdFe"}</h1>
+            <OdfeLogo variant="full" size="sm" priority />
             <p className="mt-1 text-sm text-odfe-cream/70">{customer?.name ?? user?.fullName}</p>
             <p className="text-xs text-odfe-cream/60">{customer?.email ?? user?.email}</p>
             <p className="text-xs text-odfe-gold">Loyalty points: {customer?.loyalty_points ?? 0}</p>

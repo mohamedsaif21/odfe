@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { LogOut } from "lucide-react"
+import { BrandedLoader } from "@/components/branding/branded-loader"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { fetchCustomerByProfileId, fetchCustomerOrders } from "@/lib/services/self-order.service"
@@ -100,7 +102,7 @@ export default function CustomerOrdersPage() {
   }
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center bg-odfe-cream text-sm text-gray-500">Loading orders...</div>
+    return <BrandedLoader fullScreen message="Loading orders..." />
   }
 
   return (
@@ -108,8 +110,8 @@ export default function CustomerOrdersPage() {
       <header className="bg-odfe-teal px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl text-odfe-cream">My Orders</h1>
-            <p className="mt-1 text-sm text-odfe-cream/70">Track your cafe orders</p>
+            <OdfeLogo variant="full" size="sm" priority />
+            <p className="mt-1 text-sm text-odfe-cream/70">My Orders</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => router.push("/self-order")} className="rounded-full border border-odfe-cream/20 px-3 py-1.5 text-xs font-medium text-odfe-cream/80 hover:bg-white/10">Self Order</button>

@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { createClient } from "@/lib/supabase/client"
 
 export default function RegisterPage() {
@@ -53,7 +54,7 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-odfe-cream p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
         <div className="mb-6 text-center">
-          <h1 className="font-display text-3xl tracking-wide text-odfe-teal">OdFe</h1>
+          <OdfeLogo variant="full" size="md" priority className="mx-auto" />
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-odfe-sage">Create Account</p>
           <div className="mx-auto mt-3 h-0.5 w-8 rounded-full bg-odfe-gold" />
         </div>

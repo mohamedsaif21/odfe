@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { CashierNav } from "./cashier-nav"
 import { ProfileMenu } from "./profile-menu"
 import type { AuthUser } from "@/types/app"
@@ -15,7 +17,9 @@ export function CashierLayout({ children, user, title }: CashierLayoutProps) {
     <div className="flex h-screen flex-col bg-background">
       <header className="flex min-h-14 shrink-0 flex-wrap items-center gap-3 border-b border-white/10 bg-odfe-teal px-4 py-2">
         <div className="flex items-center gap-3">
-          <span className="font-display text-xl text-odfe-cream" style={{ fontFamily: "Anton, sans-serif" }}>OdFe POS</span>
+          <Link href="/pos" aria-label="Go to OdFe POS" className="shrink-0">
+            <OdfeLogo variant="full" size="sm" priority />
+          </Link>
           {title && <span className="hidden text-sm text-odfe-cream/50 sm:inline">/ {title}</span>}
         </div>
         <CashierNav variant="topbar" className="ml-auto" />

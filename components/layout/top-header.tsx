@@ -1,6 +1,7 @@
 "use client"
 
 import { Bell } from "lucide-react"
+import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { ProfileMenu } from "./profile-menu"
 import { ThemeToggle } from "./theme-toggle"
 import type { AuthUser } from "@/types/app"
@@ -14,7 +15,8 @@ export function TopHeader({ user, title }: TopHeaderProps) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-6">
       {/* Page title */}
-      <div>
+      <div className="flex items-center gap-2">
+        <OdfeLogo variant="icon" size="sm" alt="" className="h-6 w-6" />
         {title && (
           <h1 className="text-base font-medium text-foreground">{title}</h1>
         )}

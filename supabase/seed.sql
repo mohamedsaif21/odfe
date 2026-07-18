@@ -161,7 +161,9 @@ CREATE TABLE kitchen_tickets (
   stage           kitchen_stage NOT NULL DEFAULT 'to_cook',
   priority        INTEGER NOT NULL DEFAULT 0,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  preparing_at    TIMESTAMPTZ,
+  completed_at    TIMESTAMPTZ
 );
 
 CREATE TABLE kitchen_ticket_items (
