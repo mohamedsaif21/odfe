@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Plus, RefreshCw, Search } from "lucide-react"
+import { Plus, RefreshCw, Search, X } from "lucide-react"
 import { AdminLayout } from "@/components/layout/Admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,8 @@ import {
   toggleProductAvailability,
   updateProduct,
 } from "@/lib/services/product.service"
-import type { Product, ProductCategory } from "@/types/database"
+import { fetchInventoryItems, getProductIngredients, setProductIngredients } from "@/lib/services/inventory.service"
+import type { Product, ProductCategory, InventoryItem } from "@/types/database"
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -35,6 +36,10 @@ export default function ProductsPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
+  const [recipeProduct, setRecipeProduct] = useState<Product | null>(null)
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
+  const [recipeIngredients, setRecipeIngredients] = useState<Array<{ item_id: string; quantity: number }>>([])
+  const [recipeLoading, setRecipeLoading] = useState(false)
 
   const loadData = useCallback(async () => {
     setIsLoading(true)
@@ -166,6 +171,57 @@ export default function ProductsPage() {
     }
   }
 
+  async function handleOpenRecipe(product: Product) {
+    setRecipeProduct(product)
+    setRecipeLoading(true)
+    try {
+      const [items, ingredients] = await Promise.all([
+        fetchInventoryItems(),
+        getProductIngredients(product.id),
+      ])
+      setInventoryItems(items)
+      setRecipeIngredients(ingredients.map((i) => ({ item_id: i.item_id, quantity: i.quantity })))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load recipe")
+    } finally {
+      setRecipeLoading(false)
+    }
+  }
+
+  async function handleSaveRecipe() {
+    if (!recipeProduct) return
+    setIsSubmitting(true)
+    setError(null)
+    try {
+      await setProductIngredients(
+        recipeProduct.id,
+        recipeIngredients.filter((i) => i.quantity > 0)
+      )
+      setSuccess("Recipe saved")
+      setRecipeProduct(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save recipe")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function toggleRecipeIngredient(item: InventoryItem) {
+    setRecipeIngredients((prev) => {
+      const exists = prev.find((i) => i.item_id === item.id)
+      if (exists) {
+        return prev.filter((i) => i.item_id !== item.id)
+      }
+      return [...prev, { item_id: item.id, quantity: 1 }]
+    })
+  }
+
+  function updateRecipeQty(itemId: string, quantity: number) {
+    setRecipeIngredients((prev) =>
+      prev.map((i) => (i.item_id === itemId ? { ...i, quantity: Math.max(0, quantity) } : i))
+    )
+  }
+
   async function handleToggle(product: Product) {
     setError(null)
     try {
@@ -221,6 +277,7 @@ export default function ProductsPage() {
             onEdit={(product) => { setEditingProduct(product); setFormOpen(true) }}
             onDelete={setDeletingProduct}
             onToggleAvailability={handleToggle}
+            onRecipe={handleOpenRecipe}
           />
         )}
       </PageContainer>
@@ -242,6 +299,63 @@ export default function ProductsPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeletingProduct(null)}
       />
+
+      {/* Recipe Modal */}
+      {recipeProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between border-b px-5 py-4 shrink-0">
+              <h2 className="font-semibold">{recipeProduct.name} — Recipe</h2>
+              <button type="button" onClick={() => setRecipeProduct(null)}>
+                <X className="h-4 w-4 text-gray-400" />
+              </button>
+            </div>
+            <div className="overflow-y-auto px-5 py-4 space-y-1">
+              {recipeLoading ? (
+                <p className="text-center text-sm text-gray-400 py-6">Loading inventory...</p>
+              ) : inventoryItems.length === 0 ? (
+                <p className="text-center text-sm text-gray-400 py-6">No inventory items found. <button onClick={() => setRecipeProduct(null)} className="text-odfe-teal underline">Add items first</button></p>
+              ) : (
+                inventoryItems.filter((i) => i.is_active).map((item) => {
+                  const selected = recipeIngredients.find((r) => r.item_id === item.id)
+                  return (
+                    <div key={item.id} className="flex items-center gap-3 rounded-lg border border-cream-100 px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={!!selected}
+                        onChange={() => toggleRecipeIngredient(item)}
+                        className="h-4 w-4 rounded border-gray-300 text-odfe-teal"
+                      />
+                      <span className="flex-1 text-sm font-medium">{item.name}</span>
+                      <span className="text-xs text-gray-400 w-12 text-right">{Number(item.stock).toFixed(1)} in stock</span>
+                      {selected && (
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={selected.quantity}
+                          onChange={(e) => updateRecipeQty(item.id, Number(e.target.value))}
+                          className="w-20 rounded border border-gray-200 px-2 py-1 text-right text-sm"
+                        />
+                      )}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+            <div className="border-t px-5 py-4 flex gap-3 shrink-0">
+              <button onClick={handleSaveRecipe} disabled={isSubmitting}
+                className="flex-1 rounded-lg bg-odfe-teal py-2.5 text-sm font-semibold text-white hover:bg-odfe-teal-light disabled:opacity-50">
+                {isSubmitting ? "Saving..." : "Save Recipe"}
+              </button>
+              <button onClick={() => setRecipeProduct(null)}
+                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }

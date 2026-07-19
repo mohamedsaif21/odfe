@@ -226,6 +226,13 @@ export async function createPaymentForOrder(
 
       if (tableError) throw new Error(tableError.message)
     }
+
+    // Auto-deduct inventory stock for this order (fire-and-forget)
+    import("@/lib/services/inventory.service").then(({ deductStockForOrder }) => {
+      deductStockForOrder(input.orderId).catch((err) =>
+        console.error("Auto-deduction failed for order", input.orderId, err)
+      )
+    })
   }
 
   return {

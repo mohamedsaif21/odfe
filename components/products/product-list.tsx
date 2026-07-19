@@ -1,6 +1,6 @@
 "use client"
 
-import { Eye, EyeOff, Pencil, Trash2 } from "lucide-react"
+import { Eye, EyeOff, List, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ProductImage } from "@/components/products/product-image"
@@ -12,9 +12,10 @@ interface ProductListProps {
   onEdit: (product: Product) => void
   onDelete: (product: Product) => void
   onToggleAvailability: (product: Product) => void
+  onRecipe?: (product: Product) => void
 }
 
-export function ProductList({ products, categories, onEdit, onDelete, onToggleAvailability }: ProductListProps) {
+export function ProductList({ products, categories, onEdit, onDelete, onToggleAvailability, onRecipe }: ProductListProps) {
   const categoryName = (id: string) => categories.find((category) => category.id === id)?.name ?? "Unassigned"
 
   if (products.length === 0) {
@@ -53,6 +54,11 @@ export function ProductList({ products, categories, onEdit, onDelete, onToggleAv
               <Button variant="ghost" size="sm" onClick={() => onToggleAvailability(product)} aria-label="Toggle availability">
                 {product.is_available ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
+              {onRecipe && (
+                <Button variant="ghost" size="sm" onClick={() => onRecipe(product)} aria-label="Recipe">
+                  <List className="h-4 w-4" />
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={() => onEdit(product)} aria-label="Edit">
                 <Pencil className="h-4 w-4" />
               </Button>
