@@ -375,6 +375,50 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["settings"]["Insert"]>
         Relationships: []
       }
+      inventory_items: {
+        Row: {
+          id: string
+          cafe_id: string
+          name: string
+          unit: string
+          cost_price: number
+          stock: number
+          reorder_level: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["inventory_items"]["Row"], "id" | "created_at" | "updated_at">
+        Update: Partial<Database["public"]["Tables"]["inventory_items"]["Insert"]>
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          id: string
+          cafe_id: string
+          item_id: string
+          quantity: number
+          type: "in" | "out"
+          note: string | null
+          created_by: string
+          created_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["stock_movements"]["Row"], "id" | "created_at">
+        Update: Partial<Database["public"]["Tables"]["stock_movements"]["Insert"]>
+        Relationships: []
+      }
+      product_ingredients: {
+        Row: {
+          id: string
+          cafe_id: string
+          product_id: string
+          item_id: string
+          quantity: number
+        }
+        Insert: Omit<Database["public"]["Tables"]["product_ingredients"]["Row"], "id">
+        Update: Partial<Database["public"]["Tables"]["product_ingredients"]["Insert"]>
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {
@@ -429,6 +473,14 @@ export interface Database {
         }
         Returns: undefined
       }
+      adjust_inventory_stock: {
+        Args: {
+          p_item_id: string
+          p_cafe_id: string
+          p_adjustment: number
+        }
+        Returns: undefined
+      }
     }
     Enums: Record<string, never>
   }
@@ -464,3 +516,6 @@ export type Promotion = Tables<"promotions">
 export type PosSession = Tables<"pos_sessions">
 export type SelfOrderToken = Tables<"self_order_tokens">
 export type Booking = Tables<"bookings">
+export type InventoryItem = Tables<"inventory_items">
+export type StockMovement = Tables<"stock_movements">
+export type ProductIngredient = Tables<"product_ingredients">

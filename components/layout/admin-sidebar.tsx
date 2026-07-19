@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
   Tag, LayoutGrid, Users, UserCheck, CreditCard, Percent,
-  Coffee, BarChart2, Settings, ChevronRight, Monitor,
+  Coffee, BarChart2, Settings, ChevronRight, Monitor, Archive,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { OdfeLogo } from "@/components/branding/odfe-logo"
@@ -17,7 +17,7 @@ import type { AnyRole } from "@/types/database"
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
   Tag, LayoutGrid, Users, UserCheck, CreditCard, Percent,
-  Coffee, BarChart2, Settings, Monitor,
+  Coffee, BarChart2, Settings, Monitor, Archive,
 }
 
 interface AdminSidebarProps {

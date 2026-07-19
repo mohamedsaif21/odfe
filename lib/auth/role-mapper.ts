@@ -19,6 +19,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Products",         href: "/products",          icon: "Package",         roles: ["admin"] },
   { label: "Categories",       href: "/categories",        icon: "Tag",             roles: ["admin"] },
   { label: "Tables",           href: "/tables",            icon: "LayoutGrid",      roles: ["admin"] },
+  { label: "Inventory",        href: "/inventory",         icon: "Archive",         roles: ["admin"] },
   { label: "Customers",        href: "/customers",         icon: "Users",           roles: ["admin", "cashier"] },
   { label: "Customer Display", href: "/customer-display",  icon: "Monitor",         roles: ["admin", "cashier"] },
   { label: "Employees",        href: "/employees",         icon: "UserCheck",       roles: ["admin"] },
