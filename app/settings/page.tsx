@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { CreditCard, Save } from "lucide-react"
+import { Building2, CreditCard, Save } from "lucide-react"
 import { AdminLayout } from "@/components/layout/Admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Alert } from "@/components/ui/alert"
@@ -11,6 +11,7 @@ import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 import { getCafeId } from "@/lib/services/_shared"
+import { fetchCafeInfo, saveCafeInfo } from "@/lib/services/cafe.service"
 import type { Json, PaymentMethodType, Tables } from "@/types/database"
 
 type Setting = Tables<"settings">
@@ -34,6 +35,9 @@ export default function SettingsPage() {
   const [jsonValue, setJsonValue] = useState('{\n  "mode": "online_ordering"\n}')
   const [selfOrderMode, setSelfOrderMode] = useState<"online_ordering" | "qr_menu">("online_ordering")
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
+  const [cafeAddress, setCafeAddress] = useState("")
+  const [cafeGst, setCafeGst] = useState("")
+  const [receiptFooter, setReceiptFooter] = useState("")
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -62,6 +66,13 @@ export default function SettingsPage() {
       const selfOrder = (data ?? []).find((setting) => setting.key === "self_order")
       const value = selfOrder?.value as Record<string, unknown> | undefined
       setSelfOrderMode(value?.mode === "qr_menu" ? "qr_menu" : "online_ordering")
+
+      const cafeInfo = await fetchCafeInfo(activeCafeId).catch(() => null)
+      if (cafeInfo) {
+        setCafeAddress(cafeInfo.address)
+        setCafeGst(cafeInfo.gst)
+        setReceiptFooter(cafeInfo.receiptFooter)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load settings")
     } finally {
@@ -84,6 +95,20 @@ export default function SettingsPage() {
       ) => Promise<{ error: { message: string } | null }>
     )({ cafe_id: cafeId, key, value }, { onConflict: "cafe_id,key" })
     if (upsertError) throw new Error(upsertError.message)
+  }
+
+  async function saveCafeInformation() {
+    if (!cafeId) return
+    setSaving(true)
+    setError(null)
+    try {
+      await saveCafeInfo(cafeId, { address: cafeAddress, gst: cafeGst, receipt_footer: receiptFooter })
+      setSuccess("Cafe information saved")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save cafe information")
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function saveSelfOrderMode() {
@@ -158,6 +183,34 @@ export default function SettingsPage() {
         <PageHeader title="Settings" description="Cafe configuration and preferences" />
         {error && <div className="mb-4"><Alert type="error" message={error} onDismiss={() => setError(null)} /></div>}
         {success && <div className="mb-4"><Alert type="success" message={success} onDismiss={() => setSuccess(null)} /></div>}
+
+        <div className="mb-6 rounded-lg border border-cream-200 bg-white p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-odfe-teal" />
+            <h2 className="text-sm font-semibold">Cafe Information</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-charcoal/70">Address</label>
+              <Textarea value={cafeAddress} onChange={(e) => setCafeAddress(e.target.value)} placeholder="Cafe address for receipts" />
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-charcoal/70">GST Number</label>
+                <Input value={cafeGst} onChange={(e) => setCafeGst(e.target.value)} placeholder="GSTIN (optional)" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-charcoal/70">Receipt Footer</label>
+                <Input value={receiptFooter} onChange={(e) => setReceiptFooter(e.target.value)} placeholder="Thank you for your visit!" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-3">
+            <Button onClick={saveCafeInformation} disabled={saving}>
+              <Save className="mr-2 h-4 w-4" />Save Cafe Info
+            </Button>
+          </div>
+        </div>
 
         <div className="mb-6 grid gap-4 lg:grid-cols-2">
           <div className="rounded-lg border border-cream-200 bg-white p-4">

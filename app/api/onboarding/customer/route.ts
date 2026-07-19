@@ -94,11 +94,16 @@ export async function POST(request: NextRequest) {
       const { error: updateCustomerError } = await adminClient
         .from("customers")
         .update({
-          cafe_id: cafeId,
+          profile_id: session.user.id,
           name: fullName,
           email,
           phone: phone ?? null,
+          address: null,
+          birthday: null,
+          is_active: true,
           loyalty_points: 0,
+          visit_count: 0,
+          lifetime_spend: 0,
         })
         .eq("id", existingCustomer.id)
 
@@ -114,7 +119,12 @@ export async function POST(request: NextRequest) {
         name: fullName,
         email,
         phone: phone ?? null,
+        address: null,
+        birthday: null,
+        is_active: true,
         loyalty_points: 0,
+        visit_count: 0,
+        lifetime_spend: 0,
       })
       .select("id")
       .single()

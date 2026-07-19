@@ -6,7 +6,7 @@ import type { DbClient, InsertTables, UpdateTables } from "./_shared"
 import type { Profile } from "@/types/database"
 
 export type EmployeeWithProfile = Employee & {
-  profiles: Pick<Profile, "full_name" | "email" | "avatar_url"> | null
+  profiles: Pick<Profile, "full_name" | "email" | "avatar_url" | "is_active"> | null
 }
 
 export async function fetchEmployees(client?: DbClient): Promise<EmployeeWithProfile[]> {
@@ -15,7 +15,7 @@ export async function fetchEmployees(client?: DbClient): Promise<EmployeeWithPro
 
   const { data, error } = await supabase
     .from("employees")
-    .select("*, profiles!inner(full_name, email, avatar_url)")
+    .select("*, profiles!inner(full_name, email, avatar_url, is_active)")
     .eq("cafe_id", cafeId)
     .order("created_at", { ascending: false })
     .returns<EmployeeWithProfile[]>()
@@ -80,6 +80,29 @@ export async function deactivateEmployee(id: string, client?: DbClient) {
   if (!emp) throw new Error("Employee not found")
 
   const updates: UpdateTables<"profiles"> = { is_active: false }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", emp.profile_id)
+
+  if (error) throw new Error(error.message)
+}
+
+export async function activateEmployee(id: string, client?: DbClient) {
+  const supabase = client ?? createClient()
+  const cafeId = await getCafeId(client)
+
+  const { data: emp } = await supabase
+    .from("employees")
+    .select("profile_id")
+    .eq("id", id)
+    .eq("cafe_id", cafeId)
+    .single()
+
+  if (!emp) throw new Error("Employee not found")
+
+  const updates: UpdateTables<"profiles"> = { is_active: true }
 
   const { error } = await supabase
     .from("profiles")

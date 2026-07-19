@@ -115,6 +115,12 @@ export interface PaymentEntry {
   reference: string | null
 }
 
+export type PaymentTender = {
+  method: Exclude<PaymentMethodType, "split">
+  amount: number
+  reference: string | null
+}
+
 // ─── Reports ─────────────────────────────────────────────────────────────────
 
 export interface DailyRevenueStat {

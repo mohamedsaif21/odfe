@@ -98,7 +98,12 @@ export interface Database {
           name: string
           email: string | null
           phone: string | null
+          address: string | null
+          birthday: string | null
+          is_active: boolean
           loyalty_points: number
+          visit_count: number
+          lifetime_spend: number
           created_at: string
         }
         Insert: Omit<Database["public"]["Tables"]["customers"]["Row"], "id" | "created_at">

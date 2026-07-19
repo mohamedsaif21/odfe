@@ -25,19 +25,23 @@ import {
   createOrderWithKitchenTicket,
   createPaymentForOrder,
 } from "@/lib/orders/create-order"
-import type { Product, ProductCategory, CafeTable, Coupon, AnyRole } from "@/types/database"
+import { getActiveSession, openSession, closeSession, computeSessionStats } from "@/lib/services/session.service"
+import { useSessionStore } from "@/store/session-store"
+import { fetchCafeInfo } from "@/lib/services/cafe.service"
+import type { CafeInfo } from "@/lib/services/cafe.service"
+import { PrintableReceipt } from "@/components/receipt/printable-receipt"
+import type { Product, ProductCategory, CafeTable, Coupon, AnyRole, PosSession } from "@/types/database"
 import type { PaymentMethodType } from "@/types/database"
-
-type PaymentTender = {
-  method: Exclude<PaymentMethodType, "split">
-  amount: number
-  reference: string | null
-}
+import type { PaymentTender } from "@/types/app"
 
 type ReceiptState = {
   orderNumber: string
   total: number
   tenders: PaymentTender[]
+  items: Array<{ name: string; qty: number; price: number; total: number }>
+  subtotal: number
+  discount: number
+  tax: number
 }
 
 function ProductTileImage({ product }: { product: Product }) {
@@ -257,6 +261,143 @@ function PaymentModal({ total, methods, onConfirm, onClose, loading }: {
   )
 }
 
+// ─── Open Session modal ──────────────────────────────────────────────────────────
+
+function OpenSessionModal({
+  onConfirm, onClose, loading,
+}: {
+  onConfirm: (openingCash: number) => void
+  onClose: () => void
+  loading: boolean
+}) {
+  const [amount, setAmount] = useState("")
+  const [error, setError] = useState("")
+
+  function handleConfirm() {
+    const parsed = Number.parseFloat(amount)
+    if (Number.isNaN(parsed) || parsed < 0) {
+      setError("Enter a valid opening cash amount.")
+      return
+    }
+    onConfirm(parsed)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h2 className="font-semibold text-gray-900">Open POS Session</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+        </div>
+        <div className="space-y-4 px-5 py-4">
+          <p className="text-sm text-gray-500">Enter the cash amount in the drawer to start your session.</p>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600">Opening Cash Amount</label>
+            <input
+              autoFocus
+              type="number"
+              min="0"
+              step="0.01"
+              value={amount}
+              onChange={(e) => { setAmount(e.target.value); setError("") }}
+              placeholder="0.00"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
+            />
+          </div>
+          {error && (
+            <p className="flex items-center gap-1.5 text-xs text-red-600"><AlertCircle size={13} />{error}</p>
+          )}
+        </div>
+        <div className="flex gap-2 border-t px-5 py-4">
+          <button onClick={onClose}
+            className="flex-1 rounded-lg border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
+            Cancel
+          </button>
+          <button onClick={handleConfirm} disabled={loading}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-odfe-teal py-2.5 text-sm font-semibold text-white hover:bg-odfe-teal-light disabled:opacity-50">
+            {loading ? <Loader2 size={15} className="animate-spin" /> : null}
+            {loading ? "Opening…" : "Open Session"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Close Session modal ─────────────────────────────────────────────────────────
+
+function CloseSessionModal({
+  session, loading, onConfirm, onClose,
+}: {
+  session: PosSession
+  loading: boolean
+  onConfirm: (closingCash: number, notes?: string) => void
+  onClose: () => void
+}) {
+  const [amount, setAmount] = useState("")
+  const [notes, setNotes] = useState("")
+  const [error, setError] = useState("")
+
+  function handleConfirm() {
+    const parsed = Number.parseFloat(amount)
+    if (Number.isNaN(parsed) || parsed < 0) {
+      setError("Enter a valid closing cash amount.")
+      return
+    }
+    onConfirm(parsed, notes.trim() || undefined)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h2 className="font-semibold text-gray-900">Close POS Session</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+        </div>
+        <div className="space-y-4 px-5 py-4">
+          <p className="text-sm text-gray-500">Enter the actual cash amount counted in the drawer.</p>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600">Closing Cash Amount</label>
+            <input
+              autoFocus
+              type="number"
+              min="0"
+              step="0.01"
+              value={amount}
+              onChange={(e) => { setAmount(e.target.value); setError("") }}
+              placeholder="0.00"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600">Notes (optional)</label>
+            <input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any notes about this session"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
+            />
+          </div>
+          {error && (
+            <p className="flex items-center gap-1.5 text-xs text-red-600"><AlertCircle size={13} />{error}</p>
+          )}
+        </div>
+        <div className="flex gap-2 border-t px-5 py-4">
+          <button onClick={onClose}
+            className="flex-1 rounded-lg border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
+            Cancel
+          </button>
+          <button onClick={handleConfirm} disabled={loading}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-odfe-gold py-2.5 text-sm font-semibold text-odfe-charcoal hover:bg-odfe-gold-light disabled:opacity-50">
+            {loading ? <Loader2 size={15} className="animate-spin" /> : null}
+            {loading ? "Closing…" : "Close & Logout"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main POS page ─────────────────────────────────────────────────────────────
 
 export default function POSPage() {
@@ -288,6 +429,17 @@ export default function POSPage() {
   const [receipt, setReceipt] = useState<ReceiptState | null>(null)
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
+  // Session management
+  const [posSession, setPosSession] = useState<PosSession | null>(null)
+  const [sessionLoading, setSessionLoading] = useState(false)
+  const [showOpenSession, setShowOpenSession] = useState(false)
+  const [showCloseSession, setShowCloseSession] = useState(false)
+  const [sessionStats, setSessionStats] = useState({ totalOrders: 0, totalRevenue: 0 })
+  const [closing, setClosing] = useState(false)
+  const [cafeInfo, setCafeInfo] = useState<CafeInfo | null>(null)
+  const [receiptCafe, setReceiptCafe] = useState<CafeInfo | null>(null)
+  const { sessionId, setSession, clearSession, durationSeconds } = useSessionStore()
+
   const { lines, totals, selectedTable, appliedCoupon,
     addProduct, incrementLine, decrementLine, removeLine, setTable, applyCoupon, removeCoupon, clearCart } = useCartStore()
   const effectiveRole = sessionRole ?? user?.role
@@ -313,12 +465,24 @@ export default function POSPage() {
       setTables(tbls)
       setPaymentMethods(methods)
       setCoupons(validCoupons)
+
+      if (context.employeeId && context.cafeId) {
+        const existing = await getActiveSession(context.cafeId, context.employeeId)
+        if (existing) {
+          setPosSession(existing)
+          setSession(existing)
+          const stats = await computeSessionStats(existing.id, context.cafeId)
+          setSessionStats(stats)
+        } else {
+          setShowOpenSession(true)
+        }
+      }
     } catch (err) {
       setDataError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setDataLoading(false)
     }
-  }, [])
+  }, [setSession])
 
   useEffect(() => {
     loadPosData()
@@ -375,6 +539,7 @@ export default function POSPage() {
         customerId: null,
         lines,
         coupon: appliedCoupon,
+        sessionId,
         source: "pos",
       })
       setPayingOrderId(result.orderId)
@@ -404,6 +569,7 @@ export default function POSPage() {
           customerId: null,
           lines,
           coupon: appliedCoupon,
+          sessionId,
           source: "pos",
         })
         orderId = result.orderId
@@ -423,13 +589,29 @@ export default function POSPage() {
       }
       if (!fullyPaid) throw new Error("Payment saved, but the order is not fully paid yet.")
       setToast({ type: "success", message: "Payment completed. Sale closed ✓" })
-      setReceipt({ orderNumber: orderNumber ?? orderId, total: orderTotal, tenders })
+      setReceipt({
+        orderNumber: orderNumber ?? orderId,
+        total: orderTotal,
+        tenders,
+        items: lines.map((l) => ({
+          name: l.productName,
+          qty: l.quantity,
+          price: l.unitPrice,
+          total: l.unitPrice * l.quantity,
+        })),
+        subtotal: totals.subtotal,
+        discount: totals.discountTotal,
+        tax: totals.taxTotal,
+      })
       setShowPayment(false)
       setPayingOrderId(null)
       setPayingOrderNumber(null)
       setPayingOrderTotal(null)
       setPayingTicketId(null)
       clearCart()
+      fetchCafeInfo(cafeId ?? undefined)
+        .then(setReceiptCafe)
+        .catch(() => {})
       await loadPosData()
     } catch (err) {
       setToast({ type: "error", message: err instanceof Error ? err.message : "Payment failed." })
@@ -438,9 +620,48 @@ export default function POSPage() {
     }
   }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon, payingOrderId, payingOrderNumber, payingOrderTotal, paying, clearCart, loadPosData])
 
+  async function handleOpenSession(openingCash: number) {
+    if (!cafeId || !employeeId) return
+    setSessionLoading(true)
+    try {
+      const session = await openSession(cafeId, employeeId, openingCash)
+      setPosSession(session)
+      setSession(session)
+      setShowOpenSession(false)
+      setSessionStats({ totalOrders: 0, totalRevenue: 0 })
+      setToast({ type: "success", message: `Session opened with ₹${openingCash.toFixed(2)}` })
+    } catch (err) {
+      setToast({ type: "error", message: err instanceof Error ? err.message : "Failed to open session" })
+    } finally {
+      setSessionLoading(false)
+    }
+  }
+
+  async function handleCloseSession(closingCash: number, notes?: string) {
+    if (!posSession || !cafeId) return
+    setClosing(true)
+    try {
+      await closeSession(posSession.id, cafeId, closingCash, notes ?? null)
+      setToast({ type: "success", message: "Session closed successfully" })
+      clearSession()
+      await signOut()
+      clearUser()
+      router.replace("/login")
+    } catch (err) {
+      setToast({ type: "error", message: err instanceof Error ? err.message : "Failed to close session" })
+    } finally {
+      setClosing(false)
+    }
+  }
+
   async function handleExit() {
     if (effectiveRole === "admin") {
       router.push("/dashboard")
+      return
+    }
+
+    if (posSession) {
+      setShowCloseSession(true)
       return
     }
 
@@ -490,7 +711,20 @@ export default function POSPage() {
               Orders
             </button>
           )}
-          <div className="ml-auto hidden text-xs text-odfe-cream/50 sm:block">{cafeId ? "Connected" : "No session"}</div>
+          {posSession && (
+            <div className="ml-auto hidden items-center gap-2 sm:flex">
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2.5 py-0.5 text-[11px] font-medium text-green-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+                Session Active
+              </span>
+              <span className="text-[11px] text-odfe-cream/50 font-mono">
+                {Math.floor(durationSeconds / 3600)}h{Math.floor((durationSeconds % 3600) / 60)}m
+              </span>
+            </div>
+          )}
+          {!posSession && !dataLoading && (
+            <div className="ml-auto hidden text-xs text-odfe-cream/50 sm:block">No active session</div>
+          )}
           <button onClick={handleExit}
             className="flex items-center gap-1.5 rounded-full border border-odfe-cream/20 px-3 py-1 text-xs text-odfe-cream/80 hover:bg-white/10">
             {effectiveRole === "admin" ? (
@@ -690,37 +924,39 @@ export default function POSPage() {
           onClose={() => setShowPayment(false)} onConfirm={handleCompleteSale} />
       )}
 
-      {receipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b px-5 py-4">
-              <div className="flex items-center gap-2 font-semibold text-gray-900">
-                <Receipt size={18} className="text-odfe-teal" />
-                Receipt
-              </div>
-              <button onClick={() => setReceipt(null)}><X size={18} className="text-gray-400" /></button>
-            </div>
-            <div className="space-y-3 px-5 py-4 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Order</span><span>{receipt.orderNumber}</span></div>
-              {receipt.tenders.map((tender, index) => (
-                <div key={index} className="flex justify-between">
-                  <span className="capitalize text-gray-500">{tender.method}{tender.reference ? ` (${tender.reference})` : ""}</span>
-                  <span>₹{tender.amount.toFixed(2)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between border-t pt-3 font-semibold">
-                <span>Total paid</span>
-                <span>₹{receipt.total.toFixed(2)}</span>
-              </div>
-            </div>
-            <div className="border-t px-5 py-4">
-              <button onClick={() => setReceipt(null)}
-                className="w-full rounded-lg bg-odfe-teal py-2.5 text-sm font-semibold text-white">
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+      {receipt && receiptCafe && (
+        <PrintableReceipt
+          cafe={receiptCafe}
+          receipt={{
+            orderNumber: receipt.orderNumber,
+            date: new Date().toISOString(),
+            table: selectedTable?.label ?? null,
+            cashier: user?.fullName ?? null,
+            items: receipt.items,
+            subtotal: receipt.subtotal,
+            discount: receipt.discount,
+            tax: receipt.tax,
+            total: receipt.total,
+            tenders: receipt.tenders,
+            couponCode: appliedCoupon?.code ?? null,
+          }}
+          onClose={() => setReceipt(null)}
+        />
+      )}
+
+      {/* Session modals */}
+      {showOpenSession && !posSession && (
+        <OpenSessionModal loading={sessionLoading}
+          onClose={() => { if (!posSession) return; setShowOpenSession(false) }}
+          onConfirm={handleOpenSession}
+        />
+      )}
+
+      {showCloseSession && posSession && (
+        <CloseSessionModal session={posSession} loading={closing}
+          onClose={() => setShowCloseSession(false)}
+          onConfirm={handleCloseSession}
+        />
       )}
 
       {/* Toast */}
