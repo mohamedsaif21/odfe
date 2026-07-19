@@ -15,7 +15,7 @@ const sizeClasses = {
     lg: "h-12 w-12",
   },
   full: {
-    sm: "h-auto w-28 max-w-full",
+    sm: "h-auto w-20 max-w-full",
     md: "h-auto w-40 max-w-full",
     lg: "h-auto w-56 max-w-full",
   },

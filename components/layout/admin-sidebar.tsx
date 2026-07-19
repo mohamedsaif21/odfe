@@ -87,16 +87,17 @@ export function AdminSidebar({
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col bg-odfe-teal">
-      <div className="border-b border-white/10 px-5 py-5">
+      <div className="border-b border-white/10 px-5 py-4">
         <Link
           href={role === "cashier" ? "/pos" : "/dashboard"}
           aria-label={role === "cashier" ? "Go to OdFe POS" : "Go to OdFe dashboard"}
-          className="inline-flex"
+          className="block"
         >
-          <OdfeLogo variant={collapsed ? "icon" : "full"} size={collapsed ? "md" : "md"} priority />
+          <div className="flex h-16 items-center justify-center">
+            <OdfeLogo variant={collapsed ? "icon" : "full"} size={collapsed ? "sm" : "sm"} priority />
+          </div>
         </Link>
-        <div className="mt-2 h-0.5 w-8 rounded-full bg-odfe-gold" />
-        <p className="mt-2 truncate text-xs text-odfe-cream/50">{cafeName}</p>
+        <p className="mt-1.5 truncate text-center text-xs text-odfe-cream/50">{cafeName}</p>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
