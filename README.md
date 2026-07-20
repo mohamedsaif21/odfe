@@ -1,94 +1,298 @@
-# ☕ Premium Cafe POS
+# OdFe - Premium Cafe POS
 
-[![Next.js](https://img.shields.io/badge/Next.js-14.2.0-000000?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-SSR-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
-[![Zustand](https://img.shields.io/badge/State-Zustand-443322?style=for-the-badge)](https://github.com/pmndrs/zustand)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-38B2AC?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
+OdFe is a multi-tenant cafe point-of-sale and business operations platform built with Next.js, TypeScript, Supabase, Zustand, and Tailwind CSS. The app started as a core POS system and now includes inventory, supplier, and purchase order workflows for day-to-day cafe operations.
 
-An enterprise-grade, highly responsive **Multi-Tenant Point of Sale (POS) and Kitchen Management System** engineered specifically for premium cafes. Built on top of **Next.js 14 (App Router)**, **Supabase SSR**, and **Zustand**, the platform delivers absolute precision in real-time order tracking, state synchronisation, and rigorous data isolation.
+![OdFe overview](public/assets/readmemd/odfe.png)
 
----
+## Screenshots
 
-## 🏗️ Architectural Core Pillars
+| Dashboard | POS |
+| --- | --- |
+| ![Dashboard](public/assets/readmemd/dashboard.png) | ![POS screen](public/assets/readmemd/pos.png) |
 
-### 1. Robust Multi-Tenant Isolation (Row-Level Security)
-Every database table—from core `cafes` configuration to transactional `orders` and `kitchen_tickets`—features strict isolation using a tenant grouping vector (`cafe_id`). 
-* **Automatic Scoping:** Server operations leverage `createServerClient` via `@supabase/ssr` to read session tokens directly from secure HTTP-only cookies, automatically evaluating Supabase Row-Level Security (RLS) policies based on the authenticated context.
-* **Administrative Operations:** High-privilege administrative tasks utilize a secure `createAdminClient` via the Supabase Service Role Key, entirely bypassing RLS on isolated, trusted server-side execution cycles.
-* **RLS Hardening:** Apply `supabase/rls_hardening.sql` after the base schema/seed SQL. It replaces broad cafe-wide policies with role-specific policies for admin, cashier, kitchen, customer, and public QR visitors.
-* **E2E Journey SQL:** Apply `supabase/e2e_journey_support.sql` after the base schema/seed SQL. It provides the admin onboarding and employee creation RPCs used by the app.
+| Supabase setup |
+| --- |
+| ![Supabase](public/assets/readmemd/supabase.png) |
 
-### 2. Decoupled, Atomic State Management Engine
-The client layer implements a granular, decoupled reactive store system powered by **Zustand**. Instead of relying on monolithic state topologies, runtime contexts are separated across highly focused, atomic memory stores:
-* **`useCartStore`:** Manages client-side cart lines, atomic mutations (increment, decrement, custom operational notes), and real-time reactive calculations for multi-tier discounts (item-level vs. flat/percentage coupon validation).
-* **`useOrderStore`:** Regulates structural layout synchronization between active front-of-house POS orders and real-time back-of-house kitchen stage ticket states (`to_cook` → `preparing` → `completed`).
-* **`useAuthStore`:** Safely handles encrypted persistent authentication state structures using localized client storage middleware.
+## Current Status
 
-### 3. Modular Service Design Pattern
-Database interactions are entirely abstracted into clear domain-driven boundary services (`product.service`, `category.service`, `table.service`, etc.). Services consistently expose strict input-validation layers paired with robust TypeScript typing generated directly from the live PostgreSQL schema.
+Phase 1, Core POS, is essentially complete. Phase 2 has started and the first business operations sprint has been implemented.
 
----
+### Completed in Phase 1
 
-## 🛠️ Tech Stack & Key Dependencies
+- Admin authentication and protected app shell
+- POS ordering flow
+- Product and category management
+- Table management with QR/self-order support
+- Orders, kitchen/brew bar flow, and customer display
+- Customers, coupons, payments, reports, employees, bookings, and settings pages
+- Supabase-backed multi-tenant data model with RLS support
+- Zustand stores for cart, orders, auth, and sessions
 
-* **Framework:** Next.js 14.2.0 (App Router, Server Actions, Server Components)
-* **Language:** TypeScript 5.3.3 (Strict Type System matching Supabase definitions)
-* **Database & Auth:** Supabase (`@supabase/supabase-js`, `@supabase/ssr`)
-* **State Management:** Zustand 4.5.0 (with targeted persistence middleware)
-* **Styling System:** Tailwind CSS 3.4.1, `clsx`, `tailwind-merge`
-* **Data Utility & Export:** `xlsx` (Excel Reporting Engine), `jspdf` (Invoice Generation)
-* **Real-time Utility:** `qrcode` (Dynamic table tokens generation for customer self-ordering)
+### Completed after the Phase 2 report
 
----
+#### Inventory Enhancements - Sprint 0
 
-## 🗂️ System Anatomy & Repository Blueprint
+- Added expiry dates and batch numbers to the `inventory_items` table
+- Added inventory form fields for expiry date and batch number
+- Displayed batch and expiry data in the inventory table
+- Added expired item highlighting
+- Added wastage tracking through `is_wastage` on stock movements
+- Added a wastage checkbox in the stock adjustment modal for `out` adjustments
+- Updated automatic stock deduction from orders to stamp `is_wastage: false`
+
+#### Supplier Management - Sprint 1
+
+- Added the `suppliers` database table with:
+  - name
+  - contact person
+  - phone
+  - email
+  - address
+  - active/inactive status
+- Added `/suppliers` page
+- Added supplier CRUD
+- Added supplier search
+- Added summary cards for total, active, and inactive suppliers
+- Added active/inactive handling through deactivate flow
+- Added `lib/services/supplier.service.ts` with:
+  - `fetchSuppliers`
+  - `fetchActiveSuppliers`
+  - `createSupplier`
+  - `updateSupplier`
+  - `deleteSupplier`
+
+#### Purchase Orders - Sprint 1
+
+- Added `purchase_orders` and `purchase_order_items` database tables
+- Added purchase order status workflow:
+  - `draft`
+  - `ordered`
+  - `received`
+  - `cancelled`
+- Added `/purchases` page
+- Added purchase order creation with supplier, inventory items, quantities, and unit cost
+- Added purchase order detail modal
+- Added status actions:
+  - Mark Ordered
+  - Receive Stock
+  - Cancel
+  - Delete
+- Added `receive_purchase_order` RPC to automatically add received stock to inventory and log stock movements
+- Added `generate_po_number` RPC to generate sequential purchase order numbers such as `PO-0001`
+- Added `lib/services/purchase.service.ts` with purchase CRUD and status transitions
+
+#### Navigation
+
+- Added a new Inventory sidebar group:
+  - Inventory
+  - Suppliers
+  - Purchases
+- Moved Bookings into the Ops group
+- Added `CalendarDays` icon for Bookings
+
+## Main Features
+
+- Multi-tenant cafe operations with `cafe_id` scoped data
+- Supabase authentication and Row-Level Security
+- Admin, cashier, kitchen, and customer-facing flows
+- POS cart with discounts, coupons, and order creation
+- Kitchen and brew bar order tracking
+- Inventory item CRUD, low-stock alerts, movements, expiry, batch, and wastage tracking
+- Supplier CRUD with active/inactive status
+- Purchase order lifecycle from draft to received stock
+- Customer self-ordering through QR routes
+- Reports and export-oriented dependencies for PDF, Excel, and CSV work
+- Responsive admin UI built with reusable layout and UI components
+
+## Tech Stack
+
+| Area | Tools |
+| --- | --- |
+| Framework | Next.js 14 App Router |
+| Language | TypeScript |
+| UI | React 18, Tailwind CSS, lucide-react |
+| State | Zustand |
+| Backend | Supabase Auth, PostgreSQL, RLS, RPC functions |
+| Validation | Zod |
+| Reports/Exports | xlsx, jsPDF |
+| Charts | Recharts |
+| QR | qrcode |
+
+## Project Structure
+
+```text
+OdFe/
+|-- app/
+|   |-- api/                  # API routes and onboarding endpoints
+|   |-- bookings/             # Booking management
+|   |-- brew-bar/             # Brew bar order workflow
+|   |-- categories/           # Category CRUD
+|   |-- coupons/              # Coupon management
+|   |-- customer/             # Customer login, profile, and orders
+|   |-- customer-display/     # Customer-facing order display
+|   |-- customers/            # Customer management
+|   |-- dashboard/            # Admin dashboard
+|   |-- employees/            # Staff management
+|   |-- inventory/            # Inventory CRUD, stock movement, expiry, wastage
+|   |-- login/                # Admin/staff login
+|   |-- orders/               # Order management
+|   |-- payments/             # Payment records
+|   |-- pos/                  # Main POS screen
+|   |-- products/             # Product CRUD and images
+|   |-- purchases/            # Purchase order workflow
+|   |-- reports/              # Reporting page
+|   |-- s/[token]/            # Public QR self-order route
+|   |-- self-order/           # Customer self-order UI
+|   |-- settings/             # Cafe/app settings
+|   |-- suppliers/            # Supplier CRUD
+|   `-- tables/               # Table and QR management
+|-- components/
+|   |-- auth/                 # Auth provider
+|   |-- branding/             # OdFe logo and branded loader
+|   |-- categories/           # Category form/list components
+|   |-- layout/               # Admin/cashier shell, sidebar, header
+|   |-- products/             # Product form/list/image components
+|   |-- receipt/              # Printable receipt
+|   |-- self-order/           # Customer menu UI
+|   |-- tables/               # Table list/form/QR dialog
+|   `-- ui/                   # Shared UI primitives
+|-- lib/
+|   |-- auth/                 # Auth services and guards
+|   |-- config/               # Environment config
+|   |-- orders/               # Order creation and realtime helpers
+|   |-- services/             # Supabase domain services
+|   |-- supabase/             # Supabase client/server helpers
+|   `-- utils/                # Formatting, class names, product images
+|-- public/
+|   `-- assets/
+|       |-- logo/             # Brand assets
+|       |-- products/         # Product images
+|       `-- readmemd/         # README screenshots
+|-- store/                    # Zustand stores
+|-- supabase/                 # SQL migrations and seed scripts
+|-- types/                    # Shared TypeScript/database types
+`-- package.json
+```
+
+## Important Files
+
+| File | Purpose |
+| --- | --- |
+| `supabase/seed.sql` | Base database schema and seed data |
+| `supabase/rls_hardening.sql` | Role-specific RLS policy hardening |
+| `supabase/e2e_journey_support.sql` | Admin onboarding and employee RPC support |
+| `supabase/inventory_management.sql` | Inventory tables, services, and movement support |
+| `supabase/phase2_business_operations.sql` | Phase 2 inventory, supplier, and purchase order migration |
+| `lib/services/inventory.service.ts` | Inventory CRUD, stock adjustment, stock movement, auto deduction |
+| `lib/services/supplier.service.ts` | Supplier CRUD and active supplier lookup |
+| `lib/services/purchase.service.ts` | Purchase order CRUD, status changes, receive stock |
+| `types/database.ts` | App database type definitions |
+
+## Setup
+
+### 1. Install dependencies
 
 ```bash
-├── app/                      # Next.js App Router Structure
-│   ├── categories/           # Category administration dashboard entries
-│   ├── coupons/              # Discount code & automated promotion portals
-│   ├── customers/            # High-fidelity directory & customer loyalty points tracker
-│   ├── employees/            # Granular staff role controls & secure PIN management
-│   ├── payments/             # Centralized financial transaction accounting journals
-│   ├── products/             # Premium interactive menu control management
-│   └── tables/               # Dynamic visual floor layouts and QR token handlers
-├── components/               # Custom UI Component Architecture
-│   ├── layout/               # High-fidelity Shell, Sidebar, and Navigation Primitives
-│   └── ui/                   # High-polish design tokens (Dialogs, Buttons, Alerts, Badges)
-├── lib/                      # Architecture Foundation Infrastructure
-│   ├── services/             # Pure functional database operations data layers
-│   │   ├── _shared.ts        # Common middleware and session extraction helpers
-│   │   └── *.service.ts      # Domain-specific persistence endpoints
-│   └── supabase/             # Client/Server context initialization vectors
-├── store/                    # Decoupled React memory synchronization layers
-│   ├── auth-store.ts         # Session state engine
-│   ├── cart-store.ts         # High-precision real-time transactional math accumulator
-│   └── order-store.ts        # In-memory kitchen routing visual matrix
-└── types/                    # Domain Type Specifications
-    ├── database.ts           # Exact mirrored representation of the remote schema
-    └── app.ts                # Ephemeral UI states, cart contracts, and API structures
+npm install
+```
 
----
+### 2. Configure environment
 
-## 💎 Premium Component Design Tokens
-The user interface relies entirely on tailored, production-grade design micro-primitives constructed around clean, desaturated aesthetics. Key styling properties focus heavily on sophisticated tones like deep Charcoal (#2D3748), rich Teal (#0D9488), Muted Sage, and soft Cream, completely skipping distracting primary colors.
+Create `.env.local` in the project root.
 
-Button.tsx: Custom component featuring specific variations (default, outline, ghost, secondary) combined beautifully via tailwind-merge.
-Dialog.tsx & ConfirmDialog.tsx: Native React portals built around semantic focus controls, programmatic ESC-key handlers, and body overflow locks.
-Alert.tsx: Muted functional alert boxes matching status configurations via specialized semantic design vectors.
-
-## 🚀 Setting Up Local Development
-1. Environmental Variables Configuration
-Create a .env.local file in the root of the workspace:
-
+```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_public_key
-SUPABASE_SERVICE_ROLE_KEY=your_private_high_privilege_service_key
-2. Dependency Installation
-npm install
-3. Initiate Dev Server
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```
+
+### 3. Run Supabase SQL
+
+Run the SQL files in the Supabase SQL Editor. For a fresh setup, start with the base schema and then apply the later migrations.
+
+```text
+supabase/seed.sql
+supabase/rls_hardening.sql
+supabase/e2e_journey_support.sql
+supabase/inventory_management.sql
+supabase/phase2_business_operations.sql
+```
+
+For the latest Phase 2 work specifically, run:
+
+```text
+supabase/phase2_business_operations.sql
+```
+
+This adds inventory expiry/batch support, wastage tracking, suppliers, purchase orders, purchase order items, `receive_purchase_order`, and `generate_po_number`.
+
+### 4. Start the development server
+
+```bash
 npm run dev
-4. Code Quality & Formatting Check
-npm run lint
-README.md Displaying README.md.
+```
+
+Open the app at:
+
+```text
+http://localhost:3000
+```
+
+## Available Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the local Next.js dev server |
+| `npm run build` | Build the production app |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run Next.js linting |
+
+## App Routes
+
+| Route | Purpose |
+| --- | --- |
+| `/dashboard` | Admin overview |
+| `/pos` | Main POS screen |
+| `/orders` | Order management |
+| `/brew-bar` | Brew bar/kitchen workflow |
+| `/inventory` | Inventory management |
+| `/suppliers` | Supplier management |
+| `/purchases` | Purchase order management |
+| `/products` | Product management |
+| `/categories` | Category management |
+| `/tables` | Table and QR management |
+| `/customers` | Customer management |
+| `/payments` | Payment history |
+| `/reports` | Reports |
+| `/bookings` | Booking management |
+| `/settings` | Settings |
+| `/s/[token]` | Public self-order route |
+
+## Phase 2 Roadmap Progress
+
+| Module | Previous Report | Current Status |
+| --- | ---: | --- |
+| Inventory Management | 80% | Enhanced with batch, expiry, and wastage support |
+| Product Ingredients | 20% | Table exists; recipe builder UI still pending |
+| Automatic Stock Deduction | 10% | Implemented for orders and logs non-wastage movements |
+| Purchase Management | 0% | Purchase orders implemented |
+| Supplier Management | 0% | Supplier CRUD implemented |
+| Inventory Analytics | 0% | Pending |
+| Dashboard Analytics | 30% | Basic dashboard exists; deeper analytics pending |
+| Reports | 10% | Basic reports page exists; export expansion pending |
+| Customer Loyalty | 0% | Pending |
+| Expense Management | 0% | Pending |
+| Business Intelligence | 0% | Pending |
+
+## Next Work
+
+- Recipe builder UI for product ingredients
+- Unit conversion for ingredient quantities
+- Inventory valuation and analytics
+- Purchase history reporting
+- Supplier profile and supplier purchase history
+- Dashboard charts for revenue, orders, products, categories, kitchen, and customers
+- PDF, Excel, and CSV exports for reports
+- Customer loyalty, rewards, wallet, and offers
+- Expense management and profit dashboard
