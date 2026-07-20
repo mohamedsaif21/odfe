@@ -34,6 +34,8 @@ export default function InventoryPage() {
   const [formUnit, setFormUnit] = useState("piece")
   const [formCostPrice, setFormCostPrice] = useState("")
   const [formReorderLevel, setFormReorderLevel] = useState("")
+  const [formExpiryDate, setFormExpiryDate] = useState("")
+  const [formBatchNumber, setFormBatchNumber] = useState("")
   const [saving, setSaving] = useState(false)
 
   // Stock adjustment
@@ -41,6 +43,7 @@ export default function InventoryPage() {
   const [adjustType, setAdjustType] = useState<"in" | "out">("in")
   const [adjustQty, setAdjustQty] = useState("")
   const [adjustNote, setAdjustNote] = useState("")
+  const [adjustWastage, setAdjustWastage] = useState(false)
   const [adjusting, setAdjusting] = useState(false)
 
   // Movement history
@@ -70,6 +73,8 @@ export default function InventoryPage() {
     setFormUnit("piece")
     setFormCostPrice("")
     setFormReorderLevel("")
+    setFormExpiryDate("")
+    setFormBatchNumber("")
     setShowForm(true)
   }
 
@@ -79,6 +84,8 @@ export default function InventoryPage() {
     setFormUnit(item.unit)
     setFormCostPrice(String(item.cost_price))
     setFormReorderLevel(String(item.reorder_level))
+    setFormExpiryDate(item.expiry_date ?? "")
+    setFormBatchNumber(item.batch_number ?? "")
     setShowForm(true)
   }
 
@@ -93,6 +100,8 @@ export default function InventoryPage() {
           unit: formUnit,
           cost_price: formCostPrice ? Number(formCostPrice) : 0,
           reorder_level: formReorderLevel ? Number(formReorderLevel) : 0,
+          expiry_date: formExpiryDate || null,
+          batch_number: formBatchNumber.trim() || null,
         })
         setSuccess("Item updated")
       } else {
@@ -101,6 +110,8 @@ export default function InventoryPage() {
           unit: formUnit,
           cost_price: formCostPrice ? Number(formCostPrice) : 0,
           reorder_level: formReorderLevel ? Number(formReorderLevel) : 0,
+          expiry_date: formExpiryDate || undefined,
+          batch_number: formBatchNumber.trim() || undefined,
         })
         setSuccess("Item created")
       }
@@ -128,11 +139,12 @@ export default function InventoryPage() {
     setAdjusting(true)
     setError(null)
     try {
-      await adjustStock(adjustItem.id, qty, adjustType, adjustNote || undefined)
-      setSuccess(`Stock ${adjustType === "in" ? "added" : "removed"}: ${qty} ${adjustItem.unit}`)
+      await adjustStock(adjustItem.id, qty, adjustType, adjustNote || undefined, undefined, adjustWastage)
+      setSuccess(`Stock ${adjustType === "in" ? "added" : "removed"}: ${qty} ${adjustItem.unit}${adjustWastage ? " (wastage)" : ""}`)
       setAdjustItem(null)
       setAdjustQty("")
       setAdjustNote("")
+      setAdjustWastage(false)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Stock adjustment failed")
@@ -225,13 +237,15 @@ export default function InventoryPage() {
             <h2 className="mb-3 text-sm font-semibold text-charcoal">
               {editingId ? "Edit Item" : "New Inventory Item"}
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_140px_140px_140px_auto]">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_140px_140px_140px_140px_140px_auto]">
               <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Item name" required className={inputClass} />
               <select value={formUnit} onChange={(e) => setFormUnit(e.target.value)} className={inputClass}>
                 {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
               </select>
               <input type="number" step="0.01" min="0" value={formCostPrice} onChange={(e) => setFormCostPrice(e.target.value)} placeholder="Cost price" className={inputClass} />
               <input type="number" step="1" min="0" value={formReorderLevel} onChange={(e) => setFormReorderLevel(e.target.value)} placeholder="Reorder at" className={inputClass} />
+              <input type="date" value={formExpiryDate} onChange={(e) => setFormExpiryDate(e.target.value)} className={inputClass} title="Expiry date" />
+              <input value={formBatchNumber} onChange={(e) => setFormBatchNumber(e.target.value)} placeholder="Batch #" className={inputClass} />
               <div className="flex gap-2">
                 <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
@@ -249,6 +263,8 @@ export default function InventoryPage() {
                 <th className="px-4 py-3 text-center hidden sm:table-cell">Stock</th>
                 <th className="px-4 py-3 text-center hidden md:table-cell">Reorder At</th>
                 <th className="px-4 py-3 text-right hidden lg:table-cell">Cost</th>
+                <th className="px-4 py-3 text-center hidden xl:table-cell">Batch</th>
+                <th className="px-4 py-3 text-center hidden xl:table-cell">Expires</th>
                 <th className="px-4 py-3 text-center hidden lg:table-cell">Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
@@ -282,6 +298,16 @@ export default function InventoryPage() {
                     </td>
                     <td className="px-4 py-3 text-right hidden lg:table-cell">
                       ₹{Number(item.cost_price).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3 text-center hidden xl:table-cell">
+                      <span className="text-xs text-gray-500">{item.batch_number || "—"}</span>
+                    </td>
+                    <td className="px-4 py-3 text-center hidden xl:table-cell">
+                      {item.expiry_date ? (
+                        <span className={`text-xs ${new Date(item.expiry_date) < new Date() ? "text-red-500 font-semibold" : "text-gray-500"}`}>
+                          {new Date(item.expiry_date).toLocaleDateString()}
+                        </span>
+                      ) : "—"}
                     </td>
                     <td className="px-4 py-3 text-center hidden lg:table-cell">
                       {item.is_active ? (
@@ -339,6 +365,13 @@ export default function InventoryPage() {
                 </div>
                 <input type="number" step="0.01" min="0.01" value={adjustQty} onChange={(e) => setAdjustQty(e.target.value)} placeholder="Quantity" required className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal" />
                 <input value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} placeholder="Note (optional)" className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal" />
+                {adjustType === "out" && (
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <input type="checkbox" checked={adjustWastage} onChange={(e) => setAdjustWastage(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-odfe-teal" />
+                    Mark as wastage
+                  </label>
+                )}
                 <Button type="submit" disabled={adjusting} className="w-full">
                   {adjusting ? "Processing..." : `Confirm ${adjustType === "in" ? "Addition" : "Removal"}`}
                 </Button>

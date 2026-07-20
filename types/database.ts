@@ -37,6 +37,8 @@ export type DiscountType = "percentage" | "flat"
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled"
 
+export type PurchaseStatus = "draft" | "ordered" | "received" | "cancelled"
+
 export type OrderSource = "pos" | "self_order"
 
 // ─── Table row types ────────────────────────────────────────────────────────
@@ -384,6 +386,8 @@ export interface Database {
           cost_price: number
           stock: number
           reorder_level: number
+          expiry_date: string | null
+          batch_number: string | null
           is_active: boolean
           created_at: string
           updated_at: string
@@ -400,6 +404,7 @@ export interface Database {
           quantity: number
           type: "in" | "out"
           note: string | null
+          is_wastage: boolean
           created_by: string
           created_at: string
         }
@@ -417,6 +422,56 @@ export interface Database {
         }
         Insert: Omit<Database["public"]["Tables"]["product_ingredients"]["Row"], "id">
         Update: Partial<Database["public"]["Tables"]["product_ingredients"]["Insert"]>
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          id: string
+          cafe_id: string
+          name: string
+          contact_person: string | null
+          phone: string | null
+          email: string | null
+          address: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "created_at" | "updated_at">
+        Update: Partial<Database["public"]["Tables"]["suppliers"]["Insert"]>
+        Relationships: []
+      }
+      purchase_orders: {
+        Row: {
+          id: string
+          cafe_id: string
+          supplier_id: string | null
+          order_number: string
+          status: PurchaseStatus
+          total_amount: number
+          notes: string | null
+          ordered_at: string | null
+          received_at: string | null
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["purchase_orders"]["Row"], "id" | "created_at" | "updated_at">
+        Update: Partial<Database["public"]["Tables"]["purchase_orders"]["Insert"]>
+        Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          id: string
+          cafe_id: string
+          purchase_order_id: string
+          item_id: string
+          quantity: number
+          unit_cost: number
+          line_total: number
+        }
+        Insert: Omit<Database["public"]["Tables"]["purchase_order_items"]["Row"], "id">
+        Update: Partial<Database["public"]["Tables"]["purchase_order_items"]["Insert"]>
         Relationships: []
       }
     }
@@ -481,6 +536,19 @@ export interface Database {
         }
         Returns: undefined
       }
+      receive_purchase_order: {
+        Args: {
+          p_order_id: string
+          p_cafe_id: string
+        }
+        Returns: undefined
+      }
+      generate_po_number: {
+        Args: {
+          p_cafe_id: string
+        }
+        Returns: string
+      }
     }
     Enums: Record<string, never>
   }
@@ -519,3 +587,6 @@ export type Booking = Tables<"bookings">
 export type InventoryItem = Tables<"inventory_items">
 export type StockMovement = Tables<"stock_movements">
 export type ProductIngredient = Tables<"product_ingredients">
+export type Supplier = Tables<"suppliers">
+export type PurchaseOrder = Tables<"purchase_orders">
+export type PurchaseOrderItem = Tables<"purchase_order_items">

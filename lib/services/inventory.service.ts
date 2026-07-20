@@ -30,7 +30,7 @@ export async function fetchInventoryItems(
 }
 
 export async function createInventoryItem(
-  input: { name: string; unit: string; cost_price?: number; reorder_level?: number },
+  input: { name: string; unit: string; cost_price?: number; reorder_level?: number; expiry_date?: string; batch_number?: string },
   client?: DbClient
 ) {
   const supabase = client ?? createClient()
@@ -43,6 +43,8 @@ export async function createInventoryItem(
     cost_price: input.cost_price ?? 0,
     stock: 0,
     reorder_level: input.reorder_level ?? 0,
+    expiry_date: input.expiry_date ?? null,
+    batch_number: input.batch_number ?? null,
     is_active: true,
   }
 
@@ -58,7 +60,7 @@ export async function createInventoryItem(
 
 export async function updateInventoryItem(
   id: string,
-  input: Partial<{ name: string; unit: string; cost_price: number; reorder_level: number; is_active: boolean }>,
+  input: Partial<{ name: string; unit: string; cost_price: number; reorder_level: number; expiry_date: string | null; batch_number: string | null; is_active: boolean }>,
   client?: DbClient
 ) {
   const supabase = client ?? createClient()
@@ -83,7 +85,8 @@ export async function adjustStock(
   quantity: number,
   type: "in" | "out",
   note?: string,
-  client?: DbClient
+  client?: DbClient,
+  isWastage = false
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
@@ -107,6 +110,7 @@ export async function adjustStock(
     quantity,
     type,
     note: note ?? null,
+    is_wastage: isWastage,
     created_by: profile.id,
   }
 
@@ -353,6 +357,7 @@ export async function deductStockForOrder(
         quantity,
         type: "out",
         note: `Auto-deducted from order ${orderId}`,
+        is_wastage: false,
         created_by: profileId,
       })
 

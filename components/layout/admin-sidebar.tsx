@@ -6,6 +6,7 @@ import {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
   Tag, LayoutGrid, Users, UserCheck, CreditCard, Percent,
   Coffee, BarChart2, Settings, ChevronRight, Monitor, Archive,
+  Building2, Truck, CalendarDays,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { OdfeLogo } from "@/components/branding/odfe-logo"
@@ -18,6 +19,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, ShoppingCart, ClipboardList, Package,
   Tag, LayoutGrid, Users, UserCheck, CreditCard, Percent,
   Coffee, BarChart2, Settings, Monitor, Archive,
+  Building2, Truck, CalendarDays,
 }
 
 interface AdminSidebarProps {
@@ -67,6 +69,9 @@ export function AdminSidebar({
   const catalogItems = navItems.filter((i) =>
     ["/products", "/categories", "/tables"].includes(i.href)
   )
+  const inventoryItems = navItems.filter((i) =>
+    ["/inventory", "/suppliers", "/purchases"].includes(i.href)
+  )
   const peopleItems = navItems.filter((i) =>
     ["/customers", "/customer-display", "/employees"].includes(i.href)
   )
@@ -74,12 +79,13 @@ export function AdminSidebar({
     ["/payments", "/coupons"].includes(i.href)
   )
   const opsItems = navItems.filter((i) =>
-    ["/brew-bar", "/reports", "/settings"].includes(i.href)
+    ["/brew-bar", "/reports", "/settings", "/bookings"].includes(i.href)
   )
 
   const groups = [
     { label: null,        items: coreItems },
     { label: "Catalogue", items: catalogItems },
+    { label: "Inventory", items: inventoryItems },
     { label: "People",    items: peopleItems },
     { label: "Finance",   items: financeItems },
     { label: "Ops",       items: opsItems },
