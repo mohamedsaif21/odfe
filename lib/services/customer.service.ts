@@ -68,6 +68,11 @@ export async function createCustomer(
     loyalty_points: 0,
     visit_count: 0,
     lifetime_spend: 0,
+    tier_id: null,
+    total_points_earned: 0,
+    referral_code: null,
+    referred_by: null,
+    wallet_balance: 0,
   }
 
   const { data, error } = await supabase

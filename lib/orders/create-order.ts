@@ -159,7 +159,7 @@ export async function createPaymentForOrder(
 
   const { data: order, error: orderError } = await supabase
     .from("orders")
-    .select("id, cafe_id, table_id, status, total")
+    .select("id, cafe_id, table_id, status, total, customer_id")
     .eq("id", input.orderId)
     .eq("cafe_id", input.cafeId)
     .single()
@@ -227,12 +227,21 @@ export async function createPaymentForOrder(
       if (tableError) throw new Error(tableError.message)
     }
 
-    // Auto-deduct inventory stock for this order (fire-and-forget)
-    import("@/lib/services/inventory.service").then(({ deductStockForOrder }) => {
-      deductStockForOrder(input.orderId).catch((err) =>
+    // Auto-deduct inventory stock for this order via RPC
+    import("@/lib/services/recipe.service").then(({ deductStockForOrderRpc }) => {
+      deductStockForOrderRpc(input.orderId).catch((err) =>
         console.error("Auto-deduction failed for order", input.orderId, err)
       )
     })
+
+    // Earn loyalty points if order has a customer
+    if (order.customer_id) {
+      import("@/lib/services/loyalty.service").then(({ earnPoints }) => {
+        earnPoints(order.customer_id!, input.orderId, orderTotal).catch((err) =>
+          console.error("Failed to earn loyalty points for order", input.orderId, err)
+        )
+      })
+    }
   }
 
   return {

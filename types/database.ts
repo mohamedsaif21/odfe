@@ -106,6 +106,11 @@ export interface Database {
           loyalty_points: number
           visit_count: number
           lifetime_spend: number
+          tier_id: string | null
+          total_points_earned: number
+          referral_code: string | null
+          referred_by: string | null
+          wallet_balance: number
           created_at: string
         }
         Insert: Omit<Database["public"]["Tables"]["customers"]["Row"], "id" | "created_at">
@@ -474,6 +479,102 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["purchase_order_items"]["Insert"]>
         Relationships: []
       }
+      loyalty_tiers: {
+        Row: {
+          id: string
+          cafe_id: string
+          name: string
+          min_points: number
+          discount_percent: number
+          benefits: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["loyalty_tiers"]["Row"], "id" | "created_at" | "updated_at">
+        Update: Partial<Database["public"]["Tables"]["loyalty_tiers"]["Insert"]>
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          id: string
+          cafe_id: string
+          customer_id: string
+          amount: number
+          type: "credit" | "debit"
+          reference: string | null
+          description: string | null
+          created_by: string
+          created_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["wallet_transactions"]["Row"], "id" | "created_at">
+        Update: Partial<Database["public"]["Tables"]["wallet_transactions"]["Insert"]>
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          id: string
+          cafe_id: string
+          customer_id: string
+          code: string
+          used_count: number
+          reward_given: number
+          is_active: boolean
+          created_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["referral_codes"]["Row"], "id" | "created_at">
+        Update: Partial<Database["public"]["Tables"]["referral_codes"]["Insert"]>
+        Relationships: []
+      }
+      reward_redemptions: {
+        Row: {
+          id: string
+          cafe_id: string
+          customer_id: string
+          order_id: string | null
+          reward_type: "points" | "wallet" | "birthday" | "referral" | "tier_discount"
+          points_used: number
+          value: number
+          description: string | null
+          created_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["reward_redemptions"]["Row"], "id" | "created_at">
+        Update: Partial<Database["public"]["Tables"]["reward_redemptions"]["Insert"]>
+        Relationships: []
+      }
+      expense_categories: {
+        Row: {
+          id: string
+          cafe_id: string
+          name: string
+          description: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["expense_categories"]["Row"], "id" | "created_at" | "updated_at">
+        Update: Partial<Database["public"]["Tables"]["expense_categories"]["Insert"]>
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          id: string
+          cafe_id: string
+          category_id: string
+          amount: number
+          description: string
+          expense_date: string
+          is_recurring: boolean
+          recurring_frequency: "daily" | "weekly" | "monthly" | "yearly" | null
+          notes: string | null
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["expenses"]["Row"], "id" | "created_at" | "updated_at">
+        Update: Partial<Database["public"]["Tables"]["expenses"]["Insert"]>
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {
@@ -549,6 +650,65 @@ export interface Database {
         }
         Returns: string
       }
+      earn_loyalty_points: {
+        Args: {
+          p_customer_id: string
+          p_cafe_id: string
+          p_order_id: string
+          p_amount: number
+          p_profile_id: string
+        }
+        Returns: undefined
+      }
+      redeem_loyalty_points: {
+        Args: {
+          p_customer_id: string
+          p_cafe_id: string
+          p_points: number
+          p_order_id: string
+          p_profile_id: string
+        }
+        Returns: number
+      }
+      apply_birthday_reward: {
+        Args: {
+          p_customer_id: string
+          p_cafe_id: string
+          p_order_id: string
+          p_profile_id: string
+        }
+        Returns: number
+      }
+      apply_referral_reward: {
+        Args: {
+          p_customer_id: string
+          p_cafe_id: string
+          p_referral_code: string
+          p_profile_id: string
+        }
+        Returns: number
+      }
+      deduct_stock_for_order: {
+        Args: {
+          p_order_id: string
+          p_cafe_id: string
+          p_profile_id: string
+        }
+        Returns: undefined
+      }
+      get_profit_loss: {
+        Args: {
+          p_cafe_id: string
+          p_start_date: string
+          p_end_date: string
+        }
+        Returns: {
+          total_revenue: number
+          total_expenses: number
+          net_profit: number
+          expense_breakdown: string
+        }
+      }
     }
     Enums: Record<string, never>
   }
@@ -590,3 +750,9 @@ export type ProductIngredient = Tables<"product_ingredients">
 export type Supplier = Tables<"suppliers">
 export type PurchaseOrder = Tables<"purchase_orders">
 export type PurchaseOrderItem = Tables<"purchase_order_items">
+export type LoyaltyTier = Tables<"loyalty_tiers">
+export type WalletTransaction = Tables<"wallet_transactions">
+export type ReferralCode = Tables<"referral_codes">
+export type RewardRedemption = Tables<"reward_redemptions">
+export type ExpenseCategory = Tables<"expense_categories">
+export type Expense = Tables<"expenses">
