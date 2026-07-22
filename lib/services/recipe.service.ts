@@ -95,6 +95,7 @@ export async function setRecipeIngredients(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
+  const profile = await getAuthenticatedProfile(client)
 
   const { error: delError } = await supabase
     .from("product_ingredients")
@@ -114,6 +115,7 @@ export async function setRecipeIngredients(
         product_id: productId,
         item_id: ing.item_id,
         quantity: ing.quantity,
+        created_by: profile.id,
       }))
     )
 

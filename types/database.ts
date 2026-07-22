@@ -394,6 +394,7 @@ export interface Database {
           expiry_date: string | null
           batch_number: string | null
           is_active: boolean
+          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -410,10 +411,11 @@ export interface Database {
           type: "in" | "out"
           note: string | null
           is_wastage: boolean
-          created_by: string
+          created_by: string | null
           created_at: string
+          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["stock_movements"]["Row"], "id" | "created_at">
+        Insert: Omit<Database["public"]["Tables"]["stock_movements"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["stock_movements"]["Insert"]>
         Relationships: []
       }
@@ -424,8 +426,11 @@ export interface Database {
           product_id: string
           item_id: string
           quantity: number
+          created_by: string | null
+          created_at: string
+          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["product_ingredients"]["Row"], "id">
+        Insert: Omit<Database["public"]["Tables"]["product_ingredients"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["product_ingredients"]["Insert"]>
         Relationships: []
       }
@@ -439,6 +444,7 @@ export interface Database {
           email: string | null
           address: string | null
           is_active: boolean
+          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -457,7 +463,7 @@ export interface Database {
           notes: string | null
           ordered_at: string | null
           received_at: string | null
-          created_by: string
+          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -474,8 +480,11 @@ export interface Database {
           quantity: number
           unit_cost: number
           line_total: number
+          created_by: string | null
+          created_at: string
+          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["purchase_order_items"]["Row"], "id">
+        Insert: Omit<Database["public"]["Tables"]["purchase_order_items"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["purchase_order_items"]["Insert"]>
         Relationships: []
       }
@@ -488,6 +497,7 @@ export interface Database {
           discount_percent: number
           benefits: string | null
           is_active: boolean
+          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -504,10 +514,11 @@ export interface Database {
           type: "credit" | "debit"
           reference: string | null
           description: string | null
-          created_by: string
+          created_by: string | null
           created_at: string
+          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["wallet_transactions"]["Row"], "id" | "created_at">
+        Insert: Omit<Database["public"]["Tables"]["wallet_transactions"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["wallet_transactions"]["Insert"]>
         Relationships: []
       }
@@ -520,9 +531,11 @@ export interface Database {
           used_count: number
           reward_given: number
           is_active: boolean
+          created_by: string | null
           created_at: string
+          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["referral_codes"]["Row"], "id" | "created_at">
+        Insert: Omit<Database["public"]["Tables"]["referral_codes"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["referral_codes"]["Insert"]>
         Relationships: []
       }
@@ -536,9 +549,11 @@ export interface Database {
           points_used: number
           value: number
           description: string | null
+          created_by: string | null
           created_at: string
+          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["reward_redemptions"]["Row"], "id" | "created_at">
+        Insert: Omit<Database["public"]["Tables"]["reward_redemptions"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["reward_redemptions"]["Insert"]>
         Relationships: []
       }
@@ -549,6 +564,7 @@ export interface Database {
           name: string
           description: string | null
           is_active: boolean
+          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -567,7 +583,7 @@ export interface Database {
           is_recurring: boolean
           recurring_frequency: "daily" | "weekly" | "monthly" | "yearly" | null
           notes: string | null
-          created_by: string
+          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -706,7 +722,7 @@ export interface Database {
           total_revenue: number
           total_expenses: number
           net_profit: number
-          expense_breakdown: string
+          expense_breakdown: Json
         }
       }
     }

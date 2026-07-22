@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
-import { getCafeId } from "./_shared"
+import { getCafeId, getAuthenticatedProfile } from "./_shared"
 import type { InventoryItem, StockMovement } from "@/types/database"
 import type { DbClient, InsertTables, UpdateTables } from "./_shared"
 
@@ -35,6 +35,7 @@ export async function createInventoryItem(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
+  const profile = await getAuthenticatedProfile(client)
 
   const payload: InsertTables<"inventory_items"> = {
     cafe_id: cafeId,
@@ -46,6 +47,7 @@ export async function createInventoryItem(
     expiry_date: input.expiry_date ?? null,
     batch_number: input.batch_number ?? null,
     is_active: true,
+    created_by: profile.id,
   }
 
   const { data, error } = await supabase
@@ -90,18 +92,7 @@ export async function adjustStock(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
-
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) throw new Error("Not authenticated")
-
-  // Get profile for created_by
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("id", session.user.id)
-    .single()
-
-  if (!profile) throw new Error("Profile not found")
+  const profile = await getAuthenticatedProfile(client)
 
   // Record movement
   const movementPayload: InsertTables<"stock_movements"> = {
@@ -265,6 +256,7 @@ export async function setProductIngredients(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
+  const profile = await getAuthenticatedProfile(client)
 
   // Delete existing
   const { error: delError } = await supabase
@@ -286,6 +278,7 @@ export async function setProductIngredients(
         product_id: productId,
         item_id: ing.item_id,
         quantity: ing.quantity,
+        created_by: profile.id,
       }))
     )
 
@@ -301,79 +294,13 @@ export async function deductStockForOrder(
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
 
-  // Get order items
-  const { data: orderItems, error: itemsError } = await supabase
-    .from("order_items")
-    .select("product_id, quantity")
-    .eq("order_id", orderId)
-    .eq("cafe_id", cafeId)
+  const profile = await getAuthenticatedProfile(client)
 
-  if (itemsError) throw new Error(itemsError.message)
-  if (!orderItems?.length) return
+  const { error } = await supabase.rpc("deduct_stock_for_order", {
+    p_order_id: orderId,
+    p_cafe_id: cafeId,
+    p_profile_id: profile.id,
+  })
 
-  // Get all product-ingredient links
-  const productIds = Array.from(new Set(orderItems.map((oi) => oi.product_id)))
-  const { data: recipes, error: recipeError } = await supabase
-    .from("product_ingredients")
-    .select("product_id, item_id, quantity")
-    .in("product_id", productIds)
-    .eq("cafe_id", cafeId)
-
-  if (recipeError) throw new Error(recipeError.message)
-  if (!recipes?.length) return
-
-  // Build ingredient usage map: item_id → total quantity to deduct
-  const usageMap = new Map<string, number>()
-  for (const oi of orderItems) {
-    for (const recipe of recipes) {
-      if (recipe.product_id !== oi.product_id) continue
-      const current = usageMap.get(recipe.item_id) ?? 0
-      usageMap.set(recipe.item_id, current + Number(recipe.quantity) * oi.quantity)
-    }
-  }
-
-  // Get profile for created_by
-  const { data: { session } } = await supabase.auth.getSession()
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("id", session?.user.id ?? "")
-    .maybeSingle()
-
-  const profileId = profile?.id ?? "00000000-0000-0000-0000-000000000000"
-
-  // Create stock movements and update stock for each ingredient
-  const entries = Array.from(usageMap)
-  for (let i = 0; i < entries.length; i++) {
-    const itemId = entries[i][0]
-    const totalQty = entries[i][1]
-    const quantity = Number(totalQty.toFixed(3))
-
-    const { error: movError } = await supabase
-      .from("stock_movements")
-      .insert({
-        cafe_id: cafeId,
-        item_id: itemId,
-        quantity,
-        type: "out",
-        note: `Auto-deducted from order ${orderId}`,
-        is_wastage: false,
-        created_by: profileId,
-      })
-
-    if (movError) {
-      console.error(`Failed to record stock movement for item ${itemId}:`, movError.message)
-      continue
-    }
-
-    const { error: stockError } = await supabase.rpc("adjust_inventory_stock", {
-      p_item_id: itemId,
-      p_cafe_id: cafeId,
-      p_adjustment: -quantity,
-    })
-
-    if (stockError) {
-      console.error(`Failed to adjust stock for item ${itemId}:`, stockError.message)
-    }
-  }
+  if (error) throw new Error(error.message)
 }

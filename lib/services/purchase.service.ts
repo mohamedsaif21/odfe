@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
-import { getCafeId } from "./_shared"
+import { getCafeId, getAuthenticatedProfile } from "./_shared"
 import type { DbClient, InsertTables, UpdateTables } from "./_shared"
 import type { PurchaseOrder, PurchaseOrderItem, Supplier } from "@/types/database"
 
@@ -26,6 +26,7 @@ export async function fetchPurchaseOrders(client?: DbClient): Promise<PurchaseOr
     .from("suppliers")
     .select("*")
     .in("id", supplierIds)
+    .eq("cafe_id", cafeId)
 
   const supplierMap = new Map((suppliers ?? []).map((s) => [s.id, s]))
 
@@ -34,6 +35,7 @@ export async function fetchPurchaseOrders(client?: DbClient): Promise<PurchaseOr
     .from("purchase_order_items")
     .select("*")
     .in("purchase_order_id", orderIds)
+    .eq("cafe_id", cafeId)
 
   const itemsMap = new Map<string, PurchaseOrderItem[]>()
   for (const item of items ?? []) {
@@ -64,13 +66,19 @@ export async function fetchPurchaseOrder(id: string, client?: DbClient): Promise
   if (!order) return null
 
   const { data: supplier } = order.supplier_id
-    ? await supabase.from("suppliers").select("*").eq("id", order.supplier_id).single()
+    ? await supabase
+        .from("suppliers")
+        .select("*")
+        .eq("id", order.supplier_id)
+        .eq("cafe_id", cafeId)
+        .single()
     : { data: null }
 
   const { data: items } = await supabase
     .from("purchase_order_items")
     .select("*")
     .eq("purchase_order_id", id)
+    .eq("cafe_id", cafeId)
 
   return {
     ...order,
@@ -89,17 +97,7 @@ export async function createPurchaseOrder(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
-
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) throw new Error("Not authenticated")
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("id", session.user.id)
-    .single()
-
-  if (!profile) throw new Error("Profile not found")
+  const profile = await getAuthenticatedProfile(client)
 
   const { data: orderNumberRaw } = await supabase.rpc("generate_po_number", {
     p_cafe_id: cafeId,
@@ -139,6 +137,7 @@ export async function createPurchaseOrder(
         quantity: item.quantity,
         unit_cost: item.unit_cost,
         line_total: item.quantity * item.unit_cost,
+        created_by: profile.id,
       }))
     )
 

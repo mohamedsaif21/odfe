@@ -28,6 +28,7 @@ export async function createLoyaltyTier(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
+  const profile = await getAuthenticatedProfile(client)
 
   const payload: InsertTables<"loyalty_tiers"> = {
     cafe_id: cafeId,
@@ -36,6 +37,7 @@ export async function createLoyaltyTier(
     discount_percent: input.discount_percent,
     benefits: input.benefits ?? null,
     is_active: true,
+    created_by: profile.id,
   }
 
   const { data, error } = await supabase

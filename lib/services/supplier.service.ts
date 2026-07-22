@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
-import { getCafeId } from "./_shared"
+import { getCafeId, getAuthenticatedProfile } from "./_shared"
 import type { DbClient, InsertTables, UpdateTables } from "./_shared"
 import type { Supplier } from "@/types/database"
 
@@ -44,6 +44,7 @@ export async function createSupplier(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
+  const profile = await getAuthenticatedProfile(client)
 
   const payload: InsertTables<"suppliers"> = {
     cafe_id: cafeId,
@@ -53,6 +54,7 @@ export async function createSupplier(
     email: input.email ?? null,
     address: input.address ?? null,
     is_active: true,
+    created_by: profile.id,
   }
 
   const { data, error } = await supabase
