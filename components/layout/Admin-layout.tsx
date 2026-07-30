@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { AdminSidebar } from "./admin-sidebar"
 import { CashierLayout } from "./cashier-layout"
 import { TopHeader } from "./top-header"
@@ -15,22 +16,12 @@ interface AdminLayoutProps {
   role?: AnyRole
 }
 
-/**
- * Top-level layout shell for all staff-facing pages
- * (admin, cashier, kitchen views).
- *
- * Structure:
- *   ┌──────────────────────────────────┐
- *   │  Sidebar (64px)  │  Top header  │
- *   │                  │  ──────────  │
- *   │                  │  Page content│
- *   └──────────────────────────────────┘
- */
 export function AdminLayout({ children, user, title, role }: AdminLayoutProps) {
   const storeUser = useAuthStore((state) => state.user)
   const isLoading = useAuthStore((state) => state.isLoading)
   const effectiveUser = user ?? storeUser
   const effectiveRole = role ?? effectiveUser?.role
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (!effectiveRole && isLoading) {
     return <BrandedLoader fullScreen message="Loading..." />
@@ -42,9 +33,14 @@ export function AdminLayout({ children, user, title, role }: AdminLayoutProps) {
 
   return (
     <div className="flex h-screen bg-background">
-      <AdminSidebar role={effectiveRole ?? "admin"} cafeName={effectiveUser?.cafeName} />
+      <AdminSidebar
+        role={effectiveRole ?? "admin"}
+        cafeName={effectiveUser?.cafeName}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopHeader user={effectiveUser} title={title} />
+        <TopHeader user={effectiveUser} title={title} onMenuClick={() => setSidebarOpen((v) => !v)} />
         <div className="flex-1 overflow-y-auto">{children}</div>
       </div>
     </div>
