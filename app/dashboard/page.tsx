@@ -6,7 +6,7 @@ import {
   Users, Table2, ChefHat,
 } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line } from "recharts"
-import { AdminLayout } from "@/components/layout/Admin-layout"
+import { AdminLayout } from "@/components/layout/admin-layout"
 import { BrandedLoader } from "@/components/branding/branded-loader"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

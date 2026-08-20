@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Plus, Search, X, Package, AlertTriangle, Save } from "lucide-react"
-import { AdminLayout } from "@/components/layout/Admin-layout"
+import { AdminLayout } from "@/components/layout/admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

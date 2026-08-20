@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { Plus, Search, X, Loader2, Building2, Package, Eye, Truck, CheckCircle, XCircle, FileText } from "lucide-react"
-import { AdminLayout } from "@/components/layout/Admin-layout"
+import { AdminLayout } from "@/components/layout/admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

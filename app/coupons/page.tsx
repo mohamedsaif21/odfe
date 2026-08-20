@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Plus } from "lucide-react"
 import { z } from "zod"
-import { AdminLayout } from "@/components/layout/Admin-layout"
+import { AdminLayout } from "@/components/layout/admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

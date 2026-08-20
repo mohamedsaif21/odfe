@@ -7,7 +7,7 @@ import {
   AlertCircle, CheckCircle, Phone, Mail, MapPin,
   Cake, Gift, TrendingUp,
 } from "lucide-react"
-import { AdminLayout } from "@/components/layout/Admin-layout"
+import { AdminLayout } from "@/components/layout/admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
