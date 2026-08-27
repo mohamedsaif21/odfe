@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
-import { getCafeId } from "./_shared"
+import { getCafeId, getAuthenticatedProfile } from "./_shared"
 import type { Payment } from "@/types/database"
 import type { PaymentMethodType } from "@/types/database"
 import type { DbClient, InsertTables, UpdateTables } from "./_shared"
@@ -58,7 +58,31 @@ export async function fetchPaymentMethods(client?: DbClient): Promise<{ id: stri
 export async function refundPayment(paymentId: string, client?: DbClient) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
+  const profile = await getAuthenticatedProfile(client)
 
+  // Fetch payment with its order to determine if stock needs restoration
+  const { data: payment, error: fetchError } = await supabase
+    .from("payments")
+    .select("id, status, order_id, orders(id, cafe_id, status)")
+    .eq("id", paymentId)
+    .eq("cafe_id", cafeId)
+    .single()
+
+  if (fetchError || !payment) {
+    throw new Error(fetchError?.message ?? "Payment not found.")
+  }
+  if (payment.status === "refunded") {
+    return payment
+  }
+
+  // Restore stock if the associated order was paid (stock was deducted at payment time)
+  const order = payment.orders as { id: string; cafe_id: string; status: string } | null
+  if (order && order.status === "paid") {
+    const { restoreStockForOrder } = await import("./inventory.service")
+    await restoreStockForOrder(order.id, client)
+  }
+
+  // Mark payment as refunded
   const updates: UpdateTables<"payments"> = { status: "refunded" }
 
   const { data, error } = await supabase

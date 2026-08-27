@@ -227,14 +227,11 @@ export async function createPaymentForOrder(
       if (tableError) throw new Error(tableError.message)
     }
 
-    // Auto-deduct inventory stock for this order via RPC
-    import("@/lib/services/recipe.service").then(({ deductStockForOrderRpc }) => {
-      deductStockForOrderRpc(input.orderId).catch((err) =>
-        console.error("Auto-deduction failed for order", input.orderId, err)
-      )
-    })
+    // Deduct inventory stock synchronously — errors surface to caller
+    const { deductStockForOrderRpc } = await import("@/lib/services/recipe.service")
+    await deductStockForOrderRpc(input.orderId)
 
-    // Earn loyalty points if order has a customer
+    // Earn loyalty points if order has a customer (non-blocking, best-effort)
     if (order.customer_id) {
       import("@/lib/services/loyalty.service").then(({ earnPoints }) => {
         earnPoints(order.customer_id!, input.orderId, orderTotal).catch((err) =>
