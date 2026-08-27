@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
-import { getCafeId, getAuthenticatedProfile } from "./_shared"
+import { getCafeId } from "./_shared"
 import type { Payment } from "@/types/database"
 import type { PaymentMethodType } from "@/types/database"
 import type { DbClient, InsertTables, UpdateTables } from "./_shared"
@@ -58,12 +58,11 @@ export async function fetchPaymentMethods(client?: DbClient): Promise<{ id: stri
 export async function refundPayment(paymentId: string, client?: DbClient) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
-  const profile = await getAuthenticatedProfile(client)
 
-  // Fetch payment with its order to determine if stock needs restoration
+  // Fetch payment to get its current status and order_id
   const { data: payment, error: fetchError } = await supabase
     .from("payments")
-    .select("id, status, order_id, orders(id, cafe_id, status)")
+    .select("id, status, order_id")
     .eq("id", paymentId)
     .eq("cafe_id", cafeId)
     .single()
@@ -76,10 +75,18 @@ export async function refundPayment(paymentId: string, client?: DbClient) {
   }
 
   // Restore stock if the associated order was paid (stock was deducted at payment time)
-  const order = payment.orders as { id: string; cafe_id: string; status: string } | null
-  if (order && order.status === "paid") {
-    const { restoreStockForOrder } = await import("./inventory.service")
-    await restoreStockForOrder(order.id, client)
+  if (payment.order_id) {
+    const { data: order } = await supabase
+      .from("orders")
+      .select("id, status")
+      .eq("id", payment.order_id)
+      .eq("cafe_id", cafeId)
+      .single()
+
+    if (order && order.status === "paid") {
+      const { restoreStockForOrder } = await import("./inventory.service")
+      await restoreStockForOrder(order.id, client)
+    }
   }
 
   // Mark payment as refunded
