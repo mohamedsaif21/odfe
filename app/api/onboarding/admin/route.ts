@@ -24,9 +24,11 @@ const bodySchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    // Verify the JWT server-side (as opposed to getSession, which only reads
+    // the cookie without cryptographically validating the token).
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (!user) {
       return errorResponse("Authentication required", 401)
     }
 
@@ -43,7 +45,7 @@ export async function POST(request: NextRequest) {
     const adminClient = await createAdminClient()
 
     const { data: rpcResult, error: rpcError } = await (adminClient.rpc as any)("onboard_admin_owner", {
-      p_user_id: session.user.id,
+      p_user_id: user.id,
       p_cafe_name: cafeName,
       p_full_name: fullName,
     })

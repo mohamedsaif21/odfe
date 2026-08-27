@@ -20,9 +20,11 @@ const bodySchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    // Verify the JWT server-side (as opposed to getSession, which only reads
+    // the cookie without cryptographically validating the token).
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (!user) {
       return errorResponse("Authentication required", 401)
     }
 
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     const profilePayload = {
-      id: session.user.id,
+      id: user.id,
       cafe_id: cafeId,
       role: "customer" as const,
       full_name: fullName,
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
     const { data: existingCustomer, error: existingCustomerError } = await adminClient
       .from("customers")
       .select("id")
-      .eq("profile_id", session.user.id)
+      .eq("profile_id", user.id)
       .maybeSingle()
 
     if (existingCustomerError) {
@@ -94,7 +96,7 @@ export async function POST(request: NextRequest) {
       const { error: updateCustomerError } = await adminClient
         .from("customers")
         .update({
-          profile_id: session.user.id,
+          profile_id: user.id,
           name: fullName,
           email,
           phone: phone ?? null,
@@ -108,14 +110,14 @@ export async function POST(request: NextRequest) {
         .eq("id", existingCustomer.id)
 
       if (updateCustomerError) return errorResponse(updateCustomerError.message, 500)
-      return successResponse({ profile_id: session.user.id, customer_id: existingCustomer.id })
+      return successResponse({ profile_id: user.id, customer_id: existingCustomer.id })
     }
 
     const { data: customer, error: customerError } = await adminClient
       .from("customers")
       .insert({
         cafe_id: cafeId,
-        profile_id: session.user.id,
+        profile_id: user.id,
         name: fullName,
         email,
         phone: phone ?? null,
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
       return errorResponse(customerError?.message ?? "Customer creation failed", 500)
     }
 
-    return successResponse({ profile_id: session.user.id, customer_id: customer.id })
+    return successResponse({ profile_id: user.id, customer_id: customer.id })
   } catch (err) {
     return errorResponse(
       err instanceof Error ? err.message : "Customer onboarding failed",

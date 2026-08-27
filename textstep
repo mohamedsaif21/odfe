@@ -1,442 +1,615 @@
-We have completed the Dashboard Analytics audit.
-
-The audit confirms that the existing OdFe application already has the required core data for Sales, Products, Customers/Loyalty, Inventory and Purchasing analytics.
-
-Now move from AUDIT → IMPLEMENTATION.
+We are now starting PHASE 3 — COMPLETE END-TO-END SYSTEM QA for the OdFe SaaS application.
 
 IMPORTANT:
-Do NOT perform another audit.
-Do NOT recreate existing tables.
-Do NOT recreate existing working RPCs.
-Do NOT modify working POS, self-order, payment, inventory, purchase, recipe, loyalty or expense functionality unless required for analytics integration.
-Do NOT disable RLS.
-Do NOT bypass cafe isolation.
-Do NOT guess column names.
-Use the actual existing schema discovered during the audit.
+This is a READ-ONLY QA/audit pass.
+
+DO NOT modify files.
+DO NOT create SQL migrations.
+DO NOT change database schema.
+DO NOT change existing RPCs.
+DO NOT refactor code.
+DO NOT "fix" anything automatically.
+
+Your job is to inspect the existing implementation and produce a complete end-to-end QA report.
+
+The goal is to verify that all existing OdFe modules work together as one restaurant SaaS system.
 
 ==================================================
-PHASE 1 — ANALYTICS DATABASE LAYER
-==================================
-
-First inspect existing analytics RPCs/functions.
-
-Existing important RPCs include:
-
-* get_profit_loss
-* deduct_stock_for_order
-* restore_stock_for_order
-* receive_purchase_order
-* earn_loyalty_points
-* create_order_with_kitchen_ticket
-* adjust_inventory_stock
-
-Do NOT duplicate get_profit_loss.
-
-Create only the additional aggregation functions genuinely required for Dashboard Analytics.
-
-Recommended areas:
-
-1. Dashboard summary
-2. Sales trend
-3. Top products
-4. Category sales
-5. Customer analytics
-6. Inventory summary
-7. Purchase summary
-8. Expense summary
-9. Kitchen summary
-10. POS/table summary
-
-Do not blindly create ten RPCs if fewer well-designed functions can provide the required data efficiently.
-
-Prefer PostgreSQL aggregation:
-
-COUNT
-SUM
-AVG
-GROUP BY
-date_trunc
-
-instead of downloading complete tables to the browser.
-
-==================================================
-PHASE 2 — SECURITY
-==================
-
-Every analytics function must be cafe scoped.
-
-Use the existing authentication/cafe helpers and RLS architecture.
-
-A user belonging to Cafe A must never receive analytics for Cafe B.
-
-Never accept an arbitrary cafe_id from the client as the security mechanism.
-
-Validate the authenticated cafe.
-
-Respect the existing roles:
-
-admin
-cashier
-kitchen
-customer
-
-Customers must not access the business dashboard.
-
-==================================================
-PHASE 3 — PERFORMANCE INDEXES
-=============================
-
-Before adding indexes, check whether equivalent indexes already exist.
-
-Only create indexes that are genuinely useful.
-
-Important candidates include:
-
-orders:
-(cafe_id, created_at)
-(cafe_id, status)
-(cafe_id, payment_status)
-
-order_items:
-(order_id)
-(item_id, created_at)
-
-inventory:
-(cafe_id, is_active)
-
-inventory movements:
-(cafe_id, created_at)
-(item_id, created_at)
-
-expenses:
-(cafe_id, expense_date)
-
-purchase orders:
-(cafe_id, created_at)
-(supplier_id, created_at)
-
-loyalty:
-(cafe_id, created_at)
-(user_id, created_at)
-
-Use IF NOT EXISTS.
-
-Do not create unnecessary duplicate indexes.
-
-==================================================
-PHASE 4 — DASHBOARD SERVICE
-===========================
-
-Update:
-
-lib/services/dashboard.service.ts
-
-Replace large client-side aggregation where appropriate with the new database aggregation functions.
-
-Do not break the existing realtime subscriptions.
-
-Keep realtime updates for:
-
-* orders
-* inventory
-
-Use the database analytics layer for historical aggregation.
-
-==================================================
-PHASE 5 — DASHBOARD KPIs
-========================
-
-Update the dashboard with:
-
-Revenue
-Orders
-Average Order Value
-Net Profit
-
-Add date filters:
-
-Today
-Yesterday
-Last 7 Days
-Last 30 Days
-This Month
-Custom Range
-
-Make sure date filtering is consistent across all metrics.
-
-==================================================
-PHASE 6 — SALES ANALYTICS
+PART 1 — SYSTEM INVENTORY
 =========================
 
-Add:
+Inspect the existing project and identify:
 
-* Revenue trend
-* Order count trend
-* Average order value
-* POS vs Self-Order
-* Dine-in / takeaway / delivery
-* Payment method breakdown
-* Discount totals
-* Tax totals
-* Cancelled order rate
-
-Only count revenue according to the application's existing payment/order business rules.
-
-Do not invent a new definition of revenue.
-
-==================================================
-PHASE 7 — PRODUCT ANALYTICS
-===========================
-
-Add:
-
-* Top-selling products
-* Revenue per product
-* Quantity sold
-* Category performance
-* Product contribution to revenue
-
-Use the actual existing product/menu schema.
-
-Do not create a second product model.
-
-==================================================
-PHASE 8 — CUSTOMER ANALYTICS
-============================
-
-Add:
-
-* Total customers
-* Repeat customers
-* Top customers
-* Customer lifetime revenue
-* Loyalty points earned
-* Loyalty points redeemed
-* Loyalty tier distribution
-
-Use existing loyalty tables/functions.
-
-Do not create duplicate loyalty tables.
-
-==================================================
-PHASE 9 — INVENTORY ANALYTICS
-=============================
-
-Add:
-
-* Total inventory items
-* Low-stock items
-* Out-of-stock items
-* Current stock
-* Inventory value
-* Stock IN
-* Stock OUT
-* Wastage
-* Recent movements
-
-Use the current inventory schema.
-
-Do not modify the recently completed inventory integrity RPCs.
-
-==================================================
-PHASE 10 — PURCHASE ANALYTICS
-=============================
-
-Add:
-
-* Total purchase spending
-* Purchase order count
-* Draft orders
-* Ordered orders
-* Received orders
-* Cancelled orders
-* Supplier spending
-* Purchase trend
-
-Use the existing purchase order and supplier schema.
-
-==================================================
-PHASE 11 — EXPENSE & PROFIT ANALYTICS
-=====================================
-
-Reuse the existing get_profit_loss functionality.
-
-Do not create another profit/loss calculation if get_profit_loss already provides the required information.
-
-Show:
-
-* Revenue
+* Authentication
+* Role management
+* Cafe/tenant isolation
+* Dashboard
+* Products
+* Categories
+* Product images
+* Inventory
+* Recipes
+* Suppliers
+* Purchase Orders
 * Expenses
-* Net Profit
-* Expense breakdown
-* Expense-to-revenue ratio
+* Loyalty
+* POS
+* Tables
+* Payments
+* Kitchen/Brew Bar
+* Customer Self-Order
+* Customer Order History
+* Coupons
+* Promotions
+* Reports
+* Realtime
+* Supabase Storage
+* RLS
+* RPC functions
 
-If COGS cannot be calculated reliably because product → inventory ingredient mapping is incomplete, clearly label the limitation.
+Do not assume a feature exists merely because a file exists.
 
-Do not invent COGS.
-
-==================================================
-PHASE 12 — KITCHEN ANALYTICS
-============================
-
-Implement only metrics supported by the existing schema:
-
-* Pending orders
-* Preparing orders
-* Ready orders
-* Completed orders
-* Backlog
-* Order completion time where completed_at exists
-* Expected preparation time where available
-
-Do not fabricate item-level preparation time.
+Determine whether it is actually connected to the database and used by the UI.
 
 ==================================================
-PHASE 13 — POS / TABLE ANALYTICS
-================================
-
-Use the existing table/order/POS data.
-
-Show where supported:
-
-* Orders per table
-* Revenue per table
-* Dine-in orders
-* Takeaway orders
-* Delivery orders
-* Payment method distribution
-* Active POS sessions
-
-Do not create a new table-management system.
-
-==================================================
-PHASE 14 — DASHBOARD UI
-=======================
-
-Keep the existing OdFe visual design.
-
-Do not redesign the whole application.
-
-Recommended structure:
-
-TOP:
-Date Range Filter
-
-ROW 1:
-Revenue
-Orders
-Average Order
-Net Profit
-
-ROW 2:
-Revenue Trend
-
-ROW 3:
-Top Products
-Sales by Category
-
-ROW 4:
-Customer Analytics
-Loyalty Analytics
-
-ROW 5:
-Inventory Alerts
-Purchase Summary
-
-ROW 6:
-Expenses
-Profit & Loss
-
-ROW 7:
-Kitchen / POS Operations
-
-Keep the dashboard responsive.
-
-Desktop
-Tablet
-Mobile
-
-Use the existing Recharts dependency.
-
-==================================================
-PHASE 15 — ERROR HANDLING
-=========================
-
-If one analytics section fails:
-
-* Do not crash the entire dashboard.
-* Show a meaningful fallback.
-* Log the actual error.
-* Keep other dashboard sections working.
-
-Do not silently return fake zero values when an RPC fails.
-
-==================================================
-PHASE 16 — TIMEZONE
+PART 2 — ADMIN FLOW
 ===================
 
-The audit confirmed that the database currently has no cafe timezone configuration.
+Verify the complete Admin journey:
 
-DO NOT invent a timezone column during this implementation unless it is absolutely required.
+Login
+→ Dashboard
+→ Cafe data
+→ Employees
+→ Categories
+→ Products
+→ Product image upload
+→ Product availability
+→ Recipes
+→ Inventory
+→ Suppliers
+→ Purchase Orders
+→ Receive Purchase Order
+→ Stock increase
+→ Coupons/Promotions
+→ Loyalty
+→ Expenses
+→ Reports
+→ Dashboard Analytics
 
-For now, preserve the existing application's date/time behavior.
+For each step determine:
 
-Document timezone support as a future improvement.
+* UI exists?
+* Service exists?
+* Database table exists?
+* RPC exists if required?
+* RLS exists?
+* Cafe isolation works?
+* Error handling exists?
+* Loading state exists?
+* Empty state exists?
 
-Do not silently change existing revenue calculations.
+Mark each:
+
+PASS
+PARTIAL
+FAIL
+NOT IMPLEMENTED
 
 ==================================================
-PHASE 17 — BUILD AND TEST
+PART 3 — CASHIER / POS FLOW
+===========================
+
+Verify:
+
+Cashier Login
+→ POS access
+→ Open POS Session
+→ Select Table
+→ Select Products
+→ Add quantities
+→ Product images
+→ Apply coupon
+→ Add notes
+→ Create order
+→ Kitchen ticket
+→ Payment
+→ Receipt
+→ Order completion
+→ Stock deduction
+→ Loyalty points
+→ Table becomes available
+
+Verify both:
+
+source = "pos"
+
+and all relevant payment/order status transitions.
+
+Verify stock deduction:
+
+* Recipe product
+* Product without recipe
+* Insufficient stock
+* Duplicate deduction
+* Concurrent order
+* Refund
+
+Verify that failures are visible to the cashier.
+
+==================================================
+PART 4 — KITCHEN / BREW BAR FLOW
+================================
+
+Verify:
+
+Kitchen Login
+→ Kitchen/Brew Bar
+→ New ticket appears
+→ Pending
+→ Preparing
+→ Ready
+→ Completed
+
+Verify Supabase Realtime.
+
+Create a test order from POS and determine whether the kitchen receives it without manual refresh.
+
+Verify that status changes are reflected correctly.
+
+Check whether customer/POS sees the correct order status.
+
+Do not claim item-level timing exists if the schema only supports order-level timing.
+
+==================================================
+PART 5 — CUSTOMER SELF-ORDER FLOW
+=================================
+
+Verify:
+
+Table QR
+→ /s/[token]
+→ Token validation
+→ Customer Login/Register
+→ Customer identity
+→ Correct cafe
+→ Correct table
+→ Menu
+→ Product images
+→ Cart
+→ Coupon
+→ Notes
+→ Place order
+→ Kitchen ticket
+→ Order status
+→ Customer tracking
+→ Order history
+
+Verify invalid token behavior.
+
+Verify inactive token behavior.
+
+Verify another cafe's token cannot access this cafe's data.
+
+Verify customer cannot access Admin/POS/Kitchen pages.
+
+==================================================
+PART 6 — CUSTOMER ORDER HISTORY
+===============================
+
+Verify:
+
+Customer A can see their own orders.
+
+Customer A cannot see:
+
+* Customer B orders
+* Another cafe's orders
+* POS orders belonging to unrelated customers
+
+Verify:
+
+* Order date
+* Order number
+* Items
+* Quantity
+* Total
+* Payment status
+* Order status
+
+are loaded from actual database data.
+
+==================================================
+PART 7 — INVENTORY FLOW
+=======================
+
+Verify:
+
+Inventory item creation
+→ Stock adjustment
+→ Stock movement
+→ Recipe mapping
+→ Purchase Order
+→ Receive purchase
+→ Stock increases
+→ Paid order
+→ Stock deduction
+→ Refund
+→ Stock restoration
+→ Wastage
+
+Verify the recently implemented integrity fixes:
+
+deduct_stock_for_order
+restore_stock_for_order
+adjust_inventory_stock
+
+Specifically test:
+
+1. Deduction twice must NOT deduct twice.
+2. Restoration twice must NOT restore twice.
+3. Insufficient stock must fail safely.
+4. Stock cannot become negative.
+5. Stock movement and stock quantity remain consistent.
+
+==================================================
+PART 8 — PURCHASE FLOW
+======================
+
+Verify:
+
+Supplier
+→ Purchase Order
+→ Add inventory items
+→ Quantity
+→ Unit cost
+→ Total
+→ Ordered
+→ Received
+→ Inventory increases
+
+Verify:
+
+Draft
+Ordered
+Received
+Cancelled
+
+Do not allow receiving the same purchase order twice if that would double-add stock.
+
+==================================================
+PART 9 — RECIPE FLOW
+====================
+
+Verify:
+
+Product
+→ Recipe
+→ Inventory ingredient
+→ Quantity
+→ Paid order
+→ Automatic ingredient deduction
+
+Test:
+
+* Product with recipe
+* Product without recipe
+* Multiple ingredients
+* Multiple quantities
+* Insufficient ingredient stock
+
+Verify that recipe-less products are observable and do not silently create incorrect inventory results.
+
+==================================================
+PART 10 — LOYALTY FLOW
+======================
+
+Verify:
+
+Paid order
+→ Loyalty points
+→ Tier calculation
+→ Wallet
+→ Redemption
+→ Birthday reward
+→ Referral reward
+
+Verify duplicate payment/refund/order operations cannot create duplicate rewards.
+
+Verify customer isolation.
+
+==================================================
+PART 11 — EXPENSE FLOW
+======================
+
+Verify:
+
+Expense category
+→ Expense
+→ Amount
+→ Date
+→ Recurring flag
+→ Dashboard
+→ Profit & Loss
+
+Verify get_profit_loss.
+
+Verify that revenue and expense calculations use the existing business rules.
+
+Do not invent COGS because the current system has a known COGS limitation.
+
+==================================================
+PART 12 — DASHBOARD ANALYTICS
+=============================
+
+Verify all implemented RPCs:
+
+get_dashboard_kpis
+get_sales_trend
+get_top_products
+get_category_sales
+get_customer_analytics
+get_inventory_summary
+get_purchase_summary
+get_expense_summary
+get_kitchen_summary
+get_pos_summary
+
+Also verify:
+
+get_profit_loss
+
+Check:
+
+* Correct cafe
+* Date filters
+* Today
+* Yesterday
+* Last 7 Days
+* Last 30 Days
+* This Month
+* Empty data
+* Large data
+* Error handling
+* Partial section failure
+
+Verify realtime operational data still works.
+
+==================================================
+PART 13 — SECURITY / RLS
+========================
+
+Perform a security review of every business table.
+
+Verify cafe isolation.
+
+Test conceptually:
+
+Cafe A user
+MUST NOT access Cafe B data.
+
+Check:
+
+SELECT
+INSERT
+UPDATE
+DELETE
+
+for relevant tables.
+
+Review SECURITY DEFINER RPCs.
+
+Check whether functions validate the authenticated cafe.
+
+Check whether customer-facing RPCs expose only public-safe data.
+
+Pay special attention to:
+
+* orders
+* order_items
+* customers
+* inventory_items
+* stock_movements
+* suppliers
+* purchase_orders
+* purchase_order_items
+* expenses
+* loyalty tables
+* payments
+* kitchen tables
+* self_order_tokens
+* products
+
+==================================================
+PART 14 — STORAGE
+=================
+
+Verify product image storage:
+
+Upload
+→ Storage bucket
+→ URL
+→ products.image_url
+→ Product page
+→ POS
+→ Self-order
+→ fallback
+
+Check storage policies.
+
+Verify one cafe cannot manipulate another cafe's product images.
+
+==================================================
+PART 15 — AUTHENTICATION
+========================
+
+Review authentication implementation.
+
+Look for unsafe use of:
+
+supabase.auth.getSession()
+
+where authenticated identity is trusted for authorization.
+
+Identify places that should use:
+
+supabase.auth.getUser()
+
+Do not modify anything.
+
+Report exact files and locations.
+
+Verify role routing:
+
+Admin
+Cashier
+Kitchen
+Customer
+
+==================================================
+PART 16 — ERROR HANDLING
+========================
+
+Look for:
+
+* Silent failures
+* Fire-and-forget async operations
+* Missing try/catch
+* Missing RPC error handling
+* Incorrect fallback values
+* Loading forever
+* Broken empty states
+* Incorrect success messages
+
+Pay special attention to:
+
+payments
+stock deduction
+refund
+purchase receiving
+self-order
+realtime
+analytics
+
+==================================================
+PART 17 — DATABASE CONSISTENCY
+==============================
+
+Compare application code against actual schema references available in the project.
+
+Look for:
+
+* Wrong column names
+* Missing columns
+* Wrong foreign keys
+* Wrong RPC parameter names
+* Wrong RPC return types
+* Incorrect enum values
+* Duplicate migrations
+* Migration ordering issues
+* Duplicate policies
+* Duplicate indexes
+
+Do not create or modify migrations.
+
+==================================================
+PART 18 — UI / NAVIGATION
 =========================
 
-After implementation:
+Verify every sidebar/navigation item.
+
+Every visible link should:
+
+* Navigate correctly
+* Have the correct route
+* Load successfully
+* Respect role permissions
+
+Check:
+
+Dashboard
+POS
+Orders
+Kitchen/Brew Bar
+Tables
+Products
+Categories
+Inventory
+Recipes
+Suppliers
+Purchases
+Coupons
+Loyalty
+Expenses
+Reports
+Customers
+Settings
+
+Look for dead links and missing pages.
+
+==================================================
+PART 19 — BUILD
+===============
 
 Run:
 
 npm run build
 
-Fix all TypeScript/build errors.
+Report:
 
-Test:
+* Build success/failure
+* TypeScript errors
+* ESLint errors if applicable
+* Missing modules
+* Runtime compilation problems
 
-1. Admin dashboard
-2. Cashier dashboard
-3. Kitchen access
-4. Customer dashboard restriction
-5. Date filters
-6. Revenue
-7. Orders
-8. Products
-9. Customers
-10. Inventory
-11. Purchases
-12. Expenses
-13. Profit/Loss
-14. Realtime updates
-15. Cafe isolation
-
-Verify that Cafe A cannot see Cafe B analytics.
+Do not fix anything.
 
 ==================================================
-FINAL REPORT
-============
+PART 20 — FINAL QA SCORECARD
+============================
 
-After implementation report:
+Create a table:
 
-1. Files created
-2. Files modified
-3. SQL migration created
-4. RPCs created
-5. Existing RPCs reused
-6. Indexes created
-7. Dashboard features added
-8. Security changes
-9. Performance improvements
-10. Tests executed
-11. Build result
-12. Known limitations
-13. Future improvements
+| Module | Status | Severity | Problem | File | Recommended Fix |
+| ------ | ------ | -------- | ------- | ---- | --------------- |
 
-Do not claim a feature is implemented unless it actually works.
+Use:
 
-Start implementation now.
+PASS
+PARTIAL
+FAIL
+NOT IMPLEMENTED
+
+Severity:
+
+CRITICAL
+HIGH
+MEDIUM
+LOW
+
+Then provide:
+
+1. Critical blockers
+2. High priority fixes
+3. Medium priority fixes
+4. Low priority improvements
+5. Features fully production-ready
+6. Features requiring manual testing
+7. Known limitations
+8. Recommended implementation order
+
+IMPORTANT:
+
+This is an audit only.
+
+DO NOT modify code.
+DO NOT modify SQL.
+DO NOT create migrations.
+DO NOT fix issues automatically.
+
+Finish with a concise:
+
+"NEXT IMPLEMENTATION STEP"
+
+containing the single highest-priority implementation we should perform after this QA.

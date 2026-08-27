@@ -31,13 +31,15 @@ const bodySchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    // Verify the JWT server-side (as opposed to getSession, which only reads
+    // the cookie without cryptographically validating the token).
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (!user) {
       return errorResponse("Authentication required", 401)
     }
 
-    const profile = await resolveAuthenticatedProfile(session.user.id, supabase)
+    const profile = await resolveAuthenticatedProfile(user.id, supabase)
 
     if (profile.role !== "admin") {
       return errorResponse("Admin access required", 403)
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
     try {
       // Step 2: Create profile + employee via RPC
       const { data: rpcResult, error: rpcError } = await (adminClient.rpc as any)("create_employee", {
-        p_admin_id: session.user.id,
+        p_admin_id: user.id,
         p_full_name: fullName,
         p_email: email,
         p_password: temporaryPassword,
