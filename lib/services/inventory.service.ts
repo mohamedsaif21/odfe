@@ -94,54 +94,18 @@ export async function adjustStock(
   const cafeId = await getCafeId(client)
   const profile = await getAuthenticatedProfile(client)
 
-  // Record movement
-  const movementPayload: InsertTables<"stock_movements"> = {
-    cafe_id: cafeId,
-    item_id: itemId,
-    quantity,
-    type,
-    note: note ?? null,
-    is_wastage: isWastage,
-    created_by: profile.id,
-  }
-
-  const { error: movementError } = await supabase
-    .from("stock_movements")
-    .insert(movementPayload)
-
-  if (movementError) throw new Error(movementError.message)
-
-  // Update stock quantity
   const adjustment = type === "in" ? quantity : -quantity
 
-  const { error: updateError } = await supabase.rpc("adjust_inventory_stock", {
+  const { error } = await supabase.rpc("adjust_inventory_stock", {
     p_item_id: itemId,
     p_cafe_id: cafeId,
     p_adjustment: adjustment,
+    p_type: type,
+    p_note: note ?? null,
+    p_created_by: profile.id,
   })
 
-  if (updateError) {
-    // Fallback: direct update if RPC not available
-    const { data: item } = await supabase
-      .from("inventory_items")
-      .select("stock")
-      .eq("id", itemId)
-      .eq("cafe_id", cafeId)
-      .single()
-
-    if (!item) throw new Error("Item not found")
-
-    const newStock = Math.max(0, Number(item.stock) + adjustment)
-
-    const { error: directError } = await supabase
-      .from("inventory_items")
-      .update({ stock: newStock })
-      .eq("id", itemId)
-      .eq("cafe_id", cafeId)
-
-    if (directError) throw new Error(directError.message)
-  }
-
+  if (error) throw new Error(error.message)
   return { success: true }
 }
 
@@ -285,18 +249,17 @@ export async function setProductIngredients(
   if (insError) throw new Error(insError.message)
 }
 
-// ─── Auto Stock Deduction ────────────────────────────────────────────────────
+// ─── Stock Restoration ──────────────────────────────────────────────────────
 
-export async function deductStockForOrder(
+export async function restoreStockForOrder(
   orderId: string,
   client?: DbClient
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
-
   const profile = await getAuthenticatedProfile(client)
 
-  const { error } = await supabase.rpc("deduct_stock_for_order", {
+  const { error } = await supabase.rpc("restore_stock_for_order", {
     p_order_id: orderId,
     p_cafe_id: cafeId,
     p_profile_id: profile.id,
