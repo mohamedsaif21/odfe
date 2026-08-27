@@ -650,6 +650,9 @@ export interface Database {
           p_item_id: string
           p_cafe_id: string
           p_adjustment: number
+          p_type?: string | null
+          p_note?: string | null
+          p_created_by?: string | null
         }
         Returns: undefined
       }
@@ -705,6 +708,17 @@ export interface Database {
         Returns: number
       }
       deduct_stock_for_order: {
+        Args: {
+          p_order_id: string
+          p_cafe_id: string
+          p_profile_id: string
+        }
+        Returns: {
+          skipped_product_ids: string[]
+          deducted_count: number
+        }
+      }
+      restore_stock_for_order: {
         Args: {
           p_order_id: string
           p_cafe_id: string
