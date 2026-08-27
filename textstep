@@ -1,0 +1,442 @@
+We have completed the Dashboard Analytics audit.
+
+The audit confirms that the existing OdFe application already has the required core data for Sales, Products, Customers/Loyalty, Inventory and Purchasing analytics.
+
+Now move from AUDIT → IMPLEMENTATION.
+
+IMPORTANT:
+Do NOT perform another audit.
+Do NOT recreate existing tables.
+Do NOT recreate existing working RPCs.
+Do NOT modify working POS, self-order, payment, inventory, purchase, recipe, loyalty or expense functionality unless required for analytics integration.
+Do NOT disable RLS.
+Do NOT bypass cafe isolation.
+Do NOT guess column names.
+Use the actual existing schema discovered during the audit.
+
+==================================================
+PHASE 1 — ANALYTICS DATABASE LAYER
+==================================
+
+First inspect existing analytics RPCs/functions.
+
+Existing important RPCs include:
+
+* get_profit_loss
+* deduct_stock_for_order
+* restore_stock_for_order
+* receive_purchase_order
+* earn_loyalty_points
+* create_order_with_kitchen_ticket
+* adjust_inventory_stock
+
+Do NOT duplicate get_profit_loss.
+
+Create only the additional aggregation functions genuinely required for Dashboard Analytics.
+
+Recommended areas:
+
+1. Dashboard summary
+2. Sales trend
+3. Top products
+4. Category sales
+5. Customer analytics
+6. Inventory summary
+7. Purchase summary
+8. Expense summary
+9. Kitchen summary
+10. POS/table summary
+
+Do not blindly create ten RPCs if fewer well-designed functions can provide the required data efficiently.
+
+Prefer PostgreSQL aggregation:
+
+COUNT
+SUM
+AVG
+GROUP BY
+date_trunc
+
+instead of downloading complete tables to the browser.
+
+==================================================
+PHASE 2 — SECURITY
+==================
+
+Every analytics function must be cafe scoped.
+
+Use the existing authentication/cafe helpers and RLS architecture.
+
+A user belonging to Cafe A must never receive analytics for Cafe B.
+
+Never accept an arbitrary cafe_id from the client as the security mechanism.
+
+Validate the authenticated cafe.
+
+Respect the existing roles:
+
+admin
+cashier
+kitchen
+customer
+
+Customers must not access the business dashboard.
+
+==================================================
+PHASE 3 — PERFORMANCE INDEXES
+=============================
+
+Before adding indexes, check whether equivalent indexes already exist.
+
+Only create indexes that are genuinely useful.
+
+Important candidates include:
+
+orders:
+(cafe_id, created_at)
+(cafe_id, status)
+(cafe_id, payment_status)
+
+order_items:
+(order_id)
+(item_id, created_at)
+
+inventory:
+(cafe_id, is_active)
+
+inventory movements:
+(cafe_id, created_at)
+(item_id, created_at)
+
+expenses:
+(cafe_id, expense_date)
+
+purchase orders:
+(cafe_id, created_at)
+(supplier_id, created_at)
+
+loyalty:
+(cafe_id, created_at)
+(user_id, created_at)
+
+Use IF NOT EXISTS.
+
+Do not create unnecessary duplicate indexes.
+
+==================================================
+PHASE 4 — DASHBOARD SERVICE
+===========================
+
+Update:
+
+lib/services/dashboard.service.ts
+
+Replace large client-side aggregation where appropriate with the new database aggregation functions.
+
+Do not break the existing realtime subscriptions.
+
+Keep realtime updates for:
+
+* orders
+* inventory
+
+Use the database analytics layer for historical aggregation.
+
+==================================================
+PHASE 5 — DASHBOARD KPIs
+========================
+
+Update the dashboard with:
+
+Revenue
+Orders
+Average Order Value
+Net Profit
+
+Add date filters:
+
+Today
+Yesterday
+Last 7 Days
+Last 30 Days
+This Month
+Custom Range
+
+Make sure date filtering is consistent across all metrics.
+
+==================================================
+PHASE 6 — SALES ANALYTICS
+=========================
+
+Add:
+
+* Revenue trend
+* Order count trend
+* Average order value
+* POS vs Self-Order
+* Dine-in / takeaway / delivery
+* Payment method breakdown
+* Discount totals
+* Tax totals
+* Cancelled order rate
+
+Only count revenue according to the application's existing payment/order business rules.
+
+Do not invent a new definition of revenue.
+
+==================================================
+PHASE 7 — PRODUCT ANALYTICS
+===========================
+
+Add:
+
+* Top-selling products
+* Revenue per product
+* Quantity sold
+* Category performance
+* Product contribution to revenue
+
+Use the actual existing product/menu schema.
+
+Do not create a second product model.
+
+==================================================
+PHASE 8 — CUSTOMER ANALYTICS
+============================
+
+Add:
+
+* Total customers
+* Repeat customers
+* Top customers
+* Customer lifetime revenue
+* Loyalty points earned
+* Loyalty points redeemed
+* Loyalty tier distribution
+
+Use existing loyalty tables/functions.
+
+Do not create duplicate loyalty tables.
+
+==================================================
+PHASE 9 — INVENTORY ANALYTICS
+=============================
+
+Add:
+
+* Total inventory items
+* Low-stock items
+* Out-of-stock items
+* Current stock
+* Inventory value
+* Stock IN
+* Stock OUT
+* Wastage
+* Recent movements
+
+Use the current inventory schema.
+
+Do not modify the recently completed inventory integrity RPCs.
+
+==================================================
+PHASE 10 — PURCHASE ANALYTICS
+=============================
+
+Add:
+
+* Total purchase spending
+* Purchase order count
+* Draft orders
+* Ordered orders
+* Received orders
+* Cancelled orders
+* Supplier spending
+* Purchase trend
+
+Use the existing purchase order and supplier schema.
+
+==================================================
+PHASE 11 — EXPENSE & PROFIT ANALYTICS
+=====================================
+
+Reuse the existing get_profit_loss functionality.
+
+Do not create another profit/loss calculation if get_profit_loss already provides the required information.
+
+Show:
+
+* Revenue
+* Expenses
+* Net Profit
+* Expense breakdown
+* Expense-to-revenue ratio
+
+If COGS cannot be calculated reliably because product → inventory ingredient mapping is incomplete, clearly label the limitation.
+
+Do not invent COGS.
+
+==================================================
+PHASE 12 — KITCHEN ANALYTICS
+============================
+
+Implement only metrics supported by the existing schema:
+
+* Pending orders
+* Preparing orders
+* Ready orders
+* Completed orders
+* Backlog
+* Order completion time where completed_at exists
+* Expected preparation time where available
+
+Do not fabricate item-level preparation time.
+
+==================================================
+PHASE 13 — POS / TABLE ANALYTICS
+================================
+
+Use the existing table/order/POS data.
+
+Show where supported:
+
+* Orders per table
+* Revenue per table
+* Dine-in orders
+* Takeaway orders
+* Delivery orders
+* Payment method distribution
+* Active POS sessions
+
+Do not create a new table-management system.
+
+==================================================
+PHASE 14 — DASHBOARD UI
+=======================
+
+Keep the existing OdFe visual design.
+
+Do not redesign the whole application.
+
+Recommended structure:
+
+TOP:
+Date Range Filter
+
+ROW 1:
+Revenue
+Orders
+Average Order
+Net Profit
+
+ROW 2:
+Revenue Trend
+
+ROW 3:
+Top Products
+Sales by Category
+
+ROW 4:
+Customer Analytics
+Loyalty Analytics
+
+ROW 5:
+Inventory Alerts
+Purchase Summary
+
+ROW 6:
+Expenses
+Profit & Loss
+
+ROW 7:
+Kitchen / POS Operations
+
+Keep the dashboard responsive.
+
+Desktop
+Tablet
+Mobile
+
+Use the existing Recharts dependency.
+
+==================================================
+PHASE 15 — ERROR HANDLING
+=========================
+
+If one analytics section fails:
+
+* Do not crash the entire dashboard.
+* Show a meaningful fallback.
+* Log the actual error.
+* Keep other dashboard sections working.
+
+Do not silently return fake zero values when an RPC fails.
+
+==================================================
+PHASE 16 — TIMEZONE
+===================
+
+The audit confirmed that the database currently has no cafe timezone configuration.
+
+DO NOT invent a timezone column during this implementation unless it is absolutely required.
+
+For now, preserve the existing application's date/time behavior.
+
+Document timezone support as a future improvement.
+
+Do not silently change existing revenue calculations.
+
+==================================================
+PHASE 17 — BUILD AND TEST
+=========================
+
+After implementation:
+
+Run:
+
+npm run build
+
+Fix all TypeScript/build errors.
+
+Test:
+
+1. Admin dashboard
+2. Cashier dashboard
+3. Kitchen access
+4. Customer dashboard restriction
+5. Date filters
+6. Revenue
+7. Orders
+8. Products
+9. Customers
+10. Inventory
+11. Purchases
+12. Expenses
+13. Profit/Loss
+14. Realtime updates
+15. Cafe isolation
+
+Verify that Cafe A cannot see Cafe B analytics.
+
+==================================================
+FINAL REPORT
+============
+
+After implementation report:
+
+1. Files created
+2. Files modified
+3. SQL migration created
+4. RPCs created
+5. Existing RPCs reused
+6. Indexes created
+7. Dashboard features added
+8. Security changes
+9. Performance improvements
+10. Tests executed
+11. Build result
+12. Known limitations
+13. Future improvements
+
+Do not claim a feature is implemented unless it actually works.
+
+Start implementation now.
