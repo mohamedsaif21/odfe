@@ -171,10 +171,11 @@ export type ProfitLossData = {
 
 // ─── Service Functions ───────────────────────────────────────────────────
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function rpc<T>(fn: string, params: Record<string, unknown>): Promise<{ data: T | null; error: string | null }> {
   return new Promise(async (resolve) => {
     try {
-      const supabase = createClient()
+      const supabase = createClient() as any
       const { data, error } = await supabase.rpc(fn, params)
       if (error) {
         resolve({ data: null, error: error.message })

@@ -406,8 +406,8 @@ export default function DashboardPage() {
                           outerRadius={80}
                           dataKey="revenue"
                           nameKey="category_name"
-                          label={({ name, percent }: { name: string; percent: number }) =>
-                            `${name} ${(percent * 100).toFixed(0)}%`
+                          label={(props) =>
+                            `${props.name ?? ""} ${((props.percent ?? 0) * 100).toFixed(0)}%`
                           }
                           labelLine={false}
                         >
