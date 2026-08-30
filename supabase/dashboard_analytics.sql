@@ -287,12 +287,12 @@ BEGIN
 
   SELECT
     COUNT(*) FILTER (WHERE is_active = true),
-    COUNT(*) FILTER (WHERE is_active = true AND stock > 0 AND stock <= reorder_level),
-    COUNT(*) FILTER (WHERE is_active = true AND stock <= 0)
+    COUNT(*) FILTER (WHERE is_active = true AND current_stock > 0 AND current_stock <= minimum_stock),
+    COUNT(*) FILTER (WHERE is_active = true AND current_stock <= 0)
   INTO v_total_items, v_low_stock, v_out_of_stock
   FROM inventory_items WHERE cafe_id = p_cafe_id;
 
-  SELECT COALESCE(SUM(stock * cost_price), 0)::DECIMAL
+  SELECT COALESCE(SUM(current_stock * cost_per_unit), 0)::DECIMAL
   INTO v_inventory_value
   FROM inventory_items WHERE cafe_id = p_cafe_id AND is_active = true;
 

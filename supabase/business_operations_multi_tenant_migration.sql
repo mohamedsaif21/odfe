@@ -24,9 +24,9 @@ CREATE TABLE IF NOT EXISTS public.inventory_items (
   cafe_id UUID,
   name TEXT NOT NULL,
   unit TEXT NOT NULL DEFAULT 'piece',
-  cost_price DECIMAL(10,2) NOT NULL DEFAULT 0,
-  stock DECIMAL(10,2) NOT NULL DEFAULT 0,
-  reorder_level DECIMAL(10,2) NOT NULL DEFAULT 0,
+  cost_per_unit DECIMAL(10,2) NOT NULL DEFAULT 0,
+  current_stock DECIMAL(10,2) NOT NULL DEFAULT 0,
+  minimum_stock DECIMAL(10,2) NOT NULL DEFAULT 0,
   expiry_date DATE,
   batch_number TEXT,
   is_active BOOLEAN NOT NULL DEFAULT true,
@@ -575,7 +575,7 @@ END $$;
 
 DO $$
 BEGIN
-  ALTER TABLE public.inventory_items ADD CONSTRAINT inventory_items_stock_nonnegative CHECK (stock >= 0) NOT VALID;
+  ALTER TABLE public.inventory_items ADD CONSTRAINT inventory_items_stock_nonnegative CHECK (current_stock >= 0) NOT VALID;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -769,7 +769,7 @@ SET search_path = public
 AS $$
 BEGIN
   UPDATE public.inventory_items
-  SET stock = GREATEST(0, stock + p_adjustment)
+  SET current_stock = GREATEST(0, current_stock + p_adjustment)
   WHERE id = p_item_id AND cafe_id = p_cafe_id;
 
   IF NOT FOUND THEN
@@ -836,7 +836,7 @@ BEGIN
     WHERE purchase_order_id = p_order_id AND cafe_id = p_cafe_id
   LOOP
     UPDATE public.inventory_items
-    SET stock = stock + v_item.quantity
+    SET current_stock = current_stock + v_item.quantity
     WHERE id = v_item.item_id AND cafe_id = p_cafe_id;
 
     INSERT INTO public.stock_movements (
@@ -903,7 +903,7 @@ BEGIN
     );
 
     UPDATE public.inventory_items
-    SET stock = GREATEST(0, stock - v_item.total_qty)
+    SET current_stock = GREATEST(0, current_stock - v_item.total_qty)
     WHERE id = v_item.item_id AND cafe_id = p_cafe_id;
   END LOOP;
 END;

@@ -1,0 +1,295 @@
+ODFE — INVENTORY SCHEMA RECONCILIATION
+
+We have completed the schema verification.
+
+IMPORTANT DECISION:
+
+The LIVE Supabase database is the canonical schema.
+
+Do NOT rename any live database columns.
+
+Use this exact mapping:
+
+Repository name → LIVE canonical name
+
+stock → current_stock
+reorder_level → minimum_stock
+cost_price → cost_per_unit
+
+The live database must remain unchanged.
+
+Do NOT create a migration to rename these columns.
+
+Do NOT start Phase 4 Module 2.
+
+Your task is ONLY to update the application/repository so it correctly matches the existing live Supabase schema.
+
+---
+
+## STEP 1 — Update generated database types
+
+Update:
+
+src/types/database.ts
+
+Replace the inventory_items column definitions:
+
+stock → current_stock
+reorder_level → minimum_stock
+cost_price → cost_per_unit
+
+Preserve:
+
+* id
+* cafe_id
+* name
+* unit
+* expiry_date
+* batch_number
+* is_active
+* created_by
+* created_at
+* updated_at
+* all existing nullability/default/type definitions unless the LIVE schema proves otherwise.
+
+Do not modify unrelated tables.
+
+---
+
+## STEP 2 — Update inventory.service.ts
+
+Update every inventory_items reference:
+
+stock → current_stock
+reorder_level → minimum_stock
+cost_price → cost_per_unit
+
+Check every:
+
+* select
+* insert
+* update
+* filter
+* ordering
+* calculations
+
+Do not accidentally rename similarly named columns belonging to other tables.
+
+Preserve all existing cafe isolation and RLS-safe behavior.
+
+---
+
+## STEP 3 — Update recipe.service.ts
+
+The current recipe service uses:
+
+inventory_items.stock
+
+Change it to:
+
+inventory_items.current_stock
+
+Do not modify unrelated recipe logic.
+
+---
+
+## STEP 4 — Update app/inventory/page.tsx
+
+Replace inventory_items references:
+
+stock → current_stock
+reorder_level → minimum_stock
+cost_price → cost_per_unit
+
+Update:
+
+* displayed stock
+* low-stock calculations
+* reorder/minimum stock display
+* cost display
+* forms
+* validation
+* sorting/filtering
+* TypeScript types
+
+Make sure the UI behavior remains unchanged.
+
+Do NOT redesign the UI.
+
+---
+
+## STEP 5 — Update dashboard analytics
+
+Inspect:
+
+supabase/dashboard_analytics.sql
+
+Specifically:
+
+get_inventory_summary
+
+Replace references to:
+
+stock → current_stock
+reorder_level → minimum_stock
+cost_price → cost_per_unit
+
+IMPORTANT:
+
+Do NOT execute the SQL.
+
+Create/update the repository SQL file only.
+
+Do not change the function's return structure unless absolutely required.
+
+---
+
+## STEP 6 — Update inventory RPC SQL definitions
+
+Search the entire repository for these functions:
+
+adjust_inventory_stock
+deduct_stock_for_order
+restore_stock_for_order
+receive_purchase_order
+get_inventory_summary
+
+Every reference to inventory_items must use:
+
+current_stock
+minimum_stock
+cost_per_unit
+
+Do NOT create duplicate functions.
+
+Do NOT use:
+
+stock
+reorder_level
+cost_price
+
+for inventory_items.
+
+IMPORTANT SECURITY REQUIREMENT:
+
+Do NOT modify the cafe ownership guards added during Phase 4 Module 1.
+
+Preserve:
+
+* SECURITY DEFINER
+* SET search_path
+* cafe ownership validation
+* FOR UPDATE locking
+* existing idempotency behavior
+* existing RLS protections
+
+---
+
+## STEP 7 — Search the entire repository
+
+Run a complete search for:
+
+inventory_items.stock
+inventory_items.reorder_level
+inventory_items.cost_price
+
+Also search for:
+
+".stock"
+"reorder_level"
+"cost_price"
+
+Review every result manually.
+
+Some occurrences may belong to unrelated tables and must NOT be renamed.
+
+The goal is:
+
+ZERO incorrect references to the old names for inventory_items.
+
+---
+
+## STEP 8 — DO NOT MODIFY THE DATABASE
+
+This task is application/schema reconciliation only.
+
+Do NOT:
+
+* rename database columns
+* DROP columns
+* ALTER tables
+* delete data
+* create compatibility columns
+* create views
+* create duplicate RPCs
+* modify RLS policies
+* modify storage policies
+
+The live database is already considered canonical.
+
+---
+
+## STEP 9 — Build
+
+Run:
+
+npm run build
+
+Then:
+
+npm run type-check
+
+Fix all TypeScript/build errors caused by this reconciliation.
+
+Do not proceed to Phase 4 Module 2.
+
+---
+
+## STEP 10 — Final verification report
+
+Return exactly:
+
+INVENTORY SCHEMA RECONCILIATION COMPLETE
+
+Canonical live columns:
+
+* current_stock
+* minimum_stock
+* cost_per_unit
+
+Repository changes:
+
+* [files changed]
+
+Old inventory references removed:
+
+* stock: [count]
+* reorder_level: [count]
+* cost_price: [count]
+
+Remaining old references:
+[list or "none"]
+
+RPC definitions updated:
+[list]
+
+Security/RLS changes:
+"None"
+
+Database schema changes:
+"None"
+
+UI redesign:
+"None"
+
+Build:
+PASS / FAIL
+
+TypeScript:
+PASS / FAIL
+
+Remaining issues:
+[list or "none"]
+
+IMPORTANT:
+Do not start Phase 4 Module 2.

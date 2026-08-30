@@ -82,8 +82,8 @@ export default function InventoryPage() {
     setEditingId(item.id)
     setFormName(item.name)
     setFormUnit(item.unit)
-    setFormCostPrice(String(item.cost_price))
-    setFormReorderLevel(String(item.reorder_level))
+    setFormCostPrice(String(item.cost_per_unit))
+    setFormReorderLevel(String(item.minimum_stock))
     setFormExpiryDate(item.expiry_date ?? "")
     setFormBatchNumber(item.batch_number ?? "")
     setShowForm(true)
@@ -98,8 +98,8 @@ export default function InventoryPage() {
         await updateInventoryItem(editingId, {
           name: formName.trim(),
           unit: formUnit,
-          cost_price: formCostPrice ? Number(formCostPrice) : 0,
-          reorder_level: formReorderLevel ? Number(formReorderLevel) : 0,
+          cost_per_unit: formCostPrice ? Number(formCostPrice) : 0,
+          minimum_stock: formReorderLevel ? Number(formReorderLevel) : 0,
           expiry_date: formExpiryDate || null,
           batch_number: formBatchNumber.trim() || null,
         })
@@ -108,8 +108,8 @@ export default function InventoryPage() {
         await createInventoryItem({
           name: formName.trim(),
           unit: formUnit,
-          cost_price: formCostPrice ? Number(formCostPrice) : 0,
-          reorder_level: formReorderLevel ? Number(formReorderLevel) : 0,
+          cost_per_unit: formCostPrice ? Number(formCostPrice) : 0,
+          minimum_stock: formReorderLevel ? Number(formReorderLevel) : 0,
           expiry_date: formExpiryDate || undefined,
           batch_number: formBatchNumber.trim() || undefined,
         })
@@ -132,8 +132,8 @@ export default function InventoryPage() {
       setError("Enter a valid quantity")
       return
     }
-    if (adjustType === "out" && qty > Number(adjustItem.stock)) {
-      setError(`Not enough stock. Available: ${adjustItem.stock} ${adjustItem.unit}`)
+    if (adjustType === "out" && qty > Number(adjustItem.current_stock)) {
+      setError(`Not enough stock. Available: ${adjustItem.current_stock} ${adjustItem.unit}`)
       return
     }
     setAdjusting(true)
@@ -181,7 +181,7 @@ export default function InventoryPage() {
     return item.name.toLowerCase().includes(search.toLowerCase())
   })
 
-  const isLowStock = (item: InventoryItem) => Number(item.stock) <= Number(item.reorder_level) && Number(item.reorder_level) > 0
+  const isLowStock = (item: InventoryItem) => Number(item.current_stock) <= Number(item.minimum_stock) && Number(item.minimum_stock) > 0
 
   const inputClass = "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
 
@@ -290,14 +290,14 @@ export default function InventoryPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className={isLowStock(item) ? "font-semibold text-red-600" : ""}>
-                        {Number(item.stock).toFixed(1)}
+                        {Number(item.current_stock).toFixed(1)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center hidden md:table-cell">
-                      {Number(item.reorder_level) > 0 ? Number(item.reorder_level).toFixed(1) : "—"}
+                      {Number(item.minimum_stock) > 0 ? Number(item.minimum_stock).toFixed(1) : "—"}
                     </td>
                     <td className="px-4 py-3 text-right hidden lg:table-cell">
-                      ₹{Number(item.cost_price).toFixed(2)}
+                      ₹{Number(item.cost_per_unit).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-center hidden xl:table-cell">
                       <span className="text-xs text-gray-500">{item.batch_number || "—"}</span>
@@ -352,7 +352,7 @@ export default function InventoryPage() {
                 <button type="button" onClick={() => { setAdjustItem(null); setError(null) }}><X size={18} className="text-gray-400" /></button>
               </div>
               <div className="px-5 py-4 space-y-4">
-                <p className="text-sm"><strong>{adjustItem.name}</strong> — Current: {Number(adjustItem.stock).toFixed(1)} {adjustItem.unit}</p>
+                <p className="text-sm"><strong>{adjustItem.name}</strong> — Current: {Number(adjustItem.current_stock).toFixed(1)} {adjustItem.unit}</p>
                 <div className="flex gap-3">
                   <button type="button" onClick={() => setAdjustType("in")}
                     className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-medium ${adjustType === "in" ? "border-green-500 bg-green-50 text-green-700" : "border-gray-200 text-gray-500"}`}>

@@ -212,7 +212,7 @@ export default function RecipesPage() {
                     return (
                       <div key={ei.item_id} className="flex items-center gap-2 rounded-lg bg-odfe-teal/5 px-3 py-1.5 text-sm">
                         <span className="flex-1 font-medium text-odfe-charcoal">{item?.name ?? "Unknown"}</span>
-                        <span className="text-xs text-odfe-charcoal/40">{Number(item?.stock ?? 0).toFixed(1)} in stock</span>
+                        <span className="text-xs text-odfe-charcoal/40">{Number(item?.current_stock ?? 0).toFixed(1)} in stock</span>
                         <input
                           type="number"
                           min="0"
@@ -249,7 +249,7 @@ export default function RecipesPage() {
                           className="h-4 w-4 rounded border-odfe-charcoal/20 text-odfe-teal"
                         />
                         <span className="flex-1 text-sm font-medium text-odfe-charcoal">{item.name}</span>
-                        <span className="text-xs text-odfe-charcoal/40">{Number(item.stock).toFixed(1)} {item.unit}</span>
+                        <span className="text-xs text-odfe-charcoal/40">{Number(item.current_stock).toFixed(1)} {item.unit}</span>
                         {selected && (
                           <div className="flex items-center gap-1">
                             <input

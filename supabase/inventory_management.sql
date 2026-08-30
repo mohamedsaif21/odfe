@@ -9,9 +9,9 @@ CREATE TABLE IF NOT EXISTS inventory_items (
   cafe_id       UUID NOT NULL REFERENCES cafes(id) ON DELETE CASCADE,
   name          TEXT NOT NULL,
   unit          TEXT NOT NULL DEFAULT 'piece',       -- kg, g, l, ml, piece, packet
-  cost_price    DECIMAL(10,2) NOT NULL DEFAULT 0,
-  stock         DECIMAL(10,2) NOT NULL DEFAULT 0,
-  reorder_level DECIMAL(10,2) NOT NULL DEFAULT 0,
+  cost_per_unit DECIMAL(10,2) NOT NULL DEFAULT 0,
+  current_stock  DECIMAL(10,2) NOT NULL DEFAULT 0,
+  minimum_stock DECIMAL(10,2) NOT NULL DEFAULT 0,
   is_active     BOOLEAN NOT NULL DEFAULT true,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -94,7 +94,7 @@ SECURITY DEFINER SET search_path = ''
 AS $$
 BEGIN
   UPDATE inventory_items
-  SET stock = GREATEST(0, stock + p_adjustment)
+  SET current_stock = GREATEST(0, current_stock + p_adjustment)
   WHERE id = p_item_id AND cafe_id = p_cafe_id;
 
   IF NOT FOUND THEN

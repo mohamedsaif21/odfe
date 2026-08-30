@@ -411,7 +411,7 @@ BEGIN
 
     -- Adjust stock
     UPDATE inventory_items
-    SET stock = GREATEST(0, stock - v_total_qty)
+    SET current_stock = GREATEST(0, current_stock - v_total_qty)
     WHERE id = v_item.item_id AND cafe_id = p_cafe_id;
   END LOOP;
 END;

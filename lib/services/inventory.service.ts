@@ -30,7 +30,7 @@ export async function fetchInventoryItems(
 }
 
 export async function createInventoryItem(
-  input: { name: string; unit: string; cost_price?: number; reorder_level?: number; expiry_date?: string; batch_number?: string },
+  input: { name: string; unit: string; cost_per_unit?: number; minimum_stock?: number; expiry_date?: string; batch_number?: string },
   client?: DbClient
 ) {
   const supabase = client ?? createClient()
@@ -41,9 +41,9 @@ export async function createInventoryItem(
     cafe_id: cafeId,
     name: input.name,
     unit: input.unit,
-    cost_price: input.cost_price ?? 0,
-    stock: 0,
-    reorder_level: input.reorder_level ?? 0,
+    cost_per_unit: input.cost_per_unit ?? 0,
+    current_stock: 0,
+    minimum_stock: input.minimum_stock ?? 0,
     expiry_date: input.expiry_date ?? null,
     batch_number: input.batch_number ?? null,
     is_active: true,
@@ -62,7 +62,7 @@ export async function createInventoryItem(
 
 export async function updateInventoryItem(
   id: string,
-  input: Partial<{ name: string; unit: string; cost_price: number; reorder_level: number; expiry_date: string | null; batch_number: string | null; is_active: boolean }>,
+  input: Partial<{ name: string; unit: string; cost_per_unit: number; minimum_stock: number; expiry_date: string | null; batch_number: string | null; is_active: boolean }>,
   client?: DbClient
 ) {
   const supabase = client ?? createClient()
@@ -140,13 +140,13 @@ export async function getLowStockItems(
     .select("*")
     .eq("cafe_id", cafeId)
     .eq("is_active", true)
-    .order("stock", { ascending: true })
+    .order("current_stock", { ascending: true })
 
   if (error) throw new Error(error.message)
 
-  // Client-side filter for stock <= reorder_level
+  // Client-side filter for stock <= minimum_stock
   return (data ?? []).filter(
-    (item) => Number(item.stock) <= Number(item.reorder_level)
+    (item) => Number(item.current_stock) <= Number(item.minimum_stock)
   )
 }
 

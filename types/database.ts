@@ -388,9 +388,9 @@ export interface Database {
           cafe_id: string
           name: string
           unit: string
-          cost_price: number
-          stock: number
-          reorder_level: number
+          cost_per_unit: number
+          current_stock: number
+          minimum_stock: number
           expiry_date: string | null
           batch_number: string | null
           is_active: boolean

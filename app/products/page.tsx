@@ -327,7 +327,7 @@ export default function ProductsPage() {
                         className="h-4 w-4 rounded border-gray-300 text-odfe-teal"
                       />
                       <span className="flex-1 text-sm font-medium">{item.name}</span>
-                      <span className="text-xs text-gray-400 w-12 text-right">{Number(item.stock).toFixed(1)} in stock</span>
+                      <span className="text-xs text-gray-400 w-12 text-right">{Number(item.current_stock).toFixed(1)} in stock</span>
                       {selected && (
                         <input
                           type="number"

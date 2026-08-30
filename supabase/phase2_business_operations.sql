@@ -145,7 +145,7 @@ BEGIN
     WHERE purchase_order_id = p_order_id AND cafe_id = p_cafe_id
   LOOP
     UPDATE inventory_items
-    SET stock = stock + po_item.quantity
+    SET current_stock = current_stock + po_item.quantity
     WHERE id = po_item.item_id AND cafe_id = p_cafe_id;
   END LOOP;
 

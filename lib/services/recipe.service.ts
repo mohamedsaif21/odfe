@@ -72,19 +72,19 @@ export async function fetchRecipeIngredients(
 
   const { data: items, error: itemsError } = await supabase
     .from("inventory_items")
-    .select("id, name, unit, stock")
+    .select("id, name, unit, current_stock")
     .in("id", itemIds)
     .eq("cafe_id", cafeId)
 
   if (itemsError) throw new Error(itemsError.message)
 
-  const itemMap = new Map((items ?? []).map((i) => [i.id, { name: i.name, unit: i.unit, stock: i.stock }]))
+  const itemMap = new Map((items ?? []).map((i) => [i.id, { name: i.name, unit: i.unit, current_stock: i.current_stock }]))
 
   return (data ?? []).map((r) => ({
     ...r,
     item_name: itemMap.get(r.item_id)?.name ?? "Unknown",
     item_unit: itemMap.get(r.item_id)?.unit ?? "piece",
-    item_stock: Number(itemMap.get(r.item_id)?.stock ?? 0),
+    item_stock: Number(itemMap.get(r.item_id)?.current_stock ?? 0),
   }))
 }
 

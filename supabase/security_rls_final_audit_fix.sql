@@ -57,7 +57,7 @@ BEGIN
     RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
-  SELECT stock INTO v_new_stock
+  SELECT current_stock INTO v_new_stock
   FROM public.inventory_items
   WHERE id = p_item_id AND cafe_id = p_cafe_id
   FOR UPDATE;
@@ -73,7 +73,7 @@ BEGIN
   END IF;
 
   UPDATE public.inventory_items
-  SET stock = v_new_stock
+  SET current_stock = v_new_stock
   WHERE id = p_item_id AND cafe_id = p_cafe_id;
 
   IF p_type IS NOT NULL THEN
@@ -150,13 +150,13 @@ BEGIN
     ORDER BY pi.item_id
   LOOP
     IF (
-      SELECT stock FROM public.inventory_items
+      SELECT current_stock FROM public.inventory_items
       WHERE id = v_item.item_id AND cafe_id = p_cafe_id
       FOR UPDATE
     ) < v_item.total_qty THEN
       RAISE EXCEPTION 'Insufficient stock for item %: has %, needs %',
         v_item.item_id,
-        (SELECT stock FROM public.inventory_items WHERE id = v_item.item_id AND cafe_id = p_cafe_id),
+        (SELECT current_stock FROM public.inventory_items WHERE id = v_item.item_id AND cafe_id = p_cafe_id),
         v_item.total_qty;
     END IF;
 
@@ -164,7 +164,7 @@ BEGIN
     VALUES (p_cafe_id, v_item.item_id, v_item.total_qty, 'out', v_movement_note, false, p_profile_id);
 
     UPDATE public.inventory_items
-    SET stock = stock - v_item.total_qty
+    SET current_stock = current_stock - v_item.total_qty
     WHERE id = v_item.item_id AND cafe_id = p_cafe_id;
 
     v_count := v_count + 1;
@@ -236,7 +236,7 @@ BEGIN
     VALUES (p_cafe_id, v_movement.item_id, v_movement.quantity, 'in', v_restore_note, false, p_profile_id);
 
     UPDATE public.inventory_items
-    SET stock = stock + v_movement.quantity
+    SET current_stock = current_stock + v_movement.quantity
     WHERE id = v_movement.item_id AND cafe_id = p_cafe_id;
   END LOOP;
 END;
@@ -310,7 +310,7 @@ BEGIN
     WHERE purchase_order_id = p_order_id AND cafe_id = p_cafe_id
   LOOP
     UPDATE public.inventory_items
-    SET stock = stock + v_item.quantity
+    SET current_stock = current_stock + v_item.quantity
     WHERE id = v_item.item_id AND cafe_id = p_cafe_id;
 
     INSERT INTO public.stock_movements (
