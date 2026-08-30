@@ -15,29 +15,67 @@ export function getDateRange(preset: string): DateRange {
 
   switch (preset) {
     case "today":
-      return { start: today, end: today, label: "Today" }
+      return {
+        start: today,
+        end: today,
+        label: "Today",
+      }
+
     case "yesterday": {
       const d = new Date(now)
       d.setDate(d.getDate() - 1)
+
       const ds = d.toISOString().slice(0, 10)
-      return { start: ds, end: ds, label: "Yesterday" }
+
+      return {
+        start: ds,
+        end: ds,
+        label: "Yesterday",
+      }
     }
+
     case "last_7": {
       const d = new Date(now)
       d.setDate(d.getDate() - 7)
-      return { start: d.toISOString().slice(0, 10), end: today, label: "Last 7 Days" }
+
+      return {
+        start: d.toISOString().slice(0, 10),
+        end: today,
+        label: "Last 7 Days",
+      }
     }
+
     case "last_30": {
       const d = new Date(now)
       d.setDate(d.getDate() - 30)
-      return { start: d.toISOString().slice(0, 10), end: today, label: "Last 30 Days" }
+
+      return {
+        start: d.toISOString().slice(0, 10),
+        end: today,
+        label: "Last 30 Days",
+      }
     }
+
     case "this_month": {
-      const first = new Date(now.getFullYear(), now.getMonth(), 1)
-      return { start: first.toISOString().slice(0, 10), end: today, label: "This Month" }
+      const first = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+      )
+
+      return {
+        start: first.toISOString().slice(0, 10),
+        end: today,
+        label: "This Month",
+      }
     }
+
     default:
-      return { start: today, end: today, label: "Today" }
+      return {
+        start: today,
+        end: today,
+        label: "Today",
+      }
   }
 }
 
@@ -73,16 +111,19 @@ export type CategorySalesPoint = {
 export type CustomerAnalytics = {
   total_customers: number
   repeat_customers: number
+
   top_customers: Array<{
     name: string
     lifetime_spend: number
     visit_count: number
     loyalty_points: number
   }>
+
   tier_distribution: Array<{
     tier_name: string
     customer_count: number
   }>
+
   total_points_earned: number
   total_points_redeemed: number
 }
@@ -92,6 +133,7 @@ export type InventorySummary = {
   low_stock: number
   out_of_stock: number
   inventory_value: number
+
   recent_movements: Array<{
     item_id: string
     item_name: string
@@ -105,15 +147,18 @@ export type InventorySummary = {
 
 export type PurchaseSummary = {
   total_spend: number
+
   status_breakdown: Array<{
     status: string
     count: number
     total: number
   }>
+
   supplier_spend: Array<{
     supplier_name: string | null
     total: number
   }>
+
   purchase_trend: Array<{
     period_date: string
     count: number
@@ -123,10 +168,12 @@ export type PurchaseSummary = {
 
 export type ExpenseSummary = {
   total_expenses: number
+
   categories: Array<{
     category: string
     total: number
   }>
+
   trend: Array<{
     period_date: string
     total: number
@@ -147,11 +194,13 @@ export type PosSummary = {
     order_count: number
     revenue: number
   }>
+
   order_type_breakdown: Array<{
     order_type: string
     count: number
     revenue: number
   }>
+
   payment_method_breakdown: Array<{
     method: string
     count: number
@@ -163,166 +212,432 @@ export type ProfitLossData = {
   total_revenue: number
   total_expenses: number
   net_profit: number
+
   expense_breakdown: Array<{
     category: string
     total: number
   }>
 }
 
-// ─── Service Functions ───────────────────────────────────────────────────
+// ─── Generic RPC Helper ──────────────────────────────────────────────────
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function rpc<T>(fn: string, params: Record<string, unknown>): Promise<{ data: T | null; error: string | null }> {
-  return new Promise(async (resolve) => {
-    try {
-      const supabase = createClient() as any
-      const { data, error } = await supabase.rpc(fn, params)
-      if (error) {
-        resolve({ data: null, error: error.message })
-      } else {
-        resolve({ data: data as T, error: null })
-      }
-    } catch (err) {
-      resolve({ data: null, error: err instanceof Error ? err.message : "Unknown error" })
-    }
-  })
-}
 
-export async function getDashboardKPIs(range: DateRange): Promise<{ data: DashboardKPIs | null; error: string | null }> {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<DashboardKPIs>("get_dashboard_kpis", {
-    p_cafe_id: cafeId,
-    p_start_date: range.start,
-    p_end_date: range.end,
-  })
-}
-
-export async function getSalesTrend(range: DateRange, granularity: "day" | "week" | "month" = "day") {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<SalesTrendPoint[]>("get_sales_trend", {
-    p_cafe_id: cafeId,
-    p_start_date: range.start,
-    p_end_date: range.end,
-    p_granularity: granularity,
-  })
-}
-
-export async function getTopProducts(range: DateRange, limit = 10) {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<TopProduct[]>("get_top_products", {
-    p_cafe_id: cafeId,
-    p_start_date: range.start,
-    p_end_date: range.end,
-    p_limit: limit,
-  })
-}
-
-export async function getCategorySales(range: DateRange) {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<CategorySalesPoint[]>("get_category_sales", {
-    p_cafe_id: cafeId,
-    p_start_date: range.start,
-    p_end_date: range.end,
-  })
-}
-
-export async function getCustomerAnalytics() {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<CustomerAnalytics>("get_customer_analytics", {
-    p_cafe_id: cafeId,
-  })
-}
-
-export async function getInventorySummary(): Promise<{ data: InventorySummary | null; error: string | null }> {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-
-  let parsed: Partial<InventorySummary> | null
+async function rpc<T>(
+  fn: string,
+  params: Record<string, unknown>
+): Promise<{
+  data: T | null
+  error: string | null
+}> {
   try {
-    const res = await rpc<InventorySummary>("get_inventory_summary", {
-      p_cafe_id: cafeId,
-    })
-    if (res.error || res.data == null) {
-      return { data: null, error: res.error ?? "Failed to load inventory summary" }
+    const supabase = createClient() as any
+
+    const { data, error } = await supabase.rpc(fn, params)
+
+    if (error) {
+      return {
+        data: null,
+        error: error.message,
+      }
     }
 
-    // PostgREST returns a scalar `JSON` type as a string; parse it when needed.
-    parsed =
-      typeof res.data === "string"
-        ? (JSON.parse(res.data) as Partial<InventorySummary>)
-        : (res.data as Partial<InventorySummary>)
+    return {
+      data: data as T,
+      error: null,
+    }
   } catch (err) {
     return {
       data: null,
-      error: err instanceof Error ? err.message : "Failed to load inventory summary",
+      error:
+        err instanceof Error
+          ? err.message
+          : "Unknown error",
     }
   }
+}
 
-  const movements = Array.isArray(parsed?.recent_movements)
-    ? parsed.recent_movements
-    : []
+// ─── Dashboard KPIs ──────────────────────────────────────────────────────
 
-  return {
-    data: {
-      total_items: Number(parsed?.total_items ?? 0),
-      low_stock: Number(parsed?.low_stock ?? 0),
-      out_of_stock: Number(parsed?.out_of_stock ?? 0),
-      inventory_value: Number(parsed?.inventory_value ?? 0),
-      recent_movements: movements,
-    },
-    error: null,
+export async function getDashboardKPIs(
+  range: DateRange
+): Promise<{
+  data: DashboardKPIs | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+
+    // Get the authenticated user's cafe.
+    const cafeId = await getCafeId(supabase)
+
+    if (!cafeId) {
+      return {
+        data: null,
+        error: "No cafe assigned to current user",
+      }
+    }
+
+    return rpc<DashboardKPIs>("get_dashboard_kpis", {
+      p_cafe_id: cafeId,
+      p_start_date: range.start,
+      p_end_date: range.end,
+    })
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load dashboard KPIs",
+    }
   }
 }
 
-export async function getPurchaseSummary(range: DateRange) {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<PurchaseSummary>("get_purchase_summary", {
-    p_cafe_id: cafeId,
-    p_start_date: range.start,
-    p_end_date: range.end,
-  })
+// ─── Sales Trend ─────────────────────────────────────────────────────────
+
+export async function getSalesTrend(
+  range: DateRange,
+  granularity: "day" | "week" | "month" = "day"
+): Promise<{
+  data: SalesTrendPoint[] | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<SalesTrendPoint[]>("get_sales_trend", {
+      p_cafe_id: cafeId,
+      p_start_date: range.start,
+      p_end_date: range.end,
+      p_granularity: granularity,
+    })
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load sales trend",
+    }
+  }
 }
 
-export async function getExpenseSummary(range: DateRange) {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<ExpenseSummary>("get_expense_summary", {
-    p_cafe_id: cafeId,
-    p_start_date: range.start,
-    p_end_date: range.end,
-  })
+// ─── Top Products ────────────────────────────────────────────────────────
+
+export async function getTopProducts(
+  range: DateRange,
+  limit = 10
+): Promise<{
+  data: TopProduct[] | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<TopProduct[]>("get_top_products", {
+      p_cafe_id: cafeId,
+      p_start_date: range.start,
+      p_end_date: range.end,
+      p_limit: limit,
+    })
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load top products",
+    }
+  }
 }
 
-export async function getKitchenSummary() {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<KitchenSummary>("get_kitchen_summary", {
-    p_cafe_id: cafeId,
-  })
+// ─── Category Sales ──────────────────────────────────────────────────────
+
+export async function getCategorySales(
+  range: DateRange
+): Promise<{
+  data: CategorySalesPoint[] | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<CategorySalesPoint[]>("get_category_sales", {
+      p_cafe_id: cafeId,
+      p_start_date: range.start,
+      p_end_date: range.end,
+    })
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load category sales",
+    }
+  }
 }
 
-export async function getPosSummary(range: DateRange) {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<PosSummary>("get_pos_summary", {
-    p_cafe_id: cafeId,
-    p_start_date: range.start,
-    p_end_date: range.end,
-  })
+// ─── Customer Analytics ──────────────────────────────────────────────────
+
+export async function getCustomerAnalytics(): Promise<{
+  data: CustomerAnalytics | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<CustomerAnalytics>(
+      "get_customer_analytics",
+      {
+        p_cafe_id: cafeId,
+      }
+    )
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load customer analytics",
+    }
+  }
 }
 
-export async function getProfitLoss(range: DateRange) {
-  const supabase = createClient()
-  const cafeId = await getCafeId(supabase)
-  return rpc<ProfitLossData>("get_profit_loss", {
-    p_cafe_id: cafeId,
-    p_start_date: range.start,
-    p_end_date: range.end,
-  })
+// ─── Inventory Summary ───────────────────────────────────────────────────
+
+export async function getInventorySummary(): Promise<{
+  data: InventorySummary | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    const result = await rpc<InventorySummary>(
+      "get_inventory_summary",
+      {
+        p_cafe_id: cafeId,
+      }
+    )
+
+    if (result.error || result.data == null) {
+      return {
+        data: null,
+        error:
+          result.error ??
+          "Failed to load inventory summary",
+      }
+    }
+
+    let parsed: Partial<InventorySummary>
+
+    try {
+      parsed =
+        typeof result.data === "string"
+          ? (JSON.parse(
+              result.data
+            ) as Partial<InventorySummary>)
+          : (result.data as Partial<InventorySummary>)
+    } catch (err) {
+      return {
+        data: null,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Invalid inventory response",
+      }
+    }
+
+    const movements = Array.isArray(
+      parsed?.recent_movements
+    )
+      ? parsed.recent_movements
+      : []
+
+    return {
+      data: {
+        total_items: Number(
+          parsed?.total_items ?? 0
+        ),
+
+        low_stock: Number(
+          parsed?.low_stock ?? 0
+        ),
+
+        out_of_stock: Number(
+          parsed?.out_of_stock ?? 0
+        ),
+
+        inventory_value: Number(
+          parsed?.inventory_value ?? 0
+        ),
+
+        recent_movements: movements,
+      },
+
+      error: null,
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load inventory summary",
+    }
+  }
+}
+
+// ─── Purchase Summary ────────────────────────────────────────────────────
+
+export async function getPurchaseSummary(
+  range: DateRange
+): Promise<{
+  data: PurchaseSummary | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<PurchaseSummary>(
+      "get_purchase_summary",
+      {
+        p_cafe_id: cafeId,
+        p_start_date: range.start,
+        p_end_date: range.end,
+      }
+    )
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load purchase summary",
+    }
+  }
+}
+
+// ─── Expense Summary ─────────────────────────────────────────────────────
+
+export async function getExpenseSummary(
+  range: DateRange
+): Promise<{
+  data: ExpenseSummary | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<ExpenseSummary>(
+      "get_expense_summary",
+      {
+        p_cafe_id: cafeId,
+        p_start_date: range.start,
+        p_end_date: range.end,
+      }
+    )
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load expense summary",
+    }
+  }
+}
+
+// ─── Kitchen Summary ─────────────────────────────────────────────────────
+
+export async function getKitchenSummary(): Promise<{
+  data: KitchenSummary | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<KitchenSummary>(
+      "get_kitchen_summary",
+      {
+        p_cafe_id: cafeId,
+      }
+    )
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load kitchen summary",
+    }
+  }
+}
+
+// ─── POS Summary ─────────────────────────────────────────────────────────
+
+export async function getPosSummary(
+  range: DateRange
+): Promise<{
+  data: PosSummary | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<PosSummary>("get_pos_summary", {
+      p_cafe_id: cafeId,
+      p_start_date: range.start,
+      p_end_date: range.end,
+    })
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load POS summary",
+    }
+  }
+}
+
+// ─── Profit & Loss ───────────────────────────────────────────────────────
+
+export async function getProfitLoss(
+  range: DateRange
+): Promise<{
+  data: ProfitLossData | null
+  error: string | null
+}> {
+  try {
+    const supabase = createClient()
+    const cafeId = await getCafeId(supabase)
+
+    return rpc<ProfitLossData>(
+      "get_profit_loss",
+      {
+        p_cafe_id: cafeId,
+        p_start_date: range.start,
+        p_end_date: range.end,
+      }
+    )
+  } catch (err) {
+    return {
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to load profit & loss",
+    }
+  }
 }
