@@ -1,295 +1,271 @@
-ODFE — INVENTORY SCHEMA RECONCILIATION
+ODFE — PHASE 4 — SUPABASE DATABASE ALIGNMENT
+MODULE: Dashboard Analytics SQL ONLY
 
-We have completed the schema verification.
+We are working on the existing ODFE Cafe POS SaaS project.
 
-IMPORTANT DECISION:
+IMPORTANT:
+Do NOT modify the frontend.
+Do NOT modify TypeScript.
+Do NOT modify inventory services.
+Do NOT modify migrations unrelated to dashboard analytics.
+Do NOT rename database columns.
+Do NOT create duplicate tables.
+Do NOT guess the schema.
 
-The LIVE Supabase database is the canonical schema.
+We are fixing ONLY:
 
-Do NOT rename any live database columns.
+supabase/dashboard_analytics.sql
 
-Use this exact mapping:
+CURRENT SUPABASE ERROR:
 
-Repository name → LIVE canonical name
+ERROR: 42703: column "is_active" does not exist
 
-stock → current_stock
-reorder_level → minimum_stock
-cost_price → cost_per_unit
+KNOWN LIVE DATABASE FACTS:
 
-The live database must remain unchanged.
+The live `inventory_items` table has:
 
-Do NOT create a migration to rename these columns.
-
-Do NOT start Phase 4 Module 2.
-
-Your task is ONLY to update the application/repository so it correctly matches the existing live Supabase schema.
-
----
-
-## STEP 1 — Update generated database types
-
-Update:
-
-src/types/database.ts
-
-Replace the inventory_items column definitions:
-
-stock → current_stock
-reorder_level → minimum_stock
-cost_price → cost_per_unit
-
-Preserve:
-
-* id
-* cafe_id
+* id UUID
+* cafe_id UUID
 * name
 * unit
-* expiry_date
-* batch_number
+* current_stock
+* minimum_stock
+* cost_per_unit
 * is_active
 * created_by
 * created_at
 * updated_at
-* all existing nullability/default/type definitions unless the LIVE schema proves otherwise.
 
-Do not modify unrelated tables.
+Therefore, for inventory_items the canonical live columns are:
 
----
-
-## STEP 2 — Update inventory.service.ts
-
-Update every inventory_items reference:
-
-stock → current_stock
-reorder_level → minimum_stock
-cost_price → cost_per_unit
-
-Check every:
-
-* select
-* insert
-* update
-* filter
-* ordering
-* calculations
-
-Do not accidentally rename similarly named columns belonging to other tables.
-
-Preserve all existing cafe isolation and RLS-safe behavior.
-
----
-
-## STEP 3 — Update recipe.service.ts
-
-The current recipe service uses:
-
-inventory_items.stock
-
-Change it to:
-
-inventory_items.current_stock
-
-Do not modify unrelated recipe logic.
-
----
-
-## STEP 4 — Update app/inventory/page.tsx
-
-Replace inventory_items references:
-
-stock → current_stock
-reorder_level → minimum_stock
-cost_price → cost_per_unit
-
-Update:
-
-* displayed stock
-* low-stock calculations
-* reorder/minimum stock display
-* cost display
-* forms
-* validation
-* sorting/filtering
-* TypeScript types
-
-Make sure the UI behavior remains unchanged.
-
-Do NOT redesign the UI.
-
----
-
-## STEP 5 — Update dashboard analytics
-
-Inspect:
-
-supabase/dashboard_analytics.sql
-
-Specifically:
-
-get_inventory_summary
-
-Replace references to:
-
-stock → current_stock
-reorder_level → minimum_stock
-cost_price → cost_per_unit
+stock            → current_stock
+reorder_level    → minimum_stock
+cost_price       → cost_per_unit
 
 IMPORTANT:
+The repository must NOT assume the old inventory column names.
 
-Do NOT execute the SQL.
+Previously verified dashboard inventory logic contains:
 
-Create/update the repository SQL file only.
+* is_active
+* current_stock
+* minimum_stock
+* cost_per_unit
 
-Do not change the function's return structure unless absolutely required.
+but the current SQL still produces an `is_active does not exist` error somewhere in the complete dashboard analytics migration.
 
----
+TASK 1 — AUDIT THE ENTIRE dashboard_analytics.sql
 
-## STEP 6 — Update inventory RPC SQL definitions
+Read the complete file.
 
-Search the entire repository for these functions:
+Find EVERY occurrence of:
 
-adjust_inventory_stock
-deduct_stock_for_order
-restore_stock_for_order
-receive_purchase_order
-get_inventory_summary
-
-Every reference to inventory_items must use:
-
+is_active
+stock
+reorder_level
+cost_price
 current_stock
 minimum_stock
 cost_per_unit
 
-Do NOT create duplicate functions.
+For every occurrence, identify which table it belongs to.
+
+Do not assume that every table has an `is_active` column.
+
+TASK 2 — VERIFY AGAINST THE LIVE SCHEMA
+
+Before changing anything, inspect the repository migrations/types to determine the intended schema for every table referenced by dashboard_analytics.sql.
+
+Pay special attention to:
+
+inventory_items
+suppliers
+purchase_orders
+purchase_order_items
+customers
+expenses
+expense_categories
+kitchen_tickets
+orders
+order_items
+payments
+products
+product_categories
+cafe_tables
+
+The live database is authoritative.
+
+If the SQL references a column that does not exist on a table, replace it with the correct existing column only when the mapping is certain.
+
+TASK 3 — FIX get_inventory_summary
+
+The inventory analytics must use the LIVE inventory schema:
+
+inventory_items.current_stock
+inventory_items.minimum_stock
+inventory_items.cost_per_unit
+inventory_items.is_active
+
+Correct calculations:
+
+Total active inventory items:
+COUNT(*) WHERE is_active = true
+
+Low stock:
+is_active = true
+AND current_stock > 0
+AND current_stock <= minimum_stock
+
+Out of stock:
+is_active = true
+AND current_stock <= 0
+
+Inventory value:
+
+SUM(current_stock * cost_per_unit)
+
+Only active inventory items should be included in inventory valuation.
+
+TASK 4 — CHECK ALL OTHER `is_active` REFERENCES
+
+If another table in dashboard_analytics.sql does NOT have an `is_active` column, do NOT blindly add one.
+
+Instead:
+
+1. Identify the actual live column.
+2. Use the existing schema.
+3. If no active/inactive concept exists for that table, remove the invalid `is_active` condition rather than inventing a column.
+
+TASK 5 — SECURITY
+
+Every dashboard RPC must remain:
+
+SECURITY DEFINER
+SET search_path = public
+
+Every RPC accepting p_cafe_id must verify that the authenticated user belongs to that cafe.
+
+Use the existing working function:
+
+public.app_current_cafe_id()
+
+The security condition should be equivalent to:
+
+IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+RAISE EXCEPTION 'Cafe access denied';
+END IF;
 
 Do NOT use:
 
-stock
-reorder_level
-cost_price
+public.current_cafe_id()
 
-for inventory_items.
+because that function does not exist in the live database.
 
-IMPORTANT SECURITY REQUIREMENT:
+Do NOT use auth_cafe_id() if app_current_cafe_id() is the established active-account-aware function.
 
-Do NOT modify the cafe ownership guards added during Phase 4 Module 1.
+TASK 6 — DO NOT CHANGE RPC RETURN TYPES
 
-Preserve:
+This is extremely important.
 
-* SECURITY DEFINER
-* SET search_path
-* cafe ownership validation
-* FOR UPDATE locking
-* existing idempotency behavior
-* existing RLS protections
+Do NOT use CREATE OR REPLACE FUNCTION if the return type differs from the existing function.
 
----
+Do not change existing RPC signatures unless absolutely required.
 
-## STEP 7 — Search the entire repository
+If an existing RPC has a different return type, stop and report the mismatch instead of blindly dropping it.
 
-Run a complete search for:
+TASK 7 — MAKE THE MIGRATION SAFE
+
+The final dashboard analytics SQL must:
+
+* Be safe to run against the CURRENT live database.
+* Not rename columns.
+* Not drop tables.
+* Not delete data.
+* Not create duplicate RPCs with conflicting signatures.
+* Use CREATE OR REPLACE only when the function signature and return type are identical.
+* Use IF NOT EXISTS for indexes.
+* Preserve cafe isolation.
+
+TASK 8 — CHECK ALL 10 DASHBOARD RPCs
+
+Verify these RPCs:
+
+1. get_dashboard_kpis
+2. get_sales_trend
+3. get_top_products
+4. get_category_sales
+5. get_customer_analytics
+6. get_inventory_summary
+7. get_purchase_summary
+8. get_expense_summary
+9. get_kitchen_summary
+10. get_pos_summary
+
+For each RPC verify:
+
+* correct table names
+* correct column names
+* correct return type
+* cafe isolation
+* active account validation where appropriate
+* no references to nonexistent columns
+
+TASK 9 — IMPORTANT INVENTORY SCHEMA RULE
+
+Use this mapping everywhere inside dashboard_analytics.sql:
 
 inventory_items.stock
+→ inventory_items.current_stock
+
 inventory_items.reorder_level
+→ inventory_items.minimum_stock
+
 inventory_items.cost_price
+→ inventory_items.cost_per_unit
 
-Also search for:
+Do NOT modify the actual database schema.
 
-".stock"
-"reorder_level"
-"cost_price"
+TASK 10 — BUILD / VALIDATION
 
-Review every result manually.
-
-Some occurrences may belong to unrelated tables and must NOT be renamed.
-
-The goal is:
-
-ZERO incorrect references to the old names for inventory_items.
-
----
-
-## STEP 8 — DO NOT MODIFY THE DATABASE
-
-This task is application/schema reconciliation only.
-
-Do NOT:
-
-* rename database columns
-* DROP columns
-* ALTER tables
-* delete data
-* create compatibility columns
-* create views
-* create duplicate RPCs
-* modify RLS policies
-* modify storage policies
-
-The live database is already considered canonical.
-
----
-
-## STEP 9 — Build
+After modifying the SQL:
 
 Run:
 
 npm run build
 
-Then:
+The build must pass.
 
-npm run type-check
+Then report:
 
-Fix all TypeScript/build errors caused by this reconciliation.
+DASHBOARD ANALYTICS SQL FIX COMPLETE
 
-Do not proceed to Phase 4 Module 2.
+1. Error fixed:
+   [exact cause]
 
----
+2. Tables audited:
+   [list]
 
-## STEP 10 — Final verification report
+3. Column corrections:
+   [list]
 
-Return exactly:
+4. RPCs verified:
+   [10 RPCs]
 
-INVENTORY SCHEMA RECONCILIATION COMPLETE
+5. Security:
+   [describe cafe ownership validation]
 
-Canonical live columns:
+6. SQL file changed:
+   supabase/dashboard_analytics.sql
 
-* current_stock
-* minimum_stock
-* cost_per_unit
+7. Build:
+   PASS / FAIL
 
-Repository changes:
-
-* [files changed]
-
-Old inventory references removed:
-
-* stock: [count]
-* reorder_level: [count]
-* cost_price: [count]
-
-Remaining old references:
-[list or "none"]
-
-RPC definitions updated:
-[list]
-
-Security/RLS changes:
-"None"
-
-Database schema changes:
-"None"
-
-UI redesign:
-"None"
-
-Build:
-PASS / FAIL
-
-TypeScript:
-PASS / FAIL
-
-Remaining issues:
-[list or "none"]
+8. Remaining database issues:
+   [list or none]
 
 IMPORTANT:
-Do not start Phase 4 Module 2.
+Do not claim the Supabase migration is successful merely because npm run build passes.
+
+The SQL must still be run in Supabase SQL Editor and tested there.
+
+If Supabase reports another `42703`, `42883`, `42P13`, or similar database error, STOP and report the exact error and the SQL section causing it instead of guessing.

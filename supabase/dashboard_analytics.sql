@@ -25,10 +25,8 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   RETURN QUERY
@@ -74,10 +72,8 @@ AS $$
 DECLARE
   v_trunc TEXT;
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   v_trunc := CASE p_granularity
@@ -121,10 +117,8 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   RETURN QUERY
@@ -163,10 +157,8 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   RETURN QUERY
@@ -207,10 +199,8 @@ DECLARE
   v_total_earned BIGINT;
   v_total_redeemed BIGINT;
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   SELECT COUNT(*) INTO v_total
@@ -279,10 +269,8 @@ DECLARE
   v_inventory_value DECIMAL;
   v_recent_movements JSON;
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   SELECT
@@ -339,10 +327,8 @@ DECLARE
   v_supplier_spend JSON;
   v_purchase_trend JSON;
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   SELECT COALESCE(SUM(total_amount), 0)::DECIMAL INTO v_total_spend
@@ -413,10 +399,8 @@ DECLARE
   v_expense_categories JSON;
   v_expense_trend JSON;
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   SELECT COALESCE(SUM(amount), 0)::DECIMAL INTO v_total_expenses
@@ -475,10 +459,8 @@ DECLARE
   v_completed BIGINT;
   v_avg_completion_seconds DECIMAL;
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   SELECT
@@ -529,10 +511,8 @@ DECLARE
   v_order_type_breakdown JSON;
   v_payment_method_breakdown JSON;
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles WHERE id = auth.uid() AND cafe_id = p_cafe_id AND is_active = true
-  ) THEN
-    RAISE EXCEPTION 'Access denied for cafe %', p_cafe_id;
+  IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
+    RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
   SELECT COALESCE(json_agg(row_to_json(t)), '[]'::json) INTO v_table_stats
