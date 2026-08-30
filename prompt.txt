@@ -1,271 +1,229 @@
-ODFE — PHASE 4 — SUPABASE DATABASE ALIGNMENT
-MODULE: Dashboard Analytics SQL ONLY
+## ODFE PHASE 4 — MODULE 1 FIX
 
-We are working on the existing ODFE Cafe POS SaaS project.
+### Dashboard `recent_movements` Runtime Error
 
-IMPORTANT:
-Do NOT modify the frontend.
-Do NOT modify TypeScript.
-Do NOT modify inventory services.
-Do NOT modify migrations unrelated to dashboard analytics.
-Do NOT rename database columns.
-Do NOT create duplicate tables.
-Do NOT guess the schema.
+We are continuing Phase 4 Module 1 only.
 
-We are fixing ONLY:
+The Supabase RLS/security work is already completed and the latest build passed.
 
+Current runtime error on `/dashboard`:
+
+```text
+TypeError: inventory.recent_movements.slice is not a function
+
+app/dashboard/page.tsx (542:51)
+```
+
+The failing code is:
+
+```tsx
+inventory.recent_movements.slice(0, 5).map(...)
+```
+
+### Goal
+
+Fix the runtime error without changing the dashboard design, layout, database schema, RLS policies, or unrelated modules.
+
+### Step 1 — Inspect the actual data shape
+
+Read:
+
+```text
+app/dashboard/page.tsx
+lib/services/analytics.service.ts
 supabase/dashboard_analytics.sql
+types/database.ts
+```
 
-CURRENT SUPABASE ERROR:
+Find:
 
-ERROR: 42703: column "is_active" does not exist
+1. The TypeScript type of `recent_movements`
+2. The exact `get_inventory_summary` RPC return structure
+3. How `analytics.service.ts` maps the RPC response
+4. What the dashboard expects
 
-KNOWN LIVE DATABASE FACTS:
+Do NOT assume `recent_movements` is an array.
 
-The live `inventory_items` table has:
+### Step 2 — Fix the data normalization
 
-* id UUID
-* cafe_id UUID
-* name
-* unit
-* current_stock
-* minimum_stock
-* cost_per_unit
-* is_active
-* created_by
-* created_at
-* updated_at
+Make the analytics service return a predictable array for `recent_movements`.
 
-Therefore, for inventory_items the canonical live columns are:
+The dashboard should always safely receive:
 
-stock            → current_stock
-reorder_level    → minimum_stock
-cost_price       → cost_per_unit
+```ts
+recent_movements: []
+```
 
-IMPORTANT:
-The repository must NOT assume the old inventory column names.
+when the RPC returns `null`, an object, or no movements.
 
-Previously verified dashboard inventory logic contains:
+Prefer fixing the data shape in:
 
-* is_active
-* current_stock
-* minimum_stock
-* cost_per_unit
+```text
+lib/services/analytics.service.ts
+```
 
-but the current SQL still produces an `is_active does not exist` error somewhere in the complete dashboard analytics migration.
+rather than adding random defensive logic throughout the JSX.
 
-TASK 1 — AUDIT THE ENTIRE dashboard_analytics.sql
+If the RPC returns JSON/JSONB, correctly parse/normalize it before returning it to the dashboard.
 
-Read the complete file.
+Expected normalized shape:
 
-Find EVERY occurrence of:
+```ts
+recent_movements: Array<{
+  id: string
+  item_id?: string
+  item_name?: string
+  type: string
+  quantity: number
+  note?: string
+  created_at: string
+}>
+```
 
-is_active
-stock
-reorder_level
-cost_price
-current_stock
-minimum_stock
-cost_per_unit
+Use the actual fields returned by the database if they differ. Do not invent database columns.
 
-For every occurrence, identify which table it belongs to.
+### Step 3 — Verify the dashboard rendering
 
-Do not assume that every table has an `is_active` column.
+After normalization, make sure this is safe:
 
-TASK 2 — VERIFY AGAINST THE LIVE SCHEMA
+```tsx
+inventory.recent_movements.slice(0, 5).map(...)
+```
 
-Before changing anything, inspect the repository migrations/types to determine the intended schema for every table referenced by dashboard_analytics.sql.
+If necessary, also make the JSX defensive:
 
-Pay special attention to:
+```tsx
+(Array.isArray(inventory.recent_movements)
+  ? inventory.recent_movements
+  : []
+).slice(0, 5).map(...)
+```
 
-inventory_items
-suppliers
-purchase_orders
-purchase_order_items
-customers
-expenses
-expense_categories
-kitchen_tickets
-orders
-order_items
-payments
-products
-product_categories
-cafe_tables
+But only use this as a secondary safeguard. The primary fix should be in the analytics service.
 
-The live database is authoritative.
+### Step 4 — Check the inventory RPC
 
-If the SQL references a column that does not exist on a table, replace it with the correct existing column only when the mapping is certain.
+Inspect:
 
-TASK 3 — FIX get_inventory_summary
+```sql
+get_inventory_summary
+```
 
-The inventory analytics must use the LIVE inventory schema:
+in:
 
+```text
+supabase/dashboard_analytics.sql
+```
+
+Do NOT modify the live SQL unless the actual RPC return shape is incorrect.
+
+The current live database has these inventory columns:
+
+```text
+inventory_items.id
+inventory_items.name
+inventory_items.unit
 inventory_items.current_stock
 inventory_items.minimum_stock
 inventory_items.cost_per_unit
+inventory_items.cost_price
+inventory_items.stock
+inventory_items.reorder_at
+inventory_items.reorder_level
+inventory_items.cafe_id
 inventory_items.is_active
+```
 
-Correct calculations:
+Stock movements use:
 
-Total active inventory items:
-COUNT(*) WHERE is_active = true
-
-Low stock:
-is_active = true
-AND current_stock > 0
-AND current_stock <= minimum_stock
-
-Out of stock:
-is_active = true
-AND current_stock <= 0
-
-Inventory value:
-
-SUM(current_stock * cost_per_unit)
-
-Only active inventory items should be included in inventory valuation.
-
-TASK 4 — CHECK ALL OTHER `is_active` REFERENCES
-
-If another table in dashboard_analytics.sql does NOT have an `is_active` column, do NOT blindly add one.
-
-Instead:
-
-1. Identify the actual live column.
-2. Use the existing schema.
-3. If no active/inactive concept exists for that table, remove the invalid `is_active` condition rather than inventing a column.
-
-TASK 5 — SECURITY
-
-Every dashboard RPC must remain:
-
-SECURITY DEFINER
-SET search_path = public
-
-Every RPC accepting p_cafe_id must verify that the authenticated user belongs to that cafe.
-
-Use the existing working function:
-
-public.app_current_cafe_id()
-
-The security condition should be equivalent to:
-
-IF public.app_current_cafe_id() IS DISTINCT FROM p_cafe_id THEN
-RAISE EXCEPTION 'Cafe access denied';
-END IF;
+```text
+stock_movements.id
+stock_movements.inventory_item_id
+stock_movements.movement_type
+stock_movements.quantity
+stock_movements.notes
+stock_movements.created_at
+stock_movements.cafe_id
+stock_movements.created_by
+stock_movements.is_wastage
+```
 
 Do NOT use:
 
-public.current_cafe_id()
+```text
+stock_movements.item_id
+stock_movements.type
+stock_movements.note
+```
 
-because that function does not exist in the live database.
+because the verified live schema uses:
 
-Do NOT use auth_cafe_id() if app_current_cafe_id() is the established active-account-aware function.
+```text
+inventory_item_id
+movement_type
+notes
+```
 
-TASK 6 — DO NOT CHANGE RPC RETURN TYPES
+### Step 5 — Preserve existing functionality
 
-This is extremely important.
+Do NOT:
 
-Do NOT use CREATE OR REPLACE FUNCTION if the return type differs from the existing function.
+* redesign the dashboard
+* remove dashboard sections
+* change RLS
+* change authentication
+* rename database columns
+* create new tables
+* change unrelated analytics RPCs
+* modify Module 2
+* modify inventory business logic unless required for this specific runtime error
 
-Do not change existing RPC signatures unless absolutely required.
-
-If an existing RPC has a different return type, stop and report the mismatch instead of blindly dropping it.
-
-TASK 7 — MAKE THE MIGRATION SAFE
-
-The final dashboard analytics SQL must:
-
-* Be safe to run against the CURRENT live database.
-* Not rename columns.
-* Not drop tables.
-* Not delete data.
-* Not create duplicate RPCs with conflicting signatures.
-* Use CREATE OR REPLACE only when the function signature and return type are identical.
-* Use IF NOT EXISTS for indexes.
-* Preserve cafe isolation.
-
-TASK 8 — CHECK ALL 10 DASHBOARD RPCs
-
-Verify these RPCs:
-
-1. get_dashboard_kpis
-2. get_sales_trend
-3. get_top_products
-4. get_category_sales
-5. get_customer_analytics
-6. get_inventory_summary
-7. get_purchase_summary
-8. get_expense_summary
-9. get_kitchen_summary
-10. get_pos_summary
-
-For each RPC verify:
-
-* correct table names
-* correct column names
-* correct return type
-* cafe isolation
-* active account validation where appropriate
-* no references to nonexistent columns
-
-TASK 9 — IMPORTANT INVENTORY SCHEMA RULE
-
-Use this mapping everywhere inside dashboard_analytics.sql:
-
-inventory_items.stock
-→ inventory_items.current_stock
-
-inventory_items.reorder_level
-→ inventory_items.minimum_stock
-
-inventory_items.cost_price
-→ inventory_items.cost_per_unit
-
-Do NOT modify the actual database schema.
-
-TASK 10 — BUILD / VALIDATION
-
-After modifying the SQL:
+### Step 6 — Test
 
 Run:
 
+```bash
 npm run build
+```
 
-The build must pass.
+Then verify `/dashboard` loads without:
 
-Then report:
+```text
+inventory.recent_movements.slice is not a function
+```
 
-DASHBOARD ANALYTICS SQL FIX COMPLETE
+If the build fails, fix the errors before reporting completion.
 
-1. Error fixed:
-   [exact cause]
+### Final response
 
-2. Tables audited:
-   [list]
+Report:
 
-3. Column corrections:
-   [list]
+```text
+MODULE 1 DASHBOARD FIX COMPLETE
 
-4. RPCs verified:
-   [10 RPCs]
+Runtime error:
+  inventory.recent_movements.slice is not a function
 
-5. Security:
-   [describe cafe ownership validation]
+Root cause:
+  [actual cause discovered]
 
-6. SQL file changed:
-   supabase/dashboard_analytics.sql
+Files changed:
+  [list]
 
-7. Build:
-   PASS / FAIL
+Data normalization:
+  [what was changed]
 
-8. Remaining database issues:
-   [list or none]
+Dashboard:
+  recent_movements now safely renders as an array
 
-IMPORTANT:
-Do not claim the Supabase migration is successful merely because npm run build passes.
+SQL changes:
+  [none / list]
 
-The SQL must still be run in Supabase SQL Editor and tested there.
+Build:
+  PASS / FAIL
 
-If Supabase reports another `42703`, `42883`, `42P13`, or similar database error, STOP and report the exact error and the SQL section causing it instead of guessing.
+Remaining issues:
+  [list or none]
+```
+
+Do not report completion until `npm run build` passes.

@@ -535,11 +535,11 @@ export default function DashboardPage() {
                 </div>
                 <div className="max-h-32 overflow-y-auto">
                   <p className="text-[10px] uppercase text-muted-foreground mb-2">Recent Movements</p>
-                  {inventory.recent_movements.length === 0 ? (
+                  {(Array.isArray(inventory.recent_movements) ? inventory.recent_movements : []).length === 0 ? (
                     <p className="text-xs text-muted-foreground">No recent movements</p>
                   ) : (
                     <div className="space-y-1">
-                      {inventory.recent_movements.slice(0, 5).map((m, i) => (
+                      {(Array.isArray(inventory.recent_movements) ? inventory.recent_movements : []).slice(0, 5).map((m, i) => (
                         <div key={i} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1">
                             {m.type === "in" ? (

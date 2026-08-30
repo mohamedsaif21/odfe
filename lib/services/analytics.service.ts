@@ -238,12 +238,45 @@ export async function getCustomerAnalytics() {
   })
 }
 
-export async function getInventorySummary() {
+export async function getInventorySummary(): Promise<{ data: InventorySummary | null; error: string | null }> {
   const supabase = createClient()
   const cafeId = await getCafeId(supabase)
-  return rpc<InventorySummary>("get_inventory_summary", {
-    p_cafe_id: cafeId,
-  })
+
+  let parsed: Partial<InventorySummary> | null
+  try {
+    const res = await rpc<InventorySummary>("get_inventory_summary", {
+      p_cafe_id: cafeId,
+    })
+    if (res.error || res.data == null) {
+      return { data: null, error: res.error ?? "Failed to load inventory summary" }
+    }
+
+    // PostgREST returns a scalar `JSON` type as a string; parse it when needed.
+    parsed =
+      typeof res.data === "string"
+        ? (JSON.parse(res.data) as Partial<InventorySummary>)
+        : (res.data as Partial<InventorySummary>)
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err.message : "Failed to load inventory summary",
+    }
+  }
+
+  const movements = Array.isArray(parsed?.recent_movements)
+    ? parsed.recent_movements
+    : []
+
+  return {
+    data: {
+      total_items: Number(parsed?.total_items ?? 0),
+      low_stock: Number(parsed?.low_stock ?? 0),
+      out_of_stock: Number(parsed?.out_of_stock ?? 0),
+      inventory_value: Number(parsed?.inventory_value ?? 0),
+      recent_movements: movements,
+    },
+    error: null,
+  }
 }
 
 export async function getPurchaseSummary(range: DateRange) {
