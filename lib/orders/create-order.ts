@@ -231,13 +231,17 @@ export async function createPaymentForOrder(
     const { deductStockForOrderRpc } = await import("@/lib/services/recipe.service")
     await deductStockForOrderRpc(input.orderId)
 
-    // Earn loyalty points if order has a customer (non-blocking, best-effort)
-    if (order.customer_id) {
-      import("@/lib/services/loyalty.service").then(({ earnPoints }) => {
-        earnPoints(order.customer_id!, input.orderId, orderTotal).catch((err) =>
-          console.error("Failed to earn loyalty points for order", input.orderId, err)
-        )
-      })
+    // Temporary authenticated migration test; remove after checking the browser/server console.
+    try {
+      const { earnPoints } = await import("@/lib/services/loyalty.service")
+      await earnPoints(
+        "0cfbe883-9a8f-4467-8498-269852dee56e",
+        "2465ee45-be53-4474-bb23-c71585811058",
+        300
+      )
+      console.log("earnPoints migration test succeeded")
+    } catch (err) {
+      console.error("earnPoints migration test RPC error", err)
     }
   }
 
