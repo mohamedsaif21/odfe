@@ -43,7 +43,7 @@ export default function RedeemTestPage() {
           p_points: 2,
 
           p_order_id:
-            "6a88cc45-51a2-4abe-b040-0198bdcba337",
+            "cfe025fe-a2c8-4815-b6b2-269cfe398146",
 
           p_profile_id: user.id,
         }
