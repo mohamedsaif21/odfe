@@ -15,6 +15,7 @@ import {
   fetchLoyaltyTiers, createLoyaltyTier, updateLoyaltyTier, deleteLoyaltyTier,
   fetchCustomersWithLoyalty, getCustomerLoyaltyDetail,
   getLoyaltyStats,
+  earnPoints,
   type CustomerWithLoyalty,
 } from "@/lib/services/loyalty.service"
 import type { LoyaltyTier, WalletTransaction, RewardRedemption } from "@/types/database"
@@ -27,6 +28,7 @@ export default function LoyaltyPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [loyaltyTestLoading, setLoyaltyTestLoading] = useState(false)
 
   // Tier form
   const [showTierForm, setShowTierForm] = useState(false)
@@ -77,6 +79,23 @@ export default function LoyaltyPage() {
     const t = setTimeout(() => setSuccess(null), 3000)
     return () => clearTimeout(t)
   }, [success])
+
+  async function handleLoyaltyTest() {
+    setLoyaltyTestLoading(true)
+    setError(null)
+    try {
+      await earnPoints(
+        "0cfbe883-9a8f-4467-8498-269852dee56e",
+        "2465ee45-be53-4474-bb23-c71585811058",
+        300
+      )
+      setSuccess("Loyalty earnPoints test succeeded")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Loyalty earnPoints test failed")
+    } finally {
+      setLoyaltyTestLoading(false)
+    }
+  }
 
   function openCreateTier() {
     setEditingTier(null)
@@ -165,7 +184,12 @@ export default function LoyaltyPage() {
   return (
     <AdminLayout title="Loyalty">
       <PageContainer>
-        <PageHeader title="Loyalty" description="Customer loyalty program, points, and rewards" />
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <PageHeader title="Loyalty" description="Customer loyalty program, points, and rewards" />
+          <Button type="button" variant="outline" onClick={handleLoyaltyTest} disabled={loyaltyTestLoading}>
+            {loyaltyTestLoading ? "Testing..." : "Run earnPoints test"}
+          </Button>
+        </div>
 
         {error && <div className="mb-4"><Alert type="error" message={error} onDismiss={() => setError(null)} /></div>}
         {success && <div className="mb-4"><Alert type="success" message={success} onDismiss={() => setSuccess(null)} /></div>}
