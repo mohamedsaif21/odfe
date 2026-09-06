@@ -62,7 +62,7 @@ export function hasAccess(pathname: string, role: AnyRole): boolean {
     .filter((prefix) => pathname.startsWith(prefix))
     .sort((a, b) => b.length - a.length)[0]
 
-  if (!matchedKey) return true
+  if (!matchedKey) return false
 
   const allowed = ROUTE_ACCESS[matchedKey]
   if (allowed.length === 0) return true
