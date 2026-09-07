@@ -275,21 +275,21 @@ BEGIN
 
   SELECT
     COUNT(*) FILTER (WHERE is_active = true),
-    COUNT(*) FILTER (WHERE is_active = true AND current_stock > 0 AND current_stock <= minimum_stock),
-    COUNT(*) FILTER (WHERE is_active = true AND current_stock <= 0)
+    COUNT(*) FILTER (WHERE is_active = true AND stock > 0 AND stock <= minimum_stock),
+    COUNT(*) FILTER (WHERE is_active = true AND stock <= 0)
   INTO v_total_items, v_low_stock, v_out_of_stock
   FROM inventory_items WHERE cafe_id = p_cafe_id;
 
-  SELECT COALESCE(SUM(current_stock * cost_per_unit), 0)::DECIMAL
+  SELECT COALESCE(SUM(stock * cost_per_unit), 0)::DECIMAL
   INTO v_inventory_value
   FROM inventory_items WHERE cafe_id = p_cafe_id AND is_active = true;
 
   SELECT COALESCE(json_agg(row_to_json(t)), '[]'::json) INTO v_recent_movements
   FROM (
-    SELECT sm.item_id, ii.name AS item_name, sm.quantity, sm.type,
-           sm.note, sm.is_wastage, sm.created_at
+    SELECT sm.inventory_item_id, ii.name AS item_name, sm.quantity, sm.movement_type,
+           sm.notes, sm.is_wastage, sm.created_at
     FROM stock_movements sm
-    JOIN inventory_items ii ON ii.id = sm.item_id AND ii.cafe_id = sm.cafe_id
+    JOIN inventory_items ii ON ii.id = sm.inventory_item_id AND ii.cafe_id = sm.cafe_id
     WHERE sm.cafe_id = p_cafe_id
     ORDER BY sm.created_at DESC
     LIMIT 20
