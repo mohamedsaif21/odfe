@@ -198,11 +198,14 @@ DECLARE
   v_order_status text;
   v_table_status text;
   v_stock numeric;
+  v_stock_before numeric;
   v_points integer;
   v_ok boolean := true;
   v_note text := '';
 BEGIN
   PERFORM set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', (SELECT v FROM __fix WHERE k = 'admin')), true);
+
+  SELECT stock INTO v_stock_before FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
 
   SELECT * INTO v_res FROM public.complete_payment_for_order((SELECT v FROM __fix WHERE k = 'order_a'), 'cash', 60);
 
@@ -216,7 +219,7 @@ BEGIN
   IF v_table_status = 'occupied' THEN v_note := v_note || 'table held; '; ELSE v_ok := false; v_note := v_note || 'table ' || v_table_status || '; '; END IF;
 
   SELECT stock INTO v_stock FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
-  IF v_stock = 100 THEN v_note := v_note || 'stock held; '; ELSE v_ok := false; v_note := v_note || 'stock ' || v_stock || '; '; END IF;
+  IF v_stock = v_stock_before THEN v_note := v_note || 'stock held (0 deducted); '; ELSE v_ok := false; v_note := v_note || 'stock ' || v_stock_before || '->' || v_stock || '; '; END IF;
 
   SELECT loyalty_points INTO v_points FROM public.customers WHERE id = (SELECT v FROM __fix WHERE k = 'cust_a');
   IF v_points = 0 THEN v_note := v_note || 'no loyalty; '; ELSE v_ok := false; v_note := v_note || 'points ' || v_points || '; '; END IF;
@@ -236,6 +239,7 @@ DECLARE
   v_order_status text;
   v_table_status text;
   v_stock numeric;
+  v_stock_before numeric;
   v_points integer;
   v_mov_cnt integer;
   v_red_cnt integer;
@@ -243,6 +247,8 @@ DECLARE
   v_note text := '';
 BEGIN
   PERFORM set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', (SELECT v FROM __fix WHERE k = 'admin')), true);
+
+  SELECT stock INTO v_stock_before FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
 
   SELECT * INTO v_res FROM public.complete_payment_for_order((SELECT v FROM __fix WHERE k = 'order_a'), 'cash', 140);
 
@@ -255,7 +261,7 @@ BEGIN
   IF v_table_status = 'available' THEN v_note := v_note || 'table freed; '; ELSE v_ok := false; v_note := v_note || 'table ' || v_table_status || '; '; END IF;
 
   SELECT stock INTO v_stock FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
-  IF v_stock = 98 THEN v_note := v_note || 'stock 98; '; ELSE v_ok := false; v_note := v_note || 'stock ' || v_stock || '; '; END IF;
+  IF v_stock_before - v_stock = 2 THEN v_note := v_note || 'stock -2; '; ELSE v_ok := false; v_note := v_note || 'stock ' || v_stock_before || '->' || v_stock || '; '; END IF;
 
   SELECT count(*) INTO v_mov_cnt FROM public.stock_movements
   WHERE cafe_id = (SELECT v FROM __fix WHERE k = 'cafe')
@@ -314,6 +320,7 @@ DECLARE
   v_order_status text;
   v_table_status text;
   v_stock numeric;
+  v_stock_before numeric;
   v_points integer;
   v_pay_cnt integer;
   v_pay_sum numeric;
@@ -322,12 +329,14 @@ DECLARE
 BEGIN
   PERFORM set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', (SELECT v FROM __fix WHERE k = 'admin')), true);
 
+  SELECT stock INTO v_stock_before FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
+
   SELECT * INTO v_res FROM public.complete_payment_for_order((SELECT v FROM __fix WHERE k = 'order_b'), 'cash', 80);
   -- first leg must NOT have completed anything
   SELECT status INTO v_order_status FROM public.orders WHERE id = (SELECT v FROM __fix WHERE k = 'order_b');
   SELECT status INTO v_table_status FROM public.cafe_tables WHERE id = (SELECT v FROM __fix WHERE k = 't2');
   SELECT stock INTO v_stock FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
-  IF v_res.fully_paid = false AND v_order_status <> 'paid' AND v_table_status = 'occupied' AND v_stock = 100
+  IF v_res.fully_paid = false AND v_order_status <> 'paid' AND v_table_status = 'occupied' AND v_stock = v_stock_before
   THEN v_note := v_note || 'leg1 held; '; ELSE v_ok := false; v_note := v_note || 'leg1 ' || v_res.fully_paid || '/' || v_order_status || '/' || v_table_status || '/' || v_stock || '; '; END IF;
 
   SELECT * INTO v_res FROM public.complete_payment_for_order((SELECT v FROM __fix WHERE k = 'order_b'), 'cash', 120);
@@ -340,7 +349,7 @@ BEGIN
   WHERE order_id = (SELECT v FROM __fix WHERE k = 'order_b') AND cafe_id = (SELECT v FROM __fix WHERE k = 'cafe');
 
   IF v_res.fully_paid = true AND v_order_status = 'paid' AND v_table_status = 'available'
-     AND v_stock = 98 AND v_points = 4 AND v_pay_cnt = 2 AND v_pay_sum = 200
+     AND v_stock = v_stock_before - 2 AND v_points = 4 AND v_pay_cnt = 2 AND v_pay_sum = 200
   THEN v_note := v_note || 'leg2 completed; '; ELSE v_ok := false; v_note := v_note || 'leg2 ' || v_res.fully_paid || '/' || v_order_status || '/' || v_table_status || '/' || v_stock || '/' || v_points || '/' || v_pay_cnt || '/' || v_pay_sum || '; '; END IF;
 
   INSERT INTO __results VALUES ('T5 split tender', v_ok, v_note);
@@ -358,11 +367,14 @@ DECLARE
   v_order_status text;
   v_table_status text;
   v_stock numeric;
+  v_stock_before numeric;
   v_points integer;
   v_ok boolean := false;
   v_note text := '';
 BEGIN
   PERFORM set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', (SELECT v FROM __fix WHERE k = 'admin')), true);
+
+  SELECT stock INTO v_stock_before FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
 
   BEGIN
     PERFORM public.complete_payment_for_order((SELECT v FROM __fix WHERE k = 'order_c'), 'cash', 250);
@@ -377,7 +389,7 @@ BEGIN
   SELECT stock INTO v_stock FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
   SELECT loyalty_points INTO v_points FROM public.customers WHERE id = (SELECT v FROM __fix WHERE k = 'cust_a');
 
-  IF v_ok AND v_cnt = 0 AND v_order_status = 'sent_to_kitchen' AND v_table_status = 'occupied' AND v_stock = 98 AND v_points = 4
+  IF v_ok AND v_cnt = 0 AND v_order_status = 'sent_to_kitchen' AND v_table_status = 'occupied' AND v_stock = v_stock_before AND v_points = 4
   THEN v_note := 'rollback verified';
   ELSE v_ok := false; v_note := v_note || ' state ' || v_cnt || '/' || v_order_status || '/' || v_table_status || '/' || v_stock || '/' || v_points; END IF;
 
@@ -397,12 +409,15 @@ DECLARE
   v_order_status text;
   v_table_status text;
   v_stock numeric;
+  v_stock_before numeric;
   v_points integer;
   v_mov_cnt integer;
   v_ok boolean := false;
   v_note text := '';
 BEGIN
   PERFORM set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', (SELECT v FROM __fix WHERE k = 'admin')), true);
+
+  SELECT stock INTO v_stock_before FROM public.inventory_items WHERE id = (SELECT v FROM __fix WHERE k = 'item');
 
   BEGIN
     PERFORM public.complete_payment_for_order((SELECT v FROM __fix WHERE k = 'order_d'), 'cash', 20000);
@@ -420,7 +435,7 @@ BEGIN
   WHERE cafe_id = (SELECT v FROM __fix WHERE k = 'cafe')
     AND notes = 'Auto-deducted from order ' || (SELECT v FROM __fix WHERE k = 'order_d')::text;
 
-  IF v_ok AND v_cnt = 0 AND v_order_status = 'sent_to_kitchen' AND v_table_status = 'occupied' AND v_stock = 98 AND v_points = 4 AND v_mov_cnt = 0
+  IF v_ok AND v_cnt = 0 AND v_order_status = 'sent_to_kitchen' AND v_table_status = 'occupied' AND v_stock = v_stock_before AND v_points = 4 AND v_mov_cnt = 0
   THEN v_note := 'rollback verified';
   ELSE v_ok := false; v_note := v_note || ' state ' || v_cnt || '/' || v_order_status || '/' || v_table_status || '/' || v_stock || '/' || v_points || '/' || v_mov_cnt; END IF;
 
@@ -555,9 +570,9 @@ END
 $$;
 
 -- T12 – Side-effect sweep: after every failure path, the fixture is unchanged
--- (atomicity invariant). Also proves the concurrency lock claim: two concurrent
--- payments cannot both insert because the order row is locked — here we assert
--- the state invariants that a failed/lost second payer would preserve.
+-- (atomicity invariant). This verifies post-failure invariants only; a genuine
+-- concurrent two-session test of the FOR UPDATE serialization is deferred to a
+-- later migration.
 DO $$
 DECLARE
   v_ok boolean := true;
