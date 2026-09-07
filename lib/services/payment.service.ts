@@ -104,6 +104,47 @@ export async function refundPayment(paymentId: string, client?: DbClient) {
   return data
 }
 
+export type CompletePaymentResult = {
+  payment_id: string
+  order_id: string
+  status: string
+  amount: number
+  paid_total: number
+  order_total: number
+  fully_paid: boolean
+}
+
+/**
+ * Migration 3.2 — atomic payment transaction (opt-in wrapper).
+ * Calls complete_payment_for_order, which records the payment row AND, when the
+ * order becomes fully paid, sets the order to paid, frees the table, deducts
+ * stock, and earns loyalty points in ONE transaction.
+ * NOT yet wired into the UI: switch call sites only after the RPC is deployed
+ * and the live verification suite (supabase/verification) passes.
+ */
+export async function completePaymentForOrder(
+  orderId: string,
+  method: "cash" | "card" | "upi",
+  amount: number,
+  reference?: string | null,
+  client?: DbClient
+): Promise<CompletePaymentResult> {
+  const supabase = client ?? createClient()
+
+  const { data, error } = await supabase
+    .rpc("complete_payment_for_order", {
+      p_order_id: orderId,
+      p_method: method,
+      p_amount: amount,
+      p_reference: reference ?? null,
+    })
+    .single()
+
+  if (error) throw new Error(error.message)
+  if (!data) throw new Error("Payment could not be completed.")
+  return data
+}
+
 export async function getDailyRevenue(date: string, client?: DbClient): Promise<number> {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
