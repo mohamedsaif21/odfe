@@ -65,12 +65,14 @@ export default function InventoryTestPage() {
         .eq("cafe_id", CAFE_ID)
         .single()
 
-      const movementsResult = await supabase
+      const movements = await (supabase as any)
         .from("stock_movements")
-        .select("*")
+        .select(
+          "id, inventory_item_id, quantity, movement_type, notes, created_by, created_at"
+        )
+        .eq("inventory_item_id", ITEM_ID)
         .eq("cafe_id", CAFE_ID)
         .order("created_at", { ascending: false })
-        .limit(50)
 
       const getItemResult = (item: unknown) => {
         const row = item as unknown as Record<string, unknown> | null
@@ -84,19 +86,6 @@ export default function InventoryTestPage() {
           : null
       }
 
-      const movements = (movementsResult.data ?? [])
-        .map((movement) => movement as unknown as Record<string, unknown>)
-        .filter(
-          (movement) =>
-            movement.inventory_item_id === ITEM_ID || movement.item_id === ITEM_ID
-        )
-        .map((movement) => ({
-          inventory_item_id: movement.inventory_item_id ?? movement.item_id,
-          quantity: Number(movement.quantity ?? 0),
-          movement_type: movement.movement_type ?? movement.type,
-          notes: movement.notes ?? movement.note,
-        }))
-
       setResult(
         JSON.stringify(
           {
@@ -105,9 +94,9 @@ export default function InventoryTestPage() {
             before: getItemResult(beforeResult.data),
             adjust_error: adjustResult.error?.message ?? null,
             after_adjust: getItemResult(afterResult.data),
-            movements,
+            movements: movements.data ?? [],
             after_error: afterResult.error?.message ?? null,
-            movements_error: movementsResult.error?.message ?? null,
+            movements_error: movements.error?.message ?? null,
           },
           null,
           2
