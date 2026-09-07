@@ -14,10 +14,6 @@ export const ROUTE_ACCESS: Record<string, AnyRole[]> = {
   "/recipes":           ["admin"],
   "/loyalty":           ["admin"],
   "/expenses":          ["admin"],
-  "/dev/redeem-test":   ["admin"],
-  "/dev/rls-test":      ["admin"],
-  "/dev/inventory-test": ["admin"],
-
   "/pos":               ["admin", "cashier"],
   "/orders":            ["admin", "cashier"],
   "/customers":         ["admin", "cashier"],
