@@ -618,6 +618,23 @@ export interface Database {
           total: number
         }
       }
+      complete_payment_for_order: {
+        Args: {
+          p_order_id: string
+          p_method: "cash" | "card" | "upi"
+          p_amount: number
+          p_reference?: string | null
+        }
+        Returns: {
+          payment_id: string
+          order_id: string
+          status: string
+          amount: number
+          paid_total: number
+          order_total: number
+          fully_paid: boolean
+        }
+      }
       resolve_public_self_order_token: {
         Args: {
           p_token: string
