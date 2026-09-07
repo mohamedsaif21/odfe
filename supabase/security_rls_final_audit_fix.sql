@@ -57,7 +57,7 @@ BEGIN
     RAISE EXCEPTION 'Cafe access denied';
   END IF;
 
-  SELECT current_stock INTO v_new_stock
+  SELECT stock INTO v_new_stock
   FROM public.inventory_items
   WHERE id = p_item_id AND cafe_id = p_cafe_id
   FOR UPDATE;
@@ -73,12 +73,12 @@ BEGIN
   END IF;
 
   UPDATE public.inventory_items
-  SET current_stock = v_new_stock
+  SET stock = v_new_stock
   WHERE id = p_item_id AND cafe_id = p_cafe_id;
 
   IF p_type IS NOT NULL THEN
     v_final_type := p_type;
-    INSERT INTO public.stock_movements (cafe_id, item_id, quantity, type, note, is_wastage, created_by)
+    INSERT INTO public.stock_movements (cafe_id, inventory_item_id, quantity, movement_type, notes, is_wastage, created_by)
     VALUES (p_cafe_id, p_item_id, ABS(p_adjustment), v_final_type, p_note, false, p_created_by);
   END IF;
 END;
@@ -115,8 +115,8 @@ BEGIN
   SELECT EXISTS (
     SELECT 1 FROM public.stock_movements
     WHERE cafe_id = p_cafe_id
-      AND note = v_movement_note
-      AND type = 'out'
+      AND notes = v_movement_note
+      AND movement_type = 'out'
     LIMIT 1
   ) INTO v_existing;
 
@@ -150,21 +150,21 @@ BEGIN
     ORDER BY pi.item_id
   LOOP
     IF (
-      SELECT current_stock FROM public.inventory_items
+      SELECT stock FROM public.inventory_items
       WHERE id = v_item.item_id AND cafe_id = p_cafe_id
       FOR UPDATE
     ) < v_item.total_qty THEN
       RAISE EXCEPTION 'Insufficient stock for item %: has %, needs %',
         v_item.item_id,
-        (SELECT current_stock FROM public.inventory_items WHERE id = v_item.item_id AND cafe_id = p_cafe_id),
+        (SELECT stock FROM public.inventory_items WHERE id = v_item.item_id AND cafe_id = p_cafe_id),
         v_item.total_qty;
     END IF;
 
-    INSERT INTO public.stock_movements (cafe_id, item_id, quantity, type, note, is_wastage, created_by)
+    INSERT INTO public.stock_movements (cafe_id, inventory_item_id, quantity, movement_type, notes, is_wastage, created_by)
     VALUES (p_cafe_id, v_item.item_id, v_item.total_qty, 'out', v_movement_note, false, p_profile_id);
 
     UPDATE public.inventory_items
-    SET current_stock = current_stock - v_item.total_qty
+    SET stock = stock - v_item.total_qty
     WHERE id = v_item.item_id AND cafe_id = p_cafe_id;
 
     v_count := v_count + 1;
@@ -206,8 +206,8 @@ BEGIN
   SELECT EXISTS (
     SELECT 1 FROM public.stock_movements
     WHERE cafe_id = p_cafe_id
-      AND note = v_restore_note
-      AND type = 'in'
+      AND notes = v_restore_note
+      AND movement_type = 'in'
     LIMIT 1
   ) INTO v_already_restored;
 
@@ -216,28 +216,28 @@ BEGIN
   END IF;
 
   FOR v_movement IN
-    SELECT id, item_id, quantity
+    SELECT id, inventory_item_id, quantity
     FROM public.stock_movements
     WHERE cafe_id = p_cafe_id
-      AND note = v_deduction_note
-      AND type = 'out'
-    ORDER BY item_id
+      AND notes = v_deduction_note
+      AND movement_type = 'out'
+    ORDER BY inventory_item_id
   LOOP
     PERFORM 1 FROM public.inventory_items
-    WHERE id = v_movement.item_id AND cafe_id = p_cafe_id
+    WHERE id = v_movement.inventory_item_id AND cafe_id = p_cafe_id
     FOR UPDATE;
 
     IF NOT FOUND THEN
-      RAISE WARNING 'Inventory item % no longer exists, skipping restoration', v_movement.item_id;
+      RAISE WARNING 'Inventory item % no longer exists, skipping restoration', v_movement.inventory_item_id;
       CONTINUE;
     END IF;
 
-    INSERT INTO public.stock_movements (cafe_id, item_id, quantity, type, note, is_wastage, created_by)
-    VALUES (p_cafe_id, v_movement.item_id, v_movement.quantity, 'in', v_restore_note, false, p_profile_id);
+    INSERT INTO public.stock_movements (cafe_id, inventory_item_id, quantity, movement_type, notes, is_wastage, created_by)
+    VALUES (p_cafe_id, v_movement.inventory_item_id, v_movement.quantity, 'in', v_restore_note, false, p_profile_id);
 
     UPDATE public.inventory_items
-    SET current_stock = current_stock + v_movement.quantity
-    WHERE id = v_movement.item_id AND cafe_id = p_cafe_id;
+    SET stock = stock + v_movement.quantity
+    WHERE id = v_movement.inventory_item_id AND cafe_id = p_cafe_id;
   END LOOP;
 END;
 $$;
@@ -310,11 +310,11 @@ BEGIN
     WHERE purchase_order_id = p_order_id AND cafe_id = p_cafe_id
   LOOP
     UPDATE public.inventory_items
-    SET current_stock = current_stock + v_item.quantity
+    SET stock = stock + v_item.quantity
     WHERE id = v_item.item_id AND cafe_id = p_cafe_id;
 
     INSERT INTO public.stock_movements (
-      cafe_id, item_id, quantity, type, note, is_wastage, created_by
+      cafe_id, inventory_item_id, quantity, movement_type, notes, is_wastage, created_by
     )
     VALUES (
       p_cafe_id,
