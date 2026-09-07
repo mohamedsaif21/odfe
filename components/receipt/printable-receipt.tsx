@@ -101,6 +101,7 @@ export function PrintableReceipt({ cafe, receipt, onClose }: PrintableReceiptPro
             {/* Header */}
             <div className="text-center">
               {cafe.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={cafe.logoUrl} alt={cafe.name} className="mx-auto mb-2 h-12 w-auto object-contain" />
               ) : (
                 <div className="mb-2 flex justify-center">

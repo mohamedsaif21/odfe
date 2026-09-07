@@ -61,6 +61,7 @@ export function QrDialog({ open, onClose, table }: QrDialogProps) {
       ) : (
         <div className="flex flex-col items-center gap-4">
           {dataUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={dataUrl}
               alt={`QR code for ${table.label}`}
