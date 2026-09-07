@@ -16,25 +16,89 @@ export default function InventoryTestPage() {
 
     try {
       const supabase = createClient()
-      const [userResult, itemResult] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase
-          .from("inventory_items")
-          .select("id, cafe_id, name, unit, current_stock, minimum_stock")
-          .eq("id", ITEM_ID)
-          .eq("cafe_id", CAFE_ID)
-          .maybeSingle(),
-      ])
+      const userResult = await supabase.auth.getUser()
+
+      if (userResult.error) {
+        throw new Error(`AUTH ERROR: ${userResult.error.message}`)
+      }
+
+      if (!userResult.data.user) {
+        throw new Error("NO AUTHENTICATED USER")
+      }
+
+      const userId = userResult.data.user.id
+      const profileResult = await supabase
+        .from("profiles")
+        .select("id, cafe_id, is_active")
+        .eq("id", userId)
+        .eq("cafe_id", CAFE_ID)
+        .single()
+
+      if (profileResult.error) {
+        throw new Error(`PROFILE ERROR: ${profileResult.error.message}`)
+      }
+
+      const beforeResult = await supabase
+        .from("inventory_items")
+        .select("id, name, current_stock")
+        .eq("id", ITEM_ID)
+        .eq("cafe_id", CAFE_ID)
+        .single()
+
+      if (beforeResult.error) {
+        throw new Error(`BEFORE ERROR: ${beforeResult.error.message}`)
+      }
+
+      const adjustResult = await supabase.rpc("adjust_inventory_stock", {
+        p_item_id: ITEM_ID,
+        p_cafe_id: CAFE_ID,
+        p_adjustment: 10,
+        p_type: "in",
+        p_note: "Migration 3.1 test adjustment",
+        p_created_by: userId,
+      })
+
+      const afterResult = await supabase
+        .from("inventory_items")
+        .select("id, name, current_stock")
+        .eq("id", ITEM_ID)
+        .eq("cafe_id", CAFE_ID)
+        .single()
+
+      const movementsResult = await supabase
+        .from("stock_movements")
+        .select("item_id, quantity, type, note")
+        .eq("item_id", ITEM_ID)
+        .eq("cafe_id", CAFE_ID)
+        .order("created_at", { ascending: false })
+        .limit(10)
 
       setResult(
         JSON.stringify(
           {
-            user: userResult.data.user?.id ?? null,
-            auth_error: userResult.error?.message ?? null,
-            cafe_id: CAFE_ID,
-            item_id: ITEM_ID,
-            item_error: itemResult.error?.message ?? null,
-            item: itemResult.data,
+            user: userId,
+            profile: profileResult.data,
+            before: beforeResult.data
+              ? {
+                  ...beforeResult.data,
+                  stock: Number(beforeResult.data.current_stock),
+                }
+              : null,
+            adjust_error: adjustResult.error?.message ?? null,
+            after_adjust: afterResult.data
+              ? {
+                  ...afterResult.data,
+                  stock: Number(afterResult.data.current_stock),
+                }
+              : null,
+            movements: (movementsResult.data ?? []).map((movement) => ({
+              inventory_item_id: movement.item_id,
+              quantity: Number(movement.quantity),
+              movement_type: movement.type,
+              notes: movement.note,
+            })),
+            after_error: afterResult.error?.message ?? null,
+            movements_error: movementsResult.error?.message ?? null,
           },
           null,
           2
@@ -51,10 +115,7 @@ export default function InventoryTestPage() {
 
   return (
     <main style={{ padding: 40 }}>
-      <h1>Inventory Test</h1>
-
-      <p>Cafe: {CAFE_ID}</p>
-      <p>Item: {ITEM_ID}</p>
+      <h1>Migration 3.1 Inventory Test</h1>
 
       <button
         type="button"
@@ -66,7 +127,7 @@ export default function InventoryTestPage() {
           cursor: loading ? "not-allowed" : "pointer",
         }}
       >
-        {loading ? "Running..." : "Run Inventory Test"}
+        {loading ? "Running..." : "Run Adjust Test"}
       </button>
 
       <pre
