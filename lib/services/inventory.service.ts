@@ -42,7 +42,7 @@ export async function createInventoryItem(
     name: input.name,
     unit: input.unit,
     cost_per_unit: input.cost_per_unit ?? 0,
-    current_stock: 0,
+    stock: 0,
     minimum_stock: input.minimum_stock ?? 0,
     expiry_date: input.expiry_date ?? null,
     batch_number: input.batch_number ?? null,
@@ -119,8 +119,8 @@ export async function getStockMovements(
 
   const { data, error } = await supabase
     .from("stock_movements")
-    .select("*")
-    .eq("item_id", itemId)
+    .select("id, inventory_item_id, quantity, movement_type, notes, created_by, created_at")
+    .eq("inventory_item_id", itemId)
     .eq("cafe_id", cafeId)
     .order("created_at", { ascending: false })
     .limit(limit)
@@ -140,13 +140,13 @@ export async function getLowStockItems(
     .select("*")
     .eq("cafe_id", cafeId)
     .eq("is_active", true)
-    .order("current_stock", { ascending: true })
+    .order("stock", { ascending: true })
 
   if (error) throw new Error(error.message)
 
   // Client-side filter for stock <= minimum_stock
   return (data ?? []).filter(
-    (item) => Number(item.current_stock) <= Number(item.minimum_stock)
+    (item) => Number(item.stock) <= Number(item.minimum_stock)
   )
 }
 

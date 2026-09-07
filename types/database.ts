@@ -389,7 +389,7 @@ export interface Database {
           name: string
           unit: string
           cost_per_unit: number
-          current_stock: number
+          stock: number
           minimum_stock: number
           expiry_date: string | null
           batch_number: string | null
@@ -406,16 +406,14 @@ export interface Database {
         Row: {
           id: string
           cafe_id: string
-          item_id: string
+          inventory_item_id: string
           quantity: number
-          type: "in" | "out"
-          note: string | null
-          is_wastage: boolean
+          movement_type: "in" | "out"
+          notes: string | null
           created_by: string | null
           created_at: string
-          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["stock_movements"]["Row"], "id" | "created_at" | "updated_at">
+        Insert: Omit<Database["public"]["Tables"]["stock_movements"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["stock_movements"]["Insert"]>
         Relationships: []
       }
