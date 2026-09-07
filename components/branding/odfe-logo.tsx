@@ -33,6 +33,7 @@ export function OdfeLogo({
     : "/assets/logo/odfe-logo.png"
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}
