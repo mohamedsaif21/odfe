@@ -119,7 +119,7 @@ export async function getStockMovements(
 
   const { data, error } = await supabase
     .from("stock_movements")
-    .select("id, inventory_item_id, quantity, movement_type, notes, created_by, created_at")
+    .select("id, cafe_id, inventory_item_id, quantity, movement_type, notes, created_by, created_at")
     .eq("inventory_item_id", itemId)
     .eq("cafe_id", cafeId)
     .order("created_at", { ascending: false })
