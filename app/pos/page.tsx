@@ -552,7 +552,7 @@ export default function POSPage() {
     } finally {
       setSending(false)
     }
-  }, [cafeId, employeeId, selectedTable, tables, lines, totals, appliedCoupon, sending])
+  }, [cafeId, employeeId, selectedTable, tables, lines, appliedCoupon, sending, sessionId])
 
   const handleCompleteSale = useCallback(async (tenders: PaymentTender[]) => {
     if (paying) return
@@ -618,7 +618,7 @@ export default function POSPage() {
     } finally {
       setPaying(false)
     }
-  }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon, payingOrderId, payingOrderNumber, payingOrderTotal, paying, clearCart, loadPosData])
+  }, [cafeId, employeeId, selectedTable, lines, totals, appliedCoupon, payingOrderId, payingOrderNumber, payingOrderTotal, paying, clearCart, loadPosData, sessionId])
 
   async function handleOpenSession(openingCash: number) {
     if (!cafeId || !employeeId) return
