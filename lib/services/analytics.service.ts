@@ -135,11 +135,11 @@ export type InventorySummary = {
   inventory_value: number
 
   recent_movements: Array<{
-    item_id: string
+    inventory_item_id: string
     item_name: string
     quantity: number
-    type: string
-    note: string | null
+    movement_type: string
+    notes: string | null
     is_wastage: boolean
     created_at: string
   }>

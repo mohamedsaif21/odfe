@@ -542,15 +542,15 @@ export default function DashboardPage() {
                       {(Array.isArray(inventory.recent_movements) ? inventory.recent_movements : []).slice(0, 5).map((m, i) => (
                         <div key={i} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1">
-                            {m.type === "in" ? (
+                            {m.movement_type === "in" ? (
                               <ArrowUpRight size={10} className="text-green-600" />
                             ) : (
                               <ArrowDownRight size={10} className="text-red-600" />
                             )}
                             <span className="font-medium">{m.item_name}</span>
                           </div>
-                          <span className={m.type === "in" ? "text-green-600" : "text-red-600"}>
-                            {m.type === "in" ? "+" : "-"}{m.quantity}
+                          <span className={m.movement_type === "in" ? "text-green-600" : "text-red-600"}>
+                            {m.movement_type === "in" ? "+" : "-"}{m.quantity}
                           </span>
                         </div>
                       ))}
