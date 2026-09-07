@@ -40,7 +40,7 @@ export default function InventoryTestPage() {
 
       const beforeResult = await supabase
         .from("inventory_items")
-        .select("id, name, current_stock")
+        .select("*")
         .eq("id", ITEM_ID)
         .eq("cafe_id", CAFE_ID)
         .single()
@@ -60,43 +60,52 @@ export default function InventoryTestPage() {
 
       const afterResult = await supabase
         .from("inventory_items")
-        .select("id, name, current_stock")
+        .select("*")
         .eq("id", ITEM_ID)
         .eq("cafe_id", CAFE_ID)
         .single()
 
       const movementsResult = await supabase
         .from("stock_movements")
-        .select("item_id, quantity, type, note")
-        .eq("item_id", ITEM_ID)
+        .select("*")
         .eq("cafe_id", CAFE_ID)
         .order("created_at", { ascending: false })
-        .limit(10)
+        .limit(50)
+
+      const getItemResult = (item: unknown) => {
+        const row = item as unknown as Record<string, unknown> | null
+        return row
+          ? {
+              id: row.id,
+              name: row.name,
+              stock: Number(row.stock ?? row.current_stock ?? 0),
+              current_stock: Number(row.current_stock ?? 0),
+            }
+          : null
+      }
+
+      const movements = (movementsResult.data ?? [])
+        .map((movement) => movement as unknown as Record<string, unknown>)
+        .filter(
+          (movement) =>
+            movement.inventory_item_id === ITEM_ID || movement.item_id === ITEM_ID
+        )
+        .map((movement) => ({
+          inventory_item_id: movement.inventory_item_id ?? movement.item_id,
+          quantity: Number(movement.quantity ?? 0),
+          movement_type: movement.movement_type ?? movement.type,
+          notes: movement.notes ?? movement.note,
+        }))
 
       setResult(
         JSON.stringify(
           {
             user: userId,
             profile: profileResult.data,
-            before: beforeResult.data
-              ? {
-                  ...beforeResult.data,
-                  stock: Number(beforeResult.data.current_stock),
-                }
-              : null,
+            before: getItemResult(beforeResult.data),
             adjust_error: adjustResult.error?.message ?? null,
-            after_adjust: afterResult.data
-              ? {
-                  ...afterResult.data,
-                  stock: Number(afterResult.data.current_stock),
-                }
-              : null,
-            movements: (movementsResult.data ?? []).map((movement) => ({
-              inventory_item_id: movement.item_id,
-              quantity: Number(movement.quantity),
-              movement_type: movement.type,
-              notes: movement.note,
-            })),
+            after_adjust: getItemResult(afterResult.data),
+            movements,
             after_error: afterResult.error?.message ?? null,
             movements_error: movementsResult.error?.message ?? null,
           },
