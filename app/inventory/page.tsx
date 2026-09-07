@@ -132,8 +132,8 @@ export default function InventoryPage() {
       setError("Enter a valid quantity")
       return
     }
-    if (adjustType === "out" && qty > Number(adjustItem.current_stock)) {
-      setError(`Not enough stock. Available: ${adjustItem.current_stock} ${adjustItem.unit}`)
+    if (adjustType === "out" && qty > Number(adjustItem.stock)) {
+      setError(`Not enough stock. Available: ${adjustItem.stock} ${adjustItem.unit}`)
       return
     }
     setAdjusting(true)
@@ -181,7 +181,7 @@ export default function InventoryPage() {
     return item.name.toLowerCase().includes(search.toLowerCase())
   })
 
-  const isLowStock = (item: InventoryItem) => Number(item.current_stock) <= Number(item.minimum_stock) && Number(item.minimum_stock) > 0
+  const isLowStock = (item: InventoryItem) => Number(item.stock) <= Number(item.minimum_stock) && Number(item.minimum_stock) > 0
 
   const inputClass = "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal focus:ring-1 focus:ring-odfe-teal"
 
@@ -290,7 +290,7 @@ export default function InventoryPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className={isLowStock(item) ? "font-semibold text-red-600" : ""}>
-                        {Number(item.current_stock).toFixed(1)}
+                        {Number(item.stock).toFixed(1)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center hidden md:table-cell">
@@ -352,7 +352,7 @@ export default function InventoryPage() {
                 <button type="button" onClick={() => { setAdjustItem(null); setError(null) }}><X size={18} className="text-gray-400" /></button>
               </div>
               <div className="px-5 py-4 space-y-4">
-                <p className="text-sm"><strong>{adjustItem.name}</strong> — Current: {Number(adjustItem.current_stock).toFixed(1)} {adjustItem.unit}</p>
+                <p className="text-sm"><strong>{adjustItem.name}</strong> — Current: {Number(adjustItem.stock).toFixed(1)} {adjustItem.unit}</p>
                 <div className="flex gap-3">
                   <button type="button" onClick={() => setAdjustType("in")}
                     className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-medium ${adjustType === "in" ? "border-green-500 bg-green-50 text-green-700" : "border-gray-200 text-gray-500"}`}>
@@ -397,14 +397,14 @@ export default function InventoryPage() {
                   movements.map((m) => (
                     <div key={m.id} className="flex items-center justify-between rounded-lg border border-cream-100 px-3 py-2 text-sm">
                       <div className="flex items-center gap-2">
-                        {m.type === "in" ? (
+                        {m.movement_type === "in" ? (
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-green-700"><TrendingUp size={12} /></span>
                         ) : (
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-red-700"><TrendingDown size={12} /></span>
                         )}
                         <div>
-                          <p className="font-medium">{m.type === "in" ? "+" : "-"}{Number(m.quantity).toFixed(1)} {movementsItem.unit}</p>
-                          {m.note && <p className="text-xs text-gray-400">{m.note}</p>}
+                          <p className="font-medium">{m.movement_type === "in" ? "+" : "-"}{Number(m.quantity).toFixed(1)} {movementsItem.unit}</p>
+                          {m.notes && <p className="text-xs text-gray-400">{m.notes}</p>}
                         </div>
                       </div>
                       <span className="text-xs text-gray-400">{new Date(m.created_at).toLocaleString()}</span>
