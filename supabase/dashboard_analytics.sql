@@ -588,7 +588,7 @@ CREATE INDEX IF NOT EXISTS idx_inventory_items_cafe_active ON inventory_items(ca
 
 -- stock_movements
 CREATE INDEX IF NOT EXISTS idx_stock_movements_cafe_created ON stock_movements(cafe_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_stock_movements_item ON stock_movements(item_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_stock_movements_item ON stock_movements(inventory_item_id, created_at DESC);
 
 -- expenses
 CREATE INDEX IF NOT EXISTS idx_expenses_cafe_date ON expenses(cafe_id, expense_date DESC);
