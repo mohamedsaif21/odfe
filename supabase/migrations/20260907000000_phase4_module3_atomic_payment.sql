@@ -133,10 +133,22 @@ BEGIN
     RAISE EXCEPTION 'Admin or cashier access required';
   END IF;
 
-  SELECT id, cafe_id, status, total, table_id, customer_id
-    INTO payment_id, v_order_cafe_id, v_order_status, v_order_total, v_table_id, v_customer_id
-  FROM public.orders
-  WHERE id = p_order_id
+  SELECT
+    o.id,
+    o.cafe_id,
+    o.status,
+    o.total,
+    o.table_id,
+    o.customer_id
+  INTO
+    payment_id,
+    v_order_cafe_id,
+    v_order_status,
+    v_order_total,
+    v_table_id,
+    v_customer_id
+  FROM public.orders AS o
+  WHERE o.id = p_order_id
   FOR UPDATE;
 
   IF payment_id IS NULL THEN
@@ -151,12 +163,12 @@ BEGIN
     RAISE EXCEPTION 'Order cannot be paid in its current status: %', v_order_status;
   END IF;
 
-  SELECT COALESCE(sum(amount), 0)
+  SELECT COALESCE(sum(p.amount), 0)
     INTO v_paid_before
-  FROM public.payments
-  WHERE order_id = p_order_id
-    AND cafe_id = v_auth_cafe_id
-    AND status = 'completed';
+  FROM public.payments p
+  WHERE p.order_id = p_order_id
+    AND p.cafe_id = v_auth_cafe_id
+    AND p.status = 'completed';
 
   IF v_paid_before + p_amount > v_order_total THEN
     RAISE EXCEPTION 'Payment of % exceeds the remaining balance of %',
@@ -188,7 +200,7 @@ BEGIN
       END IF;
 
       UPDATE public.cafe_tables
-         SET status = 'available', updated_at = now()
+        SET status = 'available'
        WHERE id = v_table_id;
     END IF;
 
