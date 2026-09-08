@@ -84,10 +84,20 @@ BEGIN
     ('00000000-0000-0000-0000-000000000000', v_customer_role_uid, 'authenticated', 'authenticated', v_customer_email, crypt('mig3-test', gen_salt('bf')), now(), now(), now())
   ON CONFLICT (id) DO NOTHING;
 
-  INSERT INTO public.cafes (id, name, slug)
+  INSERT INTO public.cafes (id, owner_id, name, slug)
   VALUES
-    (v_cafe_id, 'Migration Test Cafe ' || v_rand, 'migration-test-' || v_ts || '-' || v_rand),
-    (v_cafe2_id, 'Migration Intruder Cafe ' || v_rand, 'migration-intruder-' || v_ts || '-' || v_rand);
+    (
+      v_cafe_id,
+      v_admin_uid,
+      'Migration Test Cafe ' || v_rand,
+      'migration-test-' || v_ts || '-' || v_rand
+    ),
+    (
+      v_cafe2_id,
+      v_intruder_uid,
+      'Migration Intruder Cafe ' || v_rand,
+      'migration-intruder-' || v_ts || '-' || v_rand
+    );
 
   INSERT INTO public.profiles (id, cafe_id, role, full_name, email, is_active)
   VALUES
@@ -102,7 +112,19 @@ BEGIN
     is_active = EXCLUDED.is_active;
 
   INSERT INTO public.employees (id, cafe_id, profile_id, role)
-  VALUES (v_employee_id, v_cafe_id, v_admin_uid, 'admin');
+  VALUES (v_employee_id, v_cafe_id, v_admin_uid, 'admin')
+  ON CONFLICT (profile_id) DO NOTHING;
+
+  SELECT id
+  INTO v_employee_id
+  FROM public.employees
+  WHERE profile_id = v_admin_uid
+    AND cafe_id = v_cafe_id
+  LIMIT 1;
+
+  IF v_employee_id IS NULL THEN
+    RAISE EXCEPTION 'Migration test fixture failed: admin employee was not created';
+  END IF;
 
   INSERT INTO public.product_categories (id, cafe_id, name, sort_order, is_active)
   VALUES (v_cat_id, v_cafe_id, 'Migration Tests', 0, true);
