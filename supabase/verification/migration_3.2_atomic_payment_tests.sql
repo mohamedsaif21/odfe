@@ -84,28 +84,34 @@ BEGIN
     ('00000000-0000-0000-0000-000000000000', v_customer_role_uid, 'authenticated', 'authenticated', v_customer_email, crypt('mig3-test', gen_salt('bf')), now(), now(), now())
   ON CONFLICT (id) DO NOTHING;
 
-  INSERT INTO public.cafes (name, slug)
+  INSERT INTO public.cafes (id, name, slug)
   VALUES
-    ('Migration Test Cafe ' || v_rand, 'migration-test-' || v_ts || '-' || v_rand),
-    ('Migration Intruder Cafe ' || v_rand, 'migration-intruder-' || v_ts || '-' || v_rand);
+    (v_cafe_id, 'Migration Test Cafe ' || v_rand, 'migration-test-' || v_ts || '-' || v_rand),
+    (v_cafe2_id, 'Migration Intruder Cafe ' || v_rand, 'migration-intruder-' || v_ts || '-' || v_rand);
 
   INSERT INTO public.profiles (id, cafe_id, role, full_name, email, is_active)
   VALUES
     (v_admin_uid, v_cafe_id, 'admin', 'Migration Admin', v_admin_email, true),
     (v_intruder_uid, v_cafe2_id, 'admin', 'Migration Intruder', v_intruder_email, true),
-    (v_customer_role_uid, v_cafe_id, 'customer', 'Migration Customer Role', v_customer_email, true);
+    (v_customer_role_uid, v_cafe_id, 'customer', 'Migration Customer Role', v_customer_email, true)
+  ON CONFLICT (id) DO UPDATE
+  SET
+    cafe_id = EXCLUDED.cafe_id,
+    role = EXCLUDED.role,
+    email = EXCLUDED.email,
+    is_active = EXCLUDED.is_active;
 
-  INSERT INTO public.employees (cafe_id, profile_id, role)
-  VALUES (v_cafe_id, v_admin_uid, 'admin');
+  INSERT INTO public.employees (id, cafe_id, profile_id, role)
+  VALUES (v_employee_id, v_cafe_id, v_admin_uid, 'admin');
 
-  INSERT INTO public.product_categories (cafe_id, name, sort_order, is_active)
-  VALUES (v_cafe_id, 'Migration Tests', 0, true);
+  INSERT INTO public.product_categories (id, cafe_id, name, sort_order, is_active)
+  VALUES (v_cat_id, v_cafe_id, 'Migration Tests', 0, true);
 
-  INSERT INTO public.products (cafe_id, category_id, name, price, tax_rate, discount, is_available, sort_order)
-  VALUES (v_cafe_id, v_cat_id, 'Migration Brew', 100, 0, 0, true, 0);
+  INSERT INTO public.products (id, cafe_id, category_id, name, price, tax_rate, discount, is_available, sort_order)
+  VALUES (v_prod_id, v_cafe_id, v_cat_id, 'Migration Brew', 100, 0, 0, true, 0);
 
-  INSERT INTO public.inventory_items (cafe_id, name, unit, cost_per_unit, stock, minimum_stock, is_active)
-  VALUES (v_cafe_id, 'Migration Beans', 'g', 10, 100, 5, true);
+  INSERT INTO public.inventory_items (id, cafe_id, name, unit, cost_per_unit, stock, minimum_stock, is_active)
+  VALUES (v_item_id, v_cafe_id, 'Migration Beans', 'g', 10, 100, 5, true);
 
   INSERT INTO public.product_ingredients (cafe_id, product_id, item_id, quantity)
   VALUES (v_cafe_id, v_prod_id, v_item_id, 1);
@@ -117,10 +123,10 @@ BEGIN
     (v_t3, v_cafe_id, NULL, 'MigT3', 2, 'occupied'),
     (v_t4, v_cafe_id, NULL, 'MigT4', 2, 'occupied');
 
-  INSERT INTO public.customers (cafe_id, profile_id, name, phone, is_active, loyalty_points, visit_count, lifetime_spend, total_points_earned, tier_id, referral_code, referred_by, wallet_balance)
+  INSERT INTO public.customers (id, cafe_id, profile_id, name, phone, is_active, loyalty_points, visit_count, lifetime_spend, total_points_earned, tier_id, referral_code, referred_by, wallet_balance)
   VALUES
-    (v_cafe_id, NULL, 'Mig Customer A', '9000000001', true, 0, 0, 0, 0, NULL, NULL, NULL, 0),
-    (v_cafe_id, NULL, 'Mig Customer B', '9000000002', true, 0, 0, 0, 0, NULL, NULL, NULL, 0);
+    (v_cust_a, v_cafe_id, NULL, 'Mig Customer A', '9000000001', true, 0, 0, 0, 0, NULL, NULL, NULL, 0),
+    (v_cust_b, v_cafe_id, NULL, 'Mig Customer B', '9000000002', true, 0, 0, 0, 0, NULL, NULL, NULL, 0);
 
   INSERT INTO public.orders (cafe_id, order_number, table_id, customer_id, employee_id, status, subtotal, discount_total, tax_total, total, coupon_code, notes, source, session_id)
   VALUES
