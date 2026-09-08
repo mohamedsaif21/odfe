@@ -30,14 +30,16 @@
 --     installed. If you run this against a bare PG, CREATE EXTENSION pgcrypto.
 --
 -- RESULT
---   Each test records a row in temp table __results. The outcomes are emitted
---   as two real result sets (a per-test table and a totals summary) BEFORE the
---   trailing ROLLBACK, so every PASS/FAIL is visible in the Supabase SQL
---   Editor results grid (RAISE NOTICE is NOT shown there — that was the reason
---   suites appeared to return only "ROLLED BACK. Live data untouched.").
---   Each test block also carries an outermost EXCEPTION guard: an unexpected
---   error is recorded as a FAILED row carrying the test name, SQLSTATE error
---   code and message instead of aborting the whole suite mid-run.
+--   Each test records a row in temp table __results.  After all 12 tests
+--   finish, a SINGLE SELECT emits the complete report (per-test table,
+--   summary totals, and rollback confirmation) as one result set visible
+--   in the Supabase SQL Editor.  The editor replaces each subsequent
+--   result grid with the next, keeping only the LAST one — so collapsing
+--   everything into one SELECT guarantees the full report is visible.
+--   The trailing ROLLBACK discards all fixture/test data.  Each test block
+--   also carries an outermost EXCEPTION guard: an unexpected error is
+--   recorded as a FAILED row carrying the test name, SQLSTATE error code
+--   and message instead of aborting the whole suite mid-run.
 --   Expect all 12 tests to pass after applying the migration.
 -- ─────────────────────────────────────────────────────────────────────────────
 
@@ -731,21 +733,42 @@ END
 $$;
 
 -- ── RESULTS ─────────────────────────────────────────────────────────────────
--- Per-test table and summary emitted as real result sets so they are visible
--- in the Supabase SQL Editor results grid (RAISE NOTICE is NOT shown there).
-SELECT t        AS test_name,
-       CASE WHEN ok THEN 'PASS' ELSE 'FAIL' END AS status,
-       coalesce(note, '') AS details
-FROM   __results
-ORDER  BY t;
+-- SINGLE result set so the Supabase SQL Editor shows the entire report in
+-- one visible grid.  The editor replaces each subsequent result tab with the
+-- next one, keeping only the LAST result visible.  By collapsing per-test
+-- rows, summary totals and the rollback confirmation into ONE SELECT we
+-- guarantee the full report is the visible result.
+--
+-- __results is a temp table that persists until ROLLBACK, so we query it
+-- here while test data still exists.
+SELECT test_name, status, details FROM (
+  SELECT t                                         AS test_name,
+         CASE WHEN ok THEN 'PASS' ELSE 'FAIL' END AS status,
+         coalesce(note, '')                        AS details,
+         1                                         AS _ord,
+         row_number() OVER (ORDER BY t)            AS _sub
+  FROM   __results
 
--- Overall totals (single row, single result grid).
-SELECT count(*)                                          AS total_tests,
-       count(*) FILTER (WHERE ok)                        AS passed,
-       count(*) FILTER (WHERE NOT ok)                    AS failed,
-       CASE WHEN count(*) FILTER (WHERE NOT ok) = 0
-            THEN 'PASS' ELSE 'FAIL' END                 AS overall_status
-FROM   __results;
+  UNION ALL
+  SELECT '--------------------------------------------------------------',
+         '', '', 2, 13
+
+  UNION ALL
+  SELECT 'TOTAL TESTS',  count(*)::text,                        '', 3, 14 FROM __results
+  UNION ALL
+  SELECT 'PASSED',       count(*) FILTER (WHERE ok)::text,     '', 3, 15 FROM __results
+  UNION ALL
+  SELECT 'FAILED',       count(*) FILTER (WHERE NOT ok)::text, '', 3, 16 FROM __results
+  UNION ALL
+  SELECT 'OVERALL STATUS',
+         CASE WHEN count(*) FILTER (WHERE NOT ok) = 0 THEN 'PASS' ELSE 'FAIL' END,
+         '', 3, 17
+  FROM __results
+
+  UNION ALL
+  SELECT 'ROLLED BACK', 'LIVE DATA UNTOUCHED', '', 4, 18
+) _r
+ORDER BY _ord, _sub;
 
 -- Nothing below this line is ever persisted: this whole session rolls back.
 ROLLBACK;
