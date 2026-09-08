@@ -30,9 +30,15 @@
 --     installed. If you run this against a bare PG, CREATE EXTENSION pgcrypto.
 --
 -- RESULT
---   Each test prints PASSED/FAILED and records a row in temp table __results.
---   The last DO prints a summary. Expect all 12 to pass after applying the
---   migration; then the trailing ROLLBACK discards everything.
+--   Each test records a row in temp table __results. The outcomes are emitted
+--   as two real result sets (a per-test table and a totals summary) BEFORE the
+--   trailing ROLLBACK, so every PASS/FAIL is visible in the Supabase SQL
+--   Editor results grid (RAISE NOTICE is NOT shown there — that was the reason
+--   suites appeared to return only "ROLLED BACK. Live data untouched.").
+--   Each test block also carries an outermost EXCEPTION guard: an unexpected
+--   error is recorded as a FAILED row carrying the test name, SQLSTATE error
+--   code and message instead of aborting the whole suite mid-run.
+--   Expect all 12 tests to pass after applying the migration.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 BEGIN;
@@ -258,6 +264,9 @@ BEGIN
   INSERT INTO __results VALUES ('T1 preconditions', v_ok, v_note);
   IF v_ok THEN RAISE NOTICE 'T1 PASSED: %', v_note;
   ELSE RAISE NOTICE 'T1 FAILED: %', v_note; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T1 preconditions', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T1 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -298,6 +307,9 @@ BEGIN
   INSERT INTO __results VALUES ('T2 partial payment', v_ok, v_note);
   IF v_ok THEN RAISE NOTICE 'T2 PASSED: %', v_note;
   ELSE RAISE NOTICE 'T2 FAILED: %', v_note; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T2 partial payment', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T2 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -351,6 +363,9 @@ BEGIN
   INSERT INTO __results VALUES ('T3 full payment', v_ok, v_note);
   IF v_ok THEN RAISE NOTICE 'T3 PASSED: %', v_note;
   ELSE RAISE NOTICE 'T3 FAILED: %', v_note; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T3 full payment', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T3 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -379,6 +394,9 @@ BEGIN
   INSERT INTO __results VALUES ('T4 duplicate on paid', v_ok, coalesce(v_err, v_note));
   IF v_ok THEN RAISE NOTICE 'T4 PASSED: %', coalesce(v_err, '');
   ELSE RAISE NOTICE 'T4 FAILED: %', coalesce(v_err, 'no error', v_note); END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T4 duplicate on paid', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T4 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -426,6 +444,9 @@ BEGIN
   INSERT INTO __results VALUES ('T5 split tender', v_ok, v_note);
   IF v_ok THEN RAISE NOTICE 'T5 PASSED: %', v_note;
   ELSE RAISE NOTICE 'T5 FAILED: %', v_note; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T5 split tender', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T5 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -467,6 +488,9 @@ BEGIN
   INSERT INTO __results VALUES ('T6 overpayment', v_ok, coalesce(v_err, v_note));
   IF v_ok THEN RAISE NOTICE 'T6 PASSED: %', v_err;
   ELSE RAISE NOTICE 'T6 FAILED: %', coalesce(v_err, v_note, 'no error'); END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T6 overpayment', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T6 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -513,6 +537,9 @@ BEGIN
   INSERT INTO __results VALUES ('T7 insufficient stock', v_ok, coalesce(v_err, v_note));
   IF v_ok THEN RAISE NOTICE 'T7 PASSED: %', v_err;
   ELSE RAISE NOTICE 'T7 FAILED: %', coalesce(v_err, v_note, 'no error'); END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T7 insufficient stock', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T7 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -539,6 +566,9 @@ BEGIN
   INSERT INTO __results VALUES ('T8 wrong cafe', v_ok, coalesce(v_err, ''));
   IF v_ok THEN RAISE NOTICE 'T8 PASSED: %', v_err;
   ELSE RAISE NOTICE 'T8 FAILED: %', v_err; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T8 wrong cafe', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T8 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -564,6 +594,9 @@ BEGIN
   INSERT INTO __results VALUES ('T9 non-POS role', v_ok, coalesce(v_err, ''));
   IF v_ok THEN RAISE NOTICE 'T9 PASSED: %', v_err;
   ELSE RAISE NOTICE 'T9 FAILED: %', v_err; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T9 non-POS role', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T9 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -612,6 +645,9 @@ BEGIN
   INSERT INTO __results VALUES ('T10 method/reference validation', v_ok, v_note);
   IF v_ok THEN RAISE NOTICE 'T10 PASSED: all rejected';
   ELSE RAISE NOTICE 'T10 FAILED: %', v_note; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T10 method/reference validation', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T10 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -637,6 +673,9 @@ BEGIN
   INSERT INTO __results VALUES ('T11 cancelled order', v_ok, coalesce(v_err, ''));
   IF v_ok THEN RAISE NOTICE 'T11 PASSED: %', v_err;
   ELSE RAISE NOTICE 'T11 FAILED: %', v_err; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T11 cancelled order', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T11 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
@@ -685,26 +724,28 @@ BEGIN
   INSERT INTO __results VALUES ('T12 side-effect sweep', v_ok, v_note);
   IF v_ok THEN RAISE NOTICE 'T12 PASSED: %', v_note;
   ELSE RAISE NOTICE 'T12 FAILED: %', v_note; END IF;
+EXCEPTION WHEN others THEN
+  INSERT INTO __results VALUES ('T12 side-effect sweep', false, format('ERROR [%s]: %s', SQLSTATE, SQLERRM));
+  RAISE NOTICE 'T12 FAILED: ERROR [%] %', SQLSTATE, SQLERRM;
 END
 $$;
 
--- ── SUMMARY ─────────────────────────────────────────────────────────────────
-DO $$
-DECLARE
-  v_total integer;
-  v_pass integer;
-  v_fail integer;
-BEGIN
-  SELECT count(*), count(*) FILTER (WHERE ok), count(*) FILTER (WHERE NOT ok)
-    INTO v_total, v_pass, v_fail
-  FROM __results;
+-- ── RESULTS ─────────────────────────────────────────────────────────────────
+-- Per-test table and summary emitted as real result sets so they are visible
+-- in the Supabase SQL Editor results grid (RAISE NOTICE is NOT shown there).
+SELECT t        AS test_name,
+       CASE WHEN ok THEN 'PASS' ELSE 'FAIL' END AS status,
+       coalesce(note, '') AS details
+FROM   __results
+ORDER  BY t;
 
-  RAISE NOTICE 'SUMMARY: % tests, % passed, % failed', v_total, v_pass, v_fail;
-  IF v_fail > 0 THEN
-    RAISE NOTICE 'FAILED TESTS: %', (SELECT string_agg(t, ', ') FROM __results WHERE NOT ok);
-  END IF;
-END
-$$;
+-- Overall totals (single row, single result grid).
+SELECT count(*)                                          AS total_tests,
+       count(*) FILTER (WHERE ok)                        AS passed,
+       count(*) FILTER (WHERE NOT ok)                    AS failed,
+       CASE WHEN count(*) FILTER (WHERE NOT ok) = 0
+            THEN 'PASS' ELSE 'FAIL' END                 AS overall_status
+FROM   __results;
 
 -- Nothing below this line is ever persisted: this whole session rolls back.
 ROLLBACK;
