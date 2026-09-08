@@ -134,8 +134,7 @@ BEGIN
     (v_cafe_id, 'MIG3-B-' || v_ts, v_t2, v_cust_b, v_employee_id, 'sent_to_kitchen', 200.00, 0.00, 0.00, 200.00, NULL, NULL, 'pos', NULL),
     (v_cafe_id, 'MIG3-C-' || v_ts, v_t3, v_cust_a, v_employee_id, 'sent_to_kitchen', 200.00, 0.00, 0.00, 200.00, NULL, NULL, 'pos', NULL),
     (v_cafe_id, 'MIG3-D-' || v_ts, v_t4, v_cust_a, v_employee_id, 'sent_to_kitchen', 20000.00, 0.00, 0.00, 20000.00, NULL, NULL, 'pos', NULL),
-    (v_cafe_id, 'MIG3-E-' || v_ts, NULL, NULL, v_employee_id, 'cancelled', 100.00, 0.00, 0.00, 100.00, NULL, NULL, 'pos', NULL)
-  RETURNING id, order_number;
+    (v_cafe_id, 'MIG3-E-' || v_ts, NULL, NULL, v_employee_id, 'cancelled', 100.00, 0.00, 0.00, 100.00, NULL, NULL, 'pos', NULL);
 
   SELECT id INTO v_order_a FROM public.orders WHERE order_number = 'MIG3-A-' || v_ts;
   SELECT id INTO v_order_b FROM public.orders WHERE order_number = 'MIG3-B-' || v_ts;
@@ -644,4 +643,4 @@ $$;
 -- Nothing below this line is ever persisted: this whole session rolls back.
 ROLLBACK;
 
-RAISE NOTICE 'ROLLED BACK. Live data untouched.';
+SELECT 'ROLLED BACK. Live data untouched.' AS status;
