@@ -19,6 +19,24 @@
 --     item (stock 100), 1 product_ingredient (1 unit per sale), 4 cafe tables,
 --     2 customers, and 5 orders (A..E).
 --
+-- DETERMINISTIC FIXTURE ISOLATION
+--   * The two throwaway cafes are inserted BEFORE auth.users.  The trigger
+--     auth.on_auth_user_created -> handle_new_user() binds every trigger-created
+--     profile/employee/customer to the "first cafe" by created_at ASC.  The test
+--     cafe (v_cafe_id) is given an EXPLICIT fixed-past created_at
+--     ('2000-01-01'), so it ALWAYS sorts before any pre-existing production
+--     cafe and the trigger deterministically lands on v_cafe_id - never on an
+--     unrelated production cafe and independent of production cafe state.
+--   * After the admin employee is reconciled via ON CONFLICT (profile_id), the
+--     intruder's and customer-role user's trigger-created employee rows are also
+--     explicitly re-pointed (v_cafe2_id / v_cafe_id) so no trigger-created row
+--     is left bound to the wrong cafe.  These UPDATEs are scoped to this
+--     transaction's brand-new profile IDs, so no pre-existing production row is
+--     ever altered.
+--   * If the fixture DO block fails, an EXCEPTION handler records a
+--     'FIXTURE SETUP' FAILED row in __results and execution continues, so a
+--     broken setup is clearly reported instead of silently rolled back.
+--
 -- NOTES / ADAPTATION
 --   * auth.uid() is emulated with current_setting by writing
 --     request.jwt.claims ('{"sub":"<uid>","role":"authenticated"}'), exactly
@@ -85,27 +103,36 @@ BEGIN
     ('t1', v_t1), ('t2', v_t2), ('t3', v_t3), ('t4', v_t4),
     ('cust_a', v_cust_a), ('cust_b', v_cust_b);
 
+  -- IMPORTANT: the test cafes MUST be inserted BEFORE auth.users so that the
+  -- auth.on_auth_user_created trigger (public.handle_new_user) sees v_cafe_id
+  -- as the "first cafe" (ORDER BY created_at ASC LIMIT 1) and deterministically
+  -- binds every trigger-created profile/employee/customer to the TEST cafe,
+  -- never an unrelated production cafe.
+  -- An EXPLICIT, fixed-past created_at on the test cafe guarantees it always
+  -- sorts first regardless of any pre-existing production cafe rows.
+  INSERT INTO public.cafes (id, owner_id, name, slug, created_at)
+  VALUES
+    (
+      v_cafe_id,
+      v_admin_uid,
+      'Migration Test Cafe ' || v_rand,
+      'migration-test-' || v_ts || '-' || v_rand,
+      '2000-01-01 00:00:00+00'
+    ),
+    (
+      v_cafe2_id,
+      v_intruder_uid,
+      'Migration Intruder Cafe ' || v_rand,
+      'migration-intruder-' || v_ts || '-' || v_rand,
+      now()
+    );
+
   INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at)
   VALUES
     ('00000000-0000-0000-0000-000000000000', v_admin_uid, 'authenticated', 'authenticated', v_admin_email, crypt('mig3-test', gen_salt('bf')), now(), now(), now()),
     ('00000000-0000-0000-0000-000000000000', v_intruder_uid, 'authenticated', 'authenticated', v_intruder_email, crypt('mig3-test', gen_salt('bf')), now(), now(), now()),
     ('00000000-0000-0000-0000-000000000000', v_customer_role_uid, 'authenticated', 'authenticated', v_customer_email, crypt('mig3-test', gen_salt('bf')), now(), now(), now())
   ON CONFLICT (id) DO NOTHING;
-
-  INSERT INTO public.cafes (id, owner_id, name, slug)
-  VALUES
-    (
-      v_cafe_id,
-      v_admin_uid,
-      'Migration Test Cafe ' || v_rand,
-      'migration-test-' || v_ts || '-' || v_rand
-    ),
-    (
-      v_cafe2_id,
-      v_intruder_uid,
-      'Migration Intruder Cafe ' || v_rand,
-      'migration-intruder-' || v_ts || '-' || v_rand
-    );
 
   INSERT INTO public.profiles (id, cafe_id, role, full_name, email, is_active)
   VALUES
@@ -131,6 +158,19 @@ BEGIN
     cafe_id = EXCLUDED.cafe_id,
     role = EXCLUDED.role
   RETURNING id INTO v_employee_id;
+
+  -- Reconcile trigger-created employee rows for the OTHER fixture users too,
+  -- so no trigger-created row is left bound to an unrelated cafe.
+  -- Scoped strictly to this transaction's brand-new profile IDs => pre-existing
+  -- production rows are never touched.  (employees.profile_id is UNIQUE, so at
+  -- most one row per profile exists.)
+  UPDATE public.employees
+     SET cafe_id = v_cafe2_id
+   WHERE profile_id = v_intruder_uid;
+
+  UPDATE public.employees
+     SET cafe_id = v_cafe_id
+   WHERE profile_id = v_customer_role_uid;
 
   INSERT INTO public.product_categories (id, cafe_id, name, sort_order, is_active)
   VALUES (v_cat_id, v_cafe_id, 'Migration Tests', 0, true);
@@ -229,6 +269,14 @@ BEGIN
     (v_cafe_id, v_order_e, v_prod_id, 'Migration Brew', 100.00, 1, 0.00, 0.00, 100.00, NULL);
 
   RAISE NOTICE 'Fixture ready: cafe %, orders %/%/%/%/%', v_cafe_id, v_order_a, v_order_b, v_order_c, v_order_d, v_order_e;
+EXCEPTION WHEN others THEN
+  -- Any setup failure is recorded in __results and surfaced in the final
+  -- report instead of aborting silently (which would look like a successful,
+  -- uneventful ROLLBACK).  Each test still records its own FAILED row because
+  -- the fixture is incomplete, so the report clearly shows setup failure.
+  RAISE NOTICE 'FIXTURE SETUP FAILED [%]: %', SQLSTATE, SQLERRM;
+  INSERT INTO __results VALUES
+    ('FIXTURE SETUP', false, format('SETUP ERROR [%s]: %s', SQLSTATE, SQLERRM));
 END
 $$;
 
