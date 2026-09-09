@@ -150,8 +150,12 @@ BEGIN
      SET cafe_id = v_intruder_cafe, role = 'admin'
    WHERE profile_id = v_intruder_uid;
 
-  UPDATE public.employees
-     SET cafe_id = v_cafe_id, role = 'customer'
+  -- The customer test user is represented in public.customers, NOT in
+  -- public.employees (live employees_role_check allows only admin/cashier/
+  -- kitchen). handle_new_user() auto-created an employees row for every auth
+  -- user with the default role 'cashier'; remove that row ONLY for the
+  -- temporary customer test user. No production employee row is touched.
+  DELETE FROM public.employees
    WHERE profile_id = v_cust_role_uid;
 
   -- ── Step 5: Customers ───────────────────────────────────────────────────
