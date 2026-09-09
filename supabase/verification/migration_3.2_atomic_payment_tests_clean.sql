@@ -2,37 +2,49 @@
 -- MIGRATION 3.2 — ATOMIC PAYMENT — CLEAN VERIFICATION SUITE
 -- Function under test: public.complete_payment_for_order
 --
--- HOW TO RUN
---   1. Apply migration:  supabase/migrations/20260907000000_phase4_module3_atomic_payment.sql
---   2. Paste this file into the Supabase SQL Editor and run as owner / postgres.
---   3. Everything runs inside BEGIN / ROLLBACK — live data is NEVER modified.
+-- WORKFLOW (two explicit sections in THIS file)
 --
--- ARCHITECTURE
---   One transaction, 12 tests, temp-only fixtures (all rolled back).
---   auth.uid() is emulated via set_config('request.jwt.claims', ...).
---   The handle_new_user() trigger fires on auth.users INSERT and creates
---   profiles + employees bound to the oldest cafe. We create auth users
---   first, then test cafes, then reconcile generated profiles/employees
---   to the intended test cafes and roles.
+-- SECTION A — TEST EXECUTION (lines below; ends at the T1-T12 result SELECT)
+--   1. Paste SECTION A into the Supabase SQL Editor and run it as owner.
+--   2. Inspect the T1..T12 result grid (this is the FINAL statement that
+--      returns a grid, so it is the one the editor shows).
 --
--- LIVE-SCHEMA COLUMN NAMES (verified)
+-- SECTION B — CLEANUP (commented block at the very bottom of this file)
+--   3. After inspecting the results, run SECTION B separately:
+--        ROLLBACK;
+--      then run the cleanup-verification query from the commented block.
+--   4. Cleanup must show:
+--        MIG-3.2 cafe_tables remaining | 0 | CLEAN
+--        Production T-01                | T-01 / occupied | OK
+--
+-- Why two sections?
+--   The Supabase SQL Editor only keeps the LAST result grid of a run. If the
+--   cleanup SELECT followed the results in the same execution, it would hide
+--   the T1-T12 grid. Keeping ROLLBACK + cleanup as an explicitly separate
+--   step preserves both the visible results AND rollback safety.
+--
+-- LIVE-SCHEMA COLUMN NAMES (verified — never reference the stale names)
 --   product_ingredients : inventory_item_id  (NOT item_id)
---   stock_movements     : inventory_item_id, movement_type, notes
+--   stock_movements     : inventory_item_id, movement_type, notes (NOT item_id/type/note)
 --   inventory_items     : stock              (NOT current_stock)
---   cafe_tables         : NO updated_at column
---   customers           : do NOT use is_active or visit_count
+--   cafe_tables         : id, cafe_id, label, seats, status, floor_id — NO updated_at
+--   customers           : NO is_active, NO visit_count
 --
--- FIXTURE
+-- FIXTURE (all created ONLY inside SECTION A's transaction)
 --   2 cafes, 3 auth users, 2 customers, 1 product, 1 inventory item,
 --   1 product_ingredient, 4 cafe tables (MIG-3.2-T1..T4), 5 orders,
---   5 order_items.
+--   5 order_items. The production table T-01 is NEVER touched.
 --
--- EXPECTED: 12 PASS, 0 FAIL
+-- EXPECTED: T1..T12 PASS, TOTAL 12, PASSED 12, FAILED 0, OVERALL PASS.
+-- ════════════════════════════════════════════════════════════════════════════
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- SECTION A — TEST EXECUTION
 -- ════════════════════════════════════════════════════════════════════════════
 
 BEGIN;
 
--- Result ledger + fixture ID store (dropped by ROLLBACK)
+-- Result ledger + fixture ID store (ON COMMIT DROP cleans them via ROLLBACK)
 CREATE TEMP TABLE __results (
   test_id   text PRIMARY KEY,
   test_name text NOT NULL,
@@ -103,12 +115,15 @@ BEGIN
   ON CONFLICT (id) DO NOTHING;
 
   -- ── Step 2: Create test cafes ───────────────────────────────────────────
-  INSERT INTO public.cafes (id, name, slug, created_at)
+  -- owner_id is NOT NULL and must reference an existing auth.users row, so it
+  -- must use the temporary auth UUIDs created in Step 1 (never NULL, never a
+  -- production user). Main cafe -> v_admin_uid, intruder cafe -> v_intruder_uid.
+  INSERT INTO public.cafes (id, name, slug, owner_id, created_at)
   VALUES
-    (v_cafe_id, 'Mig32 Test Cafe', 'mig32-test-' || v_rand,
+    (v_cafe_id, 'Mig32 Test Cafe', 'mig32-test-' || v_rand, v_admin_uid,
      '2000-01-01 00:00:00+00'),
     (v_intruder_cafe, 'Mig32 Intruder Cafe', 'mig32-intruder-' || v_rand,
-     now());
+     v_intruder_uid, now());
 
   -- ── Step 3: Reconcile profiles to correct cafes / roles ─────────────────
   -- ON CONFLICT handles the trigger-created profile rows.
@@ -981,6 +996,21 @@ BEGIN
   THEN v_note := v_note || '2 movements; ';
   ELSE v_ok := false; v_note := v_note || 'movements='||v_n||'; '; END IF;
 
+  -- All four temporary fixture tables exist inside the transaction
+  SELECT count(*) INTO v_n FROM public.cafe_tables
+   WHERE label LIKE 'MIG-3.2-%';
+  IF v_n = 4
+  THEN v_note := v_note || '4 MIG-3.2 tables; ';
+  ELSE v_ok := false; v_note := v_note || 'mig-tables='||v_n||'; '; END IF;
+
+  -- Production T-01 untouched: still present and occupied
+  SELECT count(*) INTO v_n
+    FROM public.cafe_tables
+   WHERE label = 'T-01' AND status = 'occupied';
+  IF v_n = 1
+  THEN v_note := v_note || 'T-01 occupied; ';
+  ELSE v_ok := false; v_note := v_note || 'T-01:'||v_n||'; '; END IF;
+
   INSERT INTO __results VALUES ('T12', 'Final consistency sweep', v_ok, v_note);
 EXCEPTION WHEN others THEN
   INSERT INTO __results VALUES ('T12', 'Final consistency sweep', false,
@@ -1024,19 +1054,45 @@ SELECT test_id, test_name, status, details
 FROM   r
 ORDER  BY _ord, _sub;
 
--- Nothing below this line persists: ROLLBACK discards everything.
-ROLLBACK;
+-- ════════════════════════════════════════════════════════════════════════════
+-- END OF SECTION A — TEST EXECUTION
+-- The T1..T12 result SELECT above is the FINAL statement of SECTION A.
+-- Run SECTION A, inspect the grid, THEN run SECTION B below separately.
+-- ════════════════════════════════════════════════════════════════════════════
 
--- ═══ CLEANUP VERIFICATION (runs AFTER rollback) ══════════════════════════════
-SELECT 'MIG-3.2 cafe_tables remaining' AS check_name,
-       count(*)::text AS count,
-       CASE WHEN count(*) = 0 THEN 'CLEAN' ELSE 'LEAK' END AS status
-FROM cafe_tables WHERE label LIKE 'MIG-3.2-%'
 
-UNION ALL
-
-SELECT 'Production T-01',
-       label || ' / ' || status,
-       CASE WHEN label = 'T-01' AND status = 'occupied'
-            THEN 'OK' ELSE 'MODIFIED' END
-FROM cafe_tables WHERE label = 'T-01';
+-- ════════════════════════════════════════════════════════════════════════════
+-- SECTION B — CLEANUP  (run SEPARATELY, after inspecting SECTION A)
+--
+-- Step 1 — roll back the whole SECTION A transaction (removes every test
+-- fixture: cafes, auth users, profiles, employees, customers, products,
+-- inventory, tables, orders, payments, movements). Nothing persists.
+--
+--     ROLLBACK;
+--
+-- Step 2 — cleanup verification. Must show:
+--     MIG-3.2 cafe_tables remaining | 0 | CLEAN
+--     Production T-01                | T-01 / occupied | OK
+--
+--     SELECT 'MIG-3.2 cafe_tables remaining' AS check_name,
+--            count(*)::text AS "count",
+--            CASE WHEN count(*) = 0 THEN 'CLEAN' ELSE 'LEAK' END AS status
+--     FROM public.cafe_tables
+--     WHERE label LIKE 'MIG-3.2-%'
+--
+--     UNION ALL
+--
+--     SELECT 'Production T-01',
+--            label || ' / ' || status,
+--            CASE WHEN label = 'T-01' AND status = 'occupied'
+--                 THEN 'OK' ELSE 'MODIFIED' END
+--     FROM public.cafe_tables
+--     WHERE label = 'T-01';
+--
+-- NOTE: ROLLBACK is intentionally NOT in SECTION A. If it ran in the same
+-- execution it would still be safe (it emits no result grid, so the T1-T12
+-- grid would stay visible), but the explicit two-step workflow above keeps
+-- results and rollback independent and deterministic. If the connection is
+-- closed without running SECTION B, PostgreSQL discards the uncommitted
+-- transaction anyway — no test fixture can ever persist.
+-- ════════════════════════════════════════════════════════════════════════════
