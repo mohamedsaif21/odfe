@@ -40,14 +40,12 @@ export async function createExpenseCategory(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
-  const profile = await getAuthenticatedProfile(client)
 
   const payload: InsertTables<"expense_categories"> = {
     cafe_id: cafeId,
     name: input.name,
     description: input.description ?? null,
     is_active: true,
-    created_by: profile.id,
   }
 
   const { data, error } = await supabase

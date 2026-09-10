@@ -38,7 +38,7 @@ export default function ProductsPage() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
   const [recipeProduct, setRecipeProduct] = useState<Product | null>(null)
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
-  const [recipeIngredients, setRecipeIngredients] = useState<Array<{ item_id: string; quantity: number }>>([])
+  const [recipeIngredients, setRecipeIngredients] = useState<Array<{ inventory_item_id: string; quantity: number }>>([])
   const [recipeLoading, setRecipeLoading] = useState(false)
 
   const loadData = useCallback(async () => {
@@ -180,7 +180,7 @@ export default function ProductsPage() {
         getProductIngredients(product.id),
       ])
       setInventoryItems(items)
-      setRecipeIngredients(ingredients.map((i) => ({ item_id: i.item_id, quantity: i.quantity })))
+      setRecipeIngredients(ingredients.map((i) => ({ inventory_item_id: i.inventory_item_id, quantity: i.quantity })))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load recipe")
     } finally {
@@ -208,17 +208,17 @@ export default function ProductsPage() {
 
   function toggleRecipeIngredient(item: InventoryItem) {
     setRecipeIngredients((prev) => {
-      const exists = prev.find((i) => i.item_id === item.id)
+      const exists = prev.find((i) => i.inventory_item_id === item.id)
       if (exists) {
-        return prev.filter((i) => i.item_id !== item.id)
+        return prev.filter((i) => i.inventory_item_id !== item.id)
       }
-      return [...prev, { item_id: item.id, quantity: 1 }]
+      return [...prev, { inventory_item_id: item.id, quantity: 1 }]
     })
   }
 
-  function updateRecipeQty(itemId: string, quantity: number) {
+  function updateRecipeQty(inventoryItemId: string, quantity: number) {
     setRecipeIngredients((prev) =>
-      prev.map((i) => (i.item_id === itemId ? { ...i, quantity: Math.max(0, quantity) } : i))
+      prev.map((i) => (i.inventory_item_id === inventoryItemId ? { ...i, quantity: Math.max(0, quantity) } : i))
     )
   }
 
@@ -317,7 +317,7 @@ export default function ProductsPage() {
                 <p className="text-center text-sm text-gray-400 py-6">No inventory items found. <button onClick={() => setRecipeProduct(null)} className="text-odfe-teal underline">Add items first</button></p>
               ) : (
                 inventoryItems.filter((i) => i.is_active).map((item) => {
-                  const selected = recipeIngredients.find((r) => r.item_id === item.id)
+                  const selected = recipeIngredients.find((r) => r.inventory_item_id === item.id)
                   return (
                     <div key={item.id} className="flex items-center gap-3 rounded-lg border border-cream-100 px-3 py-2">
                       <input

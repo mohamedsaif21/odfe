@@ -93,19 +93,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingCustomer) {
-      const { error: updateCustomerError } = await adminClient
+const { error: updateCustomerError } = await adminClient
         .from("customers")
         .update({
           profile_id: user.id,
           name: fullName,
           email,
           phone: phone ?? null,
-          address: null,
-          birthday: null,
-          is_active: true,
-          loyalty_points: 0,
-          visit_count: 0,
-          lifetime_spend: 0,
         })
         .eq("id", existingCustomer.id)
 
@@ -113,7 +107,7 @@ export async function POST(request: NextRequest) {
       return successResponse({ profile_id: user.id, customer_id: existingCustomer.id })
     }
 
-    const { data: customer, error: customerError } = await adminClient
+const { data: customer, error: customerError } = await adminClient
       .from("customers")
       .insert({
         cafe_id: cafeId,
@@ -121,12 +115,7 @@ export async function POST(request: NextRequest) {
         name: fullName,
         email,
         phone: phone ?? null,
-        address: null,
-        birthday: null,
-        is_active: true,
         loyalty_points: 0,
-        visit_count: 0,
-        lifetime_spend: 0,
         tier_id: null,
         total_points_earned: 0,
         referral_code: null,

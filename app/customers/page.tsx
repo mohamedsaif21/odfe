@@ -2,21 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react"
 import {
-  Plus, Search, X, Loader2, UserCheck, UserX,
+  Plus, Search, X, Loader2, UserCheck,
   Star, ShoppingBag, ChevronRight, Trash2,
-  AlertCircle, CheckCircle, Phone, Mail, MapPin,
-  Cake, Gift, TrendingUp,
+  AlertCircle, CheckCircle, Phone, Mail,
+  Gift, TrendingUp,
 } from "lucide-react"
 import { AdminLayout } from "@/components/layout/admin-layout"
 import { PageContainer, PageHeader } from "@/components/layout/page-container"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert } from "@/components/ui/alert"
-import { Select } from "@/components/ui/select"
 import {
   fetchCustomers, createCustomer, updateCustomer,
-  getCustomerDetail, deactivateCustomer, activateCustomer,
-  mergeCustomers, addLoyaltyPoints,
+  getCustomerDetail, mergeCustomers, addLoyaltyPoints,
 } from "@/lib/services/customer.service"
 import type { CustomerDetail } from "@/lib/services/customer.service"
 import type { Customer } from "@/types/database"
@@ -24,7 +22,6 @@ import type { Customer } from "@/types/database"
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -32,7 +29,7 @@ export default function CustomersPage() {
   // Form
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Customer | null>(null)
-  const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", birthday: "" })
+  const [form, setForm] = useState({ name: "", email: "", phone: "" })
   const [saving, setSaving] = useState(false)
 
   // Detail modal
@@ -55,13 +52,13 @@ export default function CustomersPage() {
     setLoading(true)
     setError(null)
     try {
-      setCustomers(await fetchCustomers(search.trim() || undefined, { status: statusFilter }))
+      setCustomers(await fetchCustomers(search.trim() || undefined))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load customers")
     } finally {
       setLoading(false)
     }
-  }, [search, statusFilter])
+  }, [search])
 
   useEffect(() => {
     load()
@@ -92,7 +89,7 @@ export default function CustomersPage() {
   function resetForm() {
     setShowForm(false)
     setEditing(null)
-    setForm({ name: "", email: "", phone: "", address: "", birthday: "" })
+    setForm({ name: "", email: "", phone: "" })
   }
 
   function startEdit(customer: Customer) {
@@ -101,8 +98,6 @@ export default function CustomersPage() {
       name: customer.name,
       email: customer.email ?? "",
       phone: customer.phone ?? "",
-      address: customer.address ?? "",
-      birthday: customer.birthday ?? "",
     })
     setShowForm(true)
   }
@@ -117,21 +112,6 @@ export default function CustomersPage() {
       setError(err instanceof Error ? err.message : "Failed to load customer details")
     } finally {
       setDetailLoading(false)
-    }
-  }
-
-  async function handleDeactivate(customer: Customer) {
-    try {
-      if (customer.is_active) {
-        await deactivateCustomer(customer.id)
-        setSuccess(`${customer.name} deactivated`)
-      } else {
-        await activateCustomer(customer.id)
-        setSuccess(`${customer.name} activated`)
-      }
-      await load()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update customer status")
     }
   }
 
@@ -198,15 +178,6 @@ export default function CustomersPage() {
               className={`${inputClass} pl-9`}
             />
           </div>
-          <Select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="w-32"
-          >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </Select>
           <button
             onClick={() => { resetForm(); setShowForm(true) }}
             className="flex items-center gap-1.5 rounded-lg bg-odfe-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-odfe-teal-light"
@@ -224,8 +195,6 @@ export default function CustomersPage() {
                   <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name *" required className={inputClass} />
                   <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" type="email" className={inputClass} />
                   <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" className={inputClass} />
-                  <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address" className={inputClass} />
-                  <input value={form.birthday} onChange={(e) => setForm({ ...form, birthday: e.target.value })} placeholder="Birthday" type="date" className={inputClass} />
                 </div>
                 <div className="flex gap-2">
                   <button type="submit" disabled={saving}
@@ -250,18 +219,15 @@ export default function CustomersPage() {
               <tr>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3 hidden sm:table-cell">Contact</th>
-                <th className="px-4 py-3 text-center">Orders</th>
-                <th className="px-4 py-3 text-right">Spend</th>
                 <th className="px-4 py-3 text-right">Points</th>
-                <th className="px-4 py-3 text-center">Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-cream-100">
               {loading ? (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">Loading customers...</td></tr>
+                <tr><td colSpan={4} className="px-4 py-10 text-center text-muted-foreground">Loading customers...</td></tr>
               ) : customers.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">No customers found</td></tr>
+                <tr><td colSpan={4} className="px-4 py-10 text-center text-muted-foreground">No customers found</td></tr>
               ) : (
                 customers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-cream-50 cursor-pointer" onClick={() => openDetail(customer)}>
@@ -272,16 +238,7 @@ export default function CustomersPage() {
                         {customer.phone && <p className="text-xs text-gray-400">{customer.phone}</p>}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center text-sm">{customer.visit_count}</td>
-                    <td className="px-4 py-3 text-right text-sm font-medium">₹{Number(customer.lifetime_spend).toFixed(2)}</td>
                     <td className="px-4 py-3 text-right text-sm font-semibold text-odfe-gold">{customer.loyalty_points}</td>
-                    <td className="px-4 py-3 text-center">
-                      {customer.is_active ? (
-                        <Badge>Active</Badge>
-                      ) : (
-                        <Badge className="bg-red-100 text-red-700">Inactive</Badge>
-                      )}
-                    </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
@@ -302,12 +259,6 @@ export default function CustomersPage() {
                         >
                           Merge
                         </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDeactivate(customer) }}
-                          className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                        >
-                          {customer.is_active ? "Deactivate" : "Activate"}
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -327,7 +278,7 @@ export default function CustomersPage() {
                 <>
                   <div className="flex items-center justify-between border-b px-5 py-4">
                     <div className="flex items-center gap-2">
-                      <UserCheck size={18} className={detail.is_active ? "text-green-500" : "text-gray-400"} />
+                      <UserCheck size={18} className="text-odfe-teal" />
                       <h2 className="font-semibold text-gray-900">{detail.name}</h2>
                     </div>
                     <button onClick={() => setDetail(null)}><X size={18} className="text-gray-400" /></button>
@@ -356,12 +307,6 @@ export default function CustomersPage() {
                       )}
                       {detail.phone && (
                         <div className="flex items-center gap-2 text-gray-600"><Phone size={14} /><span>{detail.phone}</span></div>
-                      )}
-                      {detail.address && (
-                        <div className="flex items-center gap-2 text-gray-600"><MapPin size={14} /><span>{detail.address}</span></div>
-                      )}
-                      {detail.birthday && (
-                        <div className="flex items-center gap-2 text-gray-600"><Cake size={14} /><span>{detail.birthday}</span></div>
                       )}
                     </div>
 

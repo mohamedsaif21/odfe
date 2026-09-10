@@ -24,7 +24,7 @@ export default function RecipesPage() {
   const [editingProduct, setEditingProduct] = useState<{ id: string; name: string } | null>(null)
   const [ingredients, setIngredients] = useState<RecipeIngredientRow[]>([])
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
-  const [editIngredients, setEditIngredients] = useState<Array<{ item_id: string; quantity: number }>>([])
+  const [editIngredients, setEditIngredients] = useState<Array<{ inventory_item_id: string; quantity: number }>>([])
   const [inventorySearch, setInventorySearch] = useState("")
   const [saving, setSaving] = useState(false)
 
@@ -65,7 +65,7 @@ export default function RecipesPage() {
       ])
       setIngredients(existing)
       setInventoryItems(items)
-      setEditIngredients(existing.map((i) => ({ item_id: i.item_id, quantity: i.quantity })))
+      setEditIngredients(existing.map((i) => ({ inventory_item_id: i.inventory_item_id, quantity: i.quantity })))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load recipe data")
     }
@@ -73,15 +73,15 @@ export default function RecipesPage() {
 
   function toggleIngredient(item: InventoryItem) {
     setEditIngredients((prev) => {
-      const exists = prev.find((i) => i.item_id === item.id)
-      if (exists) return prev.filter((i) => i.item_id !== item.id)
-      return [...prev, { item_id: item.id, quantity: 1 }]
+      const exists = prev.find((i) => i.inventory_item_id === item.id)
+      if (exists) return prev.filter((i) => i.inventory_item_id !== item.id)
+      return [...prev, { inventory_item_id: item.id, quantity: 1 }]
     })
   }
 
-  function updateQty(itemId: string, quantity: number) {
+  function updateQty(inventoryItemId: string, quantity: number) {
     setEditIngredients((prev) =>
-      prev.map((i) => (i.item_id === itemId ? { ...i, quantity: Math.max(0, quantity) } : i))
+      prev.map((i) => (i.inventory_item_id === inventoryItemId ? { ...i, quantity: Math.max(0, quantity) } : i))
     )
   }
 
@@ -208,9 +208,9 @@ export default function RecipesPage() {
                 <div className="mb-3 space-y-1">
                   <p className="text-xs font-medium text-odfe-charcoal/60">Selected Ingredients</p>
                   {editIngredients.filter((i) => i.quantity > 0).map((ei) => {
-                    const item = inventoryItems.find((inv) => inv.id === ei.item_id)
+                    const item = inventoryItems.find((inv) => inv.id === ei.inventory_item_id)
                     return (
-                      <div key={ei.item_id} className="flex items-center gap-2 rounded-lg bg-odfe-teal/5 px-3 py-1.5 text-sm">
+                      <div key={ei.inventory_item_id} className="flex items-center gap-2 rounded-lg bg-odfe-teal/5 px-3 py-1.5 text-sm">
                         <span className="flex-1 font-medium text-odfe-charcoal">{item?.name ?? "Unknown"}</span>
                         <span className="text-xs text-odfe-charcoal/40">{Number(item?.stock ?? 0).toFixed(1)} in stock</span>
                         <input
@@ -218,7 +218,7 @@ export default function RecipesPage() {
                           min="0"
                           step="0.01"
                           value={ei.quantity}
-                          onChange={(e) => updateQty(ei.item_id, Number(e.target.value))}
+                          onChange={(e) => updateQty(ei.inventory_item_id, Number(e.target.value))}
                           className="w-20 rounded border border-odfe-charcoal/10 px-2 py-1 text-right text-sm outline-none focus:border-odfe-teal"
                         />
                         <span className="w-10 text-xs text-odfe-charcoal/40">{item?.unit ?? "piece"}</span>
@@ -234,7 +234,7 @@ export default function RecipesPage() {
                   <p className="py-6 text-center text-sm text-odfe-charcoal/40">No inventory items found. Add items in Inventory first.</p>
                 ) : (
                   filteredInventory.map((item) => {
-                    const selected = editIngredients.find((i) => i.item_id === item.id)
+                    const selected = editIngredients.find((i) => i.inventory_item_id === item.id)
                     return (
                       <div
                         key={item.id}

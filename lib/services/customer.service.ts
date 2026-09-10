@@ -22,7 +22,6 @@ export type CustomerDetail = Customer & {
 
 export async function fetchCustomers(
   search?: string,
-  filters?: { status?: "active" | "inactive" | "all" },
   client?: DbClient
 ): Promise<Customer[]> {
   const supabase = client ?? createClient()
@@ -38,19 +37,13 @@ export async function fetchCustomers(
     query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
   }
 
-  if (filters?.status === "active") {
-    query = query.eq("is_active", true)
-  } else if (filters?.status === "inactive") {
-    query = query.eq("is_active", false)
-  }
-
   const { data, error } = await query
   if (error) throw new Error(error.message)
   return data ?? []
 }
 
 export async function createCustomer(
-  input: { name: string; email?: string; phone?: string; address?: string; birthday?: string },
+  input: { name: string; email?: string; phone?: string },
   client?: DbClient
 ) {
   const supabase = client ?? createClient()
@@ -62,12 +55,7 @@ export async function createCustomer(
     name: input.name,
     email: input.email ?? null,
     phone: input.phone ?? null,
-    address: input.address ?? null,
-    birthday: input.birthday ?? null,
-    is_active: true,
     loyalty_points: 0,
-    visit_count: 0,
-    lifetime_spend: 0,
     tier_id: null,
     total_points_earned: 0,
     referral_code: null,
@@ -87,7 +75,7 @@ export async function createCustomer(
 
 export async function updateCustomer(
   id: string,
-  input: Partial<{ name: string; email: string; phone: string; address: string; birthday: string; is_active: boolean }>,
+  input: Partial<{ name: string; email: string; phone: string }>,
   client?: DbClient
 ) {
   const supabase = client ?? createClient()
@@ -168,20 +156,6 @@ export async function getCustomerDetail(
     orderCount,
     lifetimeSpend,
   }
-}
-
-export async function deactivateCustomer(
-  customerId: string,
-  client?: DbClient
-) {
-  return updateCustomer(customerId, { is_active: false }, client)
-}
-
-export async function activateCustomer(
-  customerId: string,
-  client?: DbClient
-) {
-  return updateCustomer(customerId, { is_active: true }, client)
 }
 
 export async function mergeCustomers(

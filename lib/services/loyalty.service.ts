@@ -28,7 +28,6 @@ export async function createLoyaltyTier(
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
-  const profile = await getAuthenticatedProfile(client)
 
   const payload: InsertTables<"loyalty_tiers"> = {
     cafe_id: cafeId,
@@ -37,7 +36,6 @@ export async function createLoyaltyTier(
     discount_percent: input.discount_percent,
     benefits: input.benefits ?? null,
     is_active: true,
-    created_by: profile.id,
   }
 
   const { data, error } = await supabase
@@ -195,26 +193,6 @@ export async function redeemPoints(
     p_customer_id: customerId,
     p_cafe_id: cafeId,
     p_points: points,
-    p_order_id: orderId,
-    p_profile_id: profile.id,
-  })
-
-  if (error) throw new Error(error.message)
-  return Number(data ?? 0)
-}
-
-export async function applyBirthdayReward(
-  customerId: string,
-  orderId: string,
-  client?: DbClient
-): Promise<number> {
-  const supabase = client ?? createClient()
-  const cafeId = await getCafeId(client)
-  const profile = await getAuthenticatedProfile(client)
-
-  const { data, error } = await supabase.rpc("apply_birthday_reward", {
-    p_customer_id: customerId,
-    p_cafe_id: cafeId,
     p_order_id: orderId,
     p_profile_id: profile.id,
   })

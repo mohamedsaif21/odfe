@@ -100,12 +100,7 @@ export interface Database {
           name: string
           email: string | null
           phone: string | null
-          address: string | null
-          birthday: string | null
-          is_active: boolean
           loyalty_points: number
-          visit_count: number
-          lifetime_spend: number
           tier_id: string | null
           total_points_earned: number
           referral_code: string | null
@@ -422,9 +417,8 @@ export interface Database {
           id: string
           cafe_id: string
           product_id: string
-          item_id: string
+          inventory_item_id: string
           quantity: number
-          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -480,9 +474,8 @@ export interface Database {
           line_total: number
           created_by: string | null
           created_at: string
-          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["purchase_order_items"]["Row"], "id" | "created_at" | "updated_at">
+        Insert: Omit<Database["public"]["Tables"]["purchase_order_items"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["purchase_order_items"]["Insert"]>
         Relationships: []
       }
@@ -495,7 +488,6 @@ export interface Database {
           discount_percent: number
           benefits: string | null
           is_active: boolean
-          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -514,9 +506,8 @@ export interface Database {
           description: string | null
           created_by: string | null
           created_at: string
-          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["wallet_transactions"]["Row"], "id" | "created_at" | "updated_at">
+        Insert: Omit<Database["public"]["Tables"]["wallet_transactions"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["wallet_transactions"]["Insert"]>
         Relationships: []
       }
@@ -529,11 +520,9 @@ export interface Database {
           used_count: number
           reward_given: number
           is_active: boolean
-          created_by: string | null
           created_at: string
-          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["referral_codes"]["Row"], "id" | "created_at" | "updated_at">
+        Insert: Omit<Database["public"]["Tables"]["referral_codes"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["referral_codes"]["Insert"]>
         Relationships: []
       }
@@ -547,11 +536,9 @@ export interface Database {
           points_used: number
           value: number
           description: string | null
-          created_by: string | null
           created_at: string
-          updated_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["reward_redemptions"]["Row"], "id" | "created_at" | "updated_at">
+        Insert: Omit<Database["public"]["Tables"]["reward_redemptions"]["Row"], "id" | "created_at">
         Update: Partial<Database["public"]["Tables"]["reward_redemptions"]["Insert"]>
         Relationships: []
       }
@@ -562,7 +549,6 @@ export interface Database {
           name: string
           description: string | null
           is_active: boolean
-          created_by: string | null
           created_at: string
           updated_at: string
         }
@@ -699,15 +685,6 @@ export interface Database {
           p_customer_id: string
           p_cafe_id: string
           p_points: number
-          p_order_id: string
-          p_profile_id: string
-        }
-        Returns: number
-      }
-      apply_birthday_reward: {
-        Args: {
-          p_customer_id: string
-          p_cafe_id: string
           p_order_id: string
           p_profile_id: string
         }

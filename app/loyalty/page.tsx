@@ -300,16 +300,14 @@ export default function LoyaltyPage() {
                     <th className="px-4 py-3 text-center">Points</th>
                     <th className="px-4 py-3 text-center hidden sm:table-cell">Wallet</th>
                     <th className="px-4 py-3 text-center hidden md:table-cell">Tier</th>
-                    <th className="px-4 py-3 text-center hidden lg:table-cell">Visits</th>
-                    <th className="px-4 py-3 text-center hidden lg:table-cell">Spend</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-odfe-charcoal/5">
                   {loading && !customers.length ? (
-                    <tr><td colSpan={7} className="px-4 py-10 text-center text-odfe-charcoal/40">Loading customers...</td></tr>
+                    <tr><td colSpan={5} className="px-4 py-10 text-center text-odfe-charcoal/40">Loading customers...</td></tr>
                   ) : filteredCustomers.length === 0 ? (
-                    <tr><td colSpan={7} className="px-4 py-10 text-center text-odfe-charcoal/40">No customers found</td></tr>
+                    <tr><td colSpan={5} className="px-4 py-10 text-center text-odfe-charcoal/40">No customers found</td></tr>
                   ) : (
                     filteredCustomers.map((c) => (
                       <tr key={c.id} className="hover:bg-odfe-charcoal/[0.02]">
@@ -334,8 +332,6 @@ export default function LoyaltyPage() {
                             <span className="text-xs text-odfe-charcoal/40">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center hidden lg:table-cell text-odfe-charcoal/60">{c.visit_count}</td>
-                        <td className="px-4 py-3 text-center hidden lg:table-cell text-odfe-charcoal/60">₹{Number(c.lifetime_spend).toFixed(2)}</td>
                         <td className="px-4 py-3 text-right">
                           <button onClick={() => openCustomerDetail(c)} className="rounded px-2 py-1 text-xs text-odfe-teal hover:bg-odfe-teal/5">View</button>
                         </td>

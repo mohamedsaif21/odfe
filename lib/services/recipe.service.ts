@@ -6,7 +6,7 @@ import type { InventoryItem, Product } from "@/types/database"
 export type RecipeIngredientRow = {
   id: string
   product_id: string
-  item_id: string
+  inventory_item_id: string
   quantity: number
   item_name: string
   item_unit: string
@@ -61,13 +61,13 @@ export async function fetchRecipeIngredients(
 
   const { data, error } = await supabase
     .from("product_ingredients")
-    .select("id, product_id, item_id, quantity")
+    .select("id, product_id, inventory_item_id, quantity")
     .eq("product_id", productId)
     .eq("cafe_id", cafeId)
 
   if (error) throw new Error(error.message)
 
-  const itemIds = (data ?? []).map((r) => r.item_id)
+  const itemIds = (data ?? []).map((r) => r.inventory_item_id)
   if (itemIds.length === 0) return []
 
   const { data: items, error: itemsError } = await supabase
@@ -82,20 +82,19 @@ export async function fetchRecipeIngredients(
 
   return (data ?? []).map((r) => ({
     ...r,
-    item_name: itemMap.get(r.item_id)?.name ?? "Unknown",
-    item_unit: itemMap.get(r.item_id)?.unit ?? "piece",
-    item_stock: Number(itemMap.get(r.item_id)?.stock ?? 0),
+    item_name: itemMap.get(r.inventory_item_id)?.name ?? "Unknown",
+    item_unit: itemMap.get(r.inventory_item_id)?.unit ?? "piece",
+    item_stock: Number(itemMap.get(r.inventory_item_id)?.stock ?? 0),
   }))
 }
 
 export async function setRecipeIngredients(
   productId: string,
-  ingredients: Array<{ item_id: string; quantity: number }>,
+  ingredients: Array<{ inventory_item_id: string; quantity: number }>,
   client?: DbClient
 ) {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
-  const profile = await getAuthenticatedProfile(client)
 
   const { error: delError } = await supabase
     .from("product_ingredients")
@@ -113,9 +112,8 @@ export async function setRecipeIngredients(
       ingredients.map((ing) => ({
         cafe_id: cafeId,
         product_id: productId,
-        item_id: ing.item_id,
+        inventory_item_id: ing.inventory_item_id,
         quantity: ing.quantity,
-        created_by: profile.id,
       }))
     )
 
