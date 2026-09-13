@@ -151,7 +151,7 @@ export async function ensureSelfOrderToken(tableId: string, token: string, clien
       table_id: tableId,
       token,
       is_active: true,
-    }, { onConflict: "token" })
+    }, { onConflict: "table_id" })
 
   if (tokenError) throw new Error(tokenError.message)
 }
