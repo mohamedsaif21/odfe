@@ -670,6 +670,17 @@ export interface Database {
         }
         Returns: string
       }
+      add_loyalty_points: {
+        Args: {
+          p_customer_id: string
+          p_cafe_id: string
+          p_points: number
+          p_profile_id: string
+          p_reason?: string | null
+          p_idempotency_key?: string | null
+        }
+        Returns: number
+      }
       earn_loyalty_points: {
         Args: {
           p_customer_id: string

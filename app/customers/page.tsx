@@ -46,6 +46,8 @@ export default function CustomersPage() {
   // Loyalty
   const [showLoyalty, setShowLoyalty] = useState<Customer | null>(null)
   const [loyaltyPoints, setLoyaltyPoints] = useState("")
+  const [loyaltyReason, setLoyaltyReason] = useState("")
+  const [loyaltyKey, setLoyaltyKey] = useState<string>("")
   const [loyaltySaving, setLoyaltySaving] = useState(false)
 
   const load = useCallback(async () => {
@@ -145,10 +147,17 @@ export default function CustomersPage() {
     if (Number.isNaN(points) || points <= 0) return
     setLoyaltySaving(true)
     try {
-      await addLoyaltyPoints(showLoyalty.id, points)
-      setSuccess(`Added ${points} points to ${showLoyalty.name}`)
+      const balance = await addLoyaltyPoints(
+        showLoyalty.id,
+        points,
+        loyaltyReason.trim() || undefined,
+        loyaltyKey,
+      )
+      setSuccess(`Added ${points} points to ${showLoyalty.name}. New balance: ${balance}`)
       setShowLoyalty(null)
       setLoyaltyPoints("")
+      setLoyaltyReason("")
+      setLoyaltyKey("")
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add points")
@@ -248,7 +257,7 @@ export default function CustomersPage() {
                           Edit
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); setShowLoyalty(customer) }}
+                          onClick={(e) => { e.stopPropagation(); setLoyaltyKey(crypto.randomUUID()); setShowLoyalty(customer) }}
                           className="rounded px-2 py-1 text-xs text-odfe-gold hover:bg-odfe-gold/5"
                         >
                           Points
@@ -413,7 +422,7 @@ export default function CustomersPage() {
                   <Gift size={16} className="text-odfe-gold" />
                   Add Points — {showLoyalty.name}
                 </div>
-                <button onClick={() => { setShowLoyalty(null); setLoyaltyPoints("") }}><X size={18} className="text-gray-400" /></button>
+                <button onClick={() => { setShowLoyalty(null); setLoyaltyPoints(""); setLoyaltyReason(""); setLoyaltyKey("") }}><X size={18} className="text-gray-400" /></button>
               </div>
               <div className="px-5 py-4 space-y-4">
                 <p className="text-sm text-gray-500">Current balance: <strong className="text-odfe-gold">{showLoyalty.loyalty_points}</strong> points</p>
@@ -429,9 +438,19 @@ export default function CustomersPage() {
                     className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal"
                   />
                 </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-600">Reason (optional)</label>
+                  <input
+                    maxLength={200}
+                    value={loyaltyReason}
+                    onChange={(e) => setLoyaltyReason(e.target.value)}
+                    placeholder="e.g. Birthday bonus"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-odfe-teal"
+                  />
+                </div>
               </div>
               <div className="flex gap-2 border-t px-5 py-4">
-                <button onClick={() => { setShowLoyalty(null); setLoyaltyPoints("") }}
+                <button onClick={() => { setShowLoyalty(null); setLoyaltyPoints(""); setLoyaltyReason(""); setLoyaltyKey("") }}
                   className="flex-1 rounded-lg border border-gray-200 py-2.5 text-sm font-medium text-gray-600">
                   Cancel
                 </button>

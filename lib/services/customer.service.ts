@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
-import { getCafeId } from "./_shared"
+import { getCafeId, getAuthenticatedProfile } from "./_shared"
 import type { Customer } from "@/types/database"
 import type { DbClient, InsertTables, UpdateTables } from "./_shared"
 
@@ -200,19 +200,23 @@ export async function refreshCustomerStats(
 export async function addLoyaltyPoints(
   customerId: string,
   points: number,
+  reason?: string,
+  idempotencyKey?: string,
   client?: DbClient
-) {
+): Promise<number> {
   const supabase = client ?? createClient()
   const cafeId = await getCafeId(client)
-  const { data, error } = await (supabase.rpc as unknown as (
-    name: string,
-    args: Record<string, unknown>
-  ) => Promise<{ data: unknown; error: { message?: string } | null }>)("add_loyalty_points", {
+  const profile = await getAuthenticatedProfile(client)
+
+  const { data, error } = await supabase.rpc("add_loyalty_points", {
     p_customer_id: customerId,
     p_cafe_id: cafeId,
     p_points: points,
+    p_profile_id: profile.id,
+    p_reason: reason ?? null,
+    p_idempotency_key: idempotencyKey ?? null,
   })
 
   if (error) throw new Error(error.message)
-  return data
+  return Number(data ?? 0)
 }
