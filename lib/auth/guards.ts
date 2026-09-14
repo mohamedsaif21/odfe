@@ -24,6 +24,8 @@ export const ROUTE_ACCESS: Record<string, AnyRole[]> = {
   "/self-order":        ["customer"],
   "/customer/orders":   ["customer"],
   "/customer/profile":  ["customer"],
+
+  "/api/payments":      ["customer"],
 }
 
 export const PUBLIC_PATHS: string[] = [
