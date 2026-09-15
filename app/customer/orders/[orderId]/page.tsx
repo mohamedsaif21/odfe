@@ -37,16 +37,18 @@ function paymentErrorMessage(status: number): string {
   }
 }
 
-function verifyErrorMessage(status: number): string {
+function completeErrorMessage(status: number): string {
   switch (status) {
     case 401:
       return "Please sign in to continue."
     case 403:
-      return "You are not authorised to verify this payment."
+      return "You are not authorised to pay for this order."
     case 404:
       return "This order could not be found."
     case 400:
-      return "Payment verification failed. Your order has not been marked as paid."
+      return "Payment could not be completed. Please contact the cafe if you were charged."
+    case 409:
+      return "Your payment could not be applied to this order. Please contact the cafe."
     case 502:
     case 503:
       return "The payment service is temporarily unavailable. Please try again shortly."
@@ -172,7 +174,7 @@ export default function CustomerOrderDetailPage() {
         return
       }
 
-      const verifyResponse = await fetch("/api/payments/razorpay/verify", {
+      const completeResponse = await fetch("/api/payments/razorpay/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -183,17 +185,17 @@ export default function CustomerOrderDetailPage() {
         }),
       })
 
-      const verifyBody = (await verifyResponse.json().catch(() => null)) as {
-        data?: { verified?: boolean }
+      const completeBody = (await completeResponse.json().catch(() => null)) as {
+        data?: { completed?: boolean }
       } | null
 
-      if (verifyResponse.ok && verifyBody?.data?.verified) {
+      if (completeResponse.ok && completeBody?.data?.completed) {
         if (process.env.NODE_ENV === "development") {
-          console.debug("Razorpay payment verified:", verifyBody.data)
+          console.debug("Razorpay payment completed:", completeBody.data)
         }
-        setPayNotice("Payment verified successfully. Completing your payment...")
+        setPayNotice("Payment completed successfully. Your order is now marked as paid.")
       } else {
-        setPayError(verifyErrorMessage(verifyResponse.status))
+        setPayError(completeErrorMessage(completeResponse.status))
       }
     } catch (err) {
       if (err instanceof RazorpayCheckoutClosedError) {
@@ -274,7 +276,8 @@ export default function CustomerOrderDetailPage() {
           </div>
           {order.status === "paid" && (
             <div className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
-              Payment completed for ₹{Number(order.total).toFixed(2)}. Reference: {order.orderNumber}
+              <p>Payment completed for ₹{Number(order.total).toFixed(2)}. Reference: {order.orderNumber}</p>
+              <p className="mt-1">Amount due: ₹0.00</p>
             </div>
           )}
           {order.status !== "cancelled" && order.status !== "paid" && order.remaining > 0 && (
