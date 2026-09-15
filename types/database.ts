@@ -346,6 +346,26 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["self_order_tokens"]["Insert"]>
         Relationships: []
       }
+      razorpay_payment_verifications: {
+        Row: {
+          id: string
+          razorpay_payment_id: string
+          razorpay_order_id: string
+          order_id: string
+          cafe_id: string
+          customer_id: string
+          amount_paise: number
+          currency: string
+          status: "verified" | "completed"
+          created_at: string
+        }
+        Insert: Omit<
+          Database["public"]["Tables"]["razorpay_payment_verifications"]["Row"],
+          "id" | "status" | "created_at"
+        >
+        Update: Partial<Database["public"]["Tables"]["razorpay_payment_verifications"]["Insert"]>
+        Relationships: []
+      }
       bookings: {
         Row: {
           id: string
@@ -637,6 +657,22 @@ export interface Database {
               table_label: string
             }>
       }
+      complete_customer_razorpay_payment: {
+        Args: {
+          p_order_id: string
+          p_razorpay_payment_id: string
+        }
+        Returns: {
+          order_id: string
+          order_number: string
+          payment_id: string | null
+          amount: number
+          status: string
+          fully_paid: boolean
+          paid_total: number
+          order_total: number
+        }
+      }
       advance_kitchen_ticket: {
         Args: {
           p_ticket_id: string
@@ -776,6 +812,7 @@ export type Coupon = Tables<"coupons">
 export type Promotion = Tables<"promotions">
 export type PosSession = Tables<"pos_sessions">
 export type SelfOrderToken = Tables<"self_order_tokens">
+export type RazorpayPaymentVerification = Tables<"razorpay_payment_verifications">
 export type Booking = Tables<"bookings">
 export type InventoryItem = Tables<"inventory_items">
 export type StockMovement = Tables<"stock_movements">
