@@ -37,6 +37,24 @@ function paymentErrorMessage(status: number): string {
   }
 }
 
+function verifyErrorMessage(status: number): string {
+  switch (status) {
+    case 401:
+      return "Please sign in to continue."
+    case 403:
+      return "You are not authorised to verify this payment."
+    case 404:
+      return "This order could not be found."
+    case 400:
+      return "Payment verification failed. Your order has not been marked as paid."
+    case 502:
+    case 503:
+      return "The payment service is temporarily unavailable. Please try again shortly."
+    default:
+      return "Something went wrong. Please try again."
+  }
+}
+
 export default function CustomerOrderDetailPage() {
   const params = useParams<{ orderId: string }>()
   const router = useRouter()
@@ -149,11 +167,34 @@ export default function CustomerOrderDetailPage() {
         prefill: customerPrefill ?? undefined,
       })
 
-      if (process.env.NODE_ENV === "development") {
-        console.debug("Razorpay checkout response received (not a verified payment):", result)
+      if (!result.razorpay_payment_id || !result.razorpay_order_id || !result.razorpay_signature) {
+        setPayError("Unable to verify payment. Please try again.")
+        return
       }
 
-      setPayNotice("Payment response received. Payment verification will be handled by the secure server flow.")
+      const verifyResponse = await fetch("/api/payments/razorpay/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          razorpayPaymentId: result.razorpay_payment_id,
+          razorpayOrderId: result.razorpay_order_id,
+          razorpaySignature: result.razorpay_signature,
+        }),
+      })
+
+      const verifyBody = (await verifyResponse.json().catch(() => null)) as {
+        data?: { verified?: boolean }
+      } | null
+
+      if (verifyResponse.ok && verifyBody?.data?.verified) {
+        if (process.env.NODE_ENV === "development") {
+          console.debug("Razorpay payment verified:", verifyBody.data)
+        }
+        setPayNotice("Payment verified successfully. Completing your payment...")
+      } else {
+        setPayError(verifyErrorMessage(verifyResponse.status))
+      }
     } catch (err) {
       if (err instanceof RazorpayCheckoutClosedError) {
         setPayNotice("Payment window closed. No payment was recorded.")

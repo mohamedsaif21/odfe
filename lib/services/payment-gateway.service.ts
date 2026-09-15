@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { serverEnv } from "@/lib/config/env"
 
 const RAZORPAY_API_BASE = "https://api.razorpay.com/v1"
@@ -88,6 +89,112 @@ export async function createRazorpayOrder(
     receipt: typeof body.receipt === "string" ? body.receipt : "",
     status: typeof body.status === "string" ? body.status : "created",
   }
+}
+
+export interface RazorpayFetchedOrder {
+  id: string
+  amount: number
+  currency: string
+  receipt: string | null
+  status: string
+}
+
+export interface RazorpayFetchedPayment {
+  id: string
+  orderId: string | null
+  amount: number
+  currency: string
+  status: string
+}
+
+export async function fetchRazorpayOrder(orderId: string): Promise<RazorpayFetchedOrder> {
+  const { keyId, keySecret } = getRazorpayServerConfig()
+  const credentials = Buffer.from(`${keyId}:${keySecret}`).toString("base64")
+
+  let response: Response
+  try {
+    response = await fetch(`${RAZORPAY_API_BASE}/orders/${orderId}`, {
+      headers: {
+        Authorization: `Basic ${credentials}`,
+      },
+    })
+  } catch {
+    throw new GatewayApiError("Unable to reach the payment gateway.")
+  }
+
+  const body = (await response.json().catch(() => null)) as Record<string, unknown> | null
+
+  if (!response.ok || !body) {
+    throw new GatewayApiError("Unable to retrieve the payment order from the gateway.")
+  }
+
+  if (typeof body.id !== "string" || typeof body.amount !== "number") {
+    throw new GatewayApiError("Payment gateway returned an invalid order.")
+  }
+
+  return {
+    id: body.id,
+    amount: Number(body.amount),
+    currency: typeof body.currency === "string" ? body.currency : "INR",
+    receipt: typeof body.receipt === "string" ? body.receipt : null,
+    status: typeof body.status === "string" ? body.status : "unknown",
+  }
+}
+
+export async function fetchRazorpayPayment(paymentId: string): Promise<RazorpayFetchedPayment> {
+  const { keyId, keySecret } = getRazorpayServerConfig()
+  const credentials = Buffer.from(`${keyId}:${keySecret}`).toString("base64")
+
+  let response: Response
+  try {
+    response = await fetch(`${RAZORPAY_API_BASE}/payments/${paymentId}`, {
+      headers: {
+        Authorization: `Basic ${credentials}`,
+      },
+    })
+  } catch {
+    throw new GatewayApiError("Unable to reach the payment gateway.")
+  }
+
+  const body = (await response.json().catch(() => null)) as Record<string, unknown> | null
+
+  if (!response.ok || !body) {
+    throw new GatewayApiError("Unable to retrieve the payment from the gateway.")
+  }
+
+  if (typeof body.id !== "string" || typeof body.amount !== "number") {
+    throw new GatewayApiError("Payment gateway returned an invalid payment.")
+  }
+
+  return {
+    id: body.id,
+    orderId: typeof body.order_id === "string" ? body.order_id : null,
+    amount: Number(body.amount),
+    currency: typeof body.currency === "string" ? body.currency : "INR",
+    status: typeof body.status === "string" ? body.status : "unknown",
+  }
+}
+
+/**
+ * Verify a Razorpay Checkout success signature.
+ *
+ * Contract: HMAC-SHA256(razorpay_order_id + "|" + razorpay_payment_id, RAZORPAY_KEY_SECRET)
+ * Compared using a timing-safe comparison.
+ */
+export function verifyRazorpaySignature(
+  razorpayOrderId: string,
+  razorpayPaymentId: string,
+  razorpaySignature: string,
+  keySecret: string
+): boolean {
+  const payload = `${razorpayOrderId}|${razorpayPaymentId}`
+  const expected = crypto.createHmac("sha256", keySecret).update(payload).digest("hex")
+
+  if (expected.length !== razorpaySignature.length) {
+    return false
+  }
+
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(razorpaySignature))
 }
 
 function extractGatewayMessage(body: Record<string, unknown> | null): string {
