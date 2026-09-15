@@ -7,12 +7,14 @@ import { BrandedLoader } from "@/components/branding/branded-loader"
 import { OdfeLogo } from "@/components/branding/odfe-logo"
 import { createClient } from "@/lib/supabase/client"
 import { useAuthStore } from "@/store/auth-store"
+import { useSelfOrderStore } from "@/store/self-order-store"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { CustomerMenu } from "@/components/self-order/customer-menu"
 import {
   fetchCustomerByProfileId,
   fetchPublicMenu,
   fetchSelfOrderSettings,
+  resolveSelfOrderToken,
   type PublicMenuCategory,
   type SelfOrderMode,
 } from "@/lib/services/self-order.service"
@@ -21,11 +23,14 @@ import type { Customer } from "@/types/database"
 export default function SelfOrderPage() {
   const router = useRouter()
   const { user, setUser, clearUser } = useAuthStore()
+  const { context, clearSelfOrderContext } = useSelfOrderStore()
   const [loading, setLoading] = useState(true)
   const [cafeName, setCafeName] = useState("")
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [menu, setMenu] = useState<PublicMenuCategory[]>([])
   const [mode, setMode] = useState<SelfOrderMode>("online_ordering")
+  const [tableId, setTableId] = useState<string | null>(null)
+  const [tableLabel, setTableLabel] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -58,6 +63,32 @@ export default function SelfOrderPage() {
         const customerRow = await fetchCustomerByProfileId(profile.id, supabase)
         setCustomer(customerRow)
 
+        let restoredTableId: string | null = null
+        let restoredTableLabel: string | null = null
+
+        if (context && context.profileId === profile.id) {
+          try {
+            const resolved = await resolveSelfOrderToken(context.token, supabase)
+            if (
+              resolved.cafeId === context.cafeId &&
+              resolved.cafeId === profile.cafeId &&
+              resolved.tableId === context.tableId
+            ) {
+              restoredTableId = resolved.tableId
+              restoredTableLabel = resolved.tableLabel
+            } else {
+              clearSelfOrderContext()
+            }
+          } catch {
+            clearSelfOrderContext()
+          }
+        } else if (context) {
+          clearSelfOrderContext()
+        }
+
+        setTableId(restoredTableId)
+        setTableLabel(restoredTableLabel)
+
         const { data: cafe } = await supabase
           .from("cafes")
           .select("name")
@@ -80,12 +111,13 @@ export default function SelfOrderPage() {
     }
 
     init()
-  }, [router, setUser])
+  }, [router, setUser, context, clearSelfOrderContext])
 
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
     clearUser()
+    clearSelfOrderContext()
     router.push("/customer/login")
   }
 
@@ -99,6 +131,7 @@ export default function SelfOrderPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <OdfeLogo variant="full" size="sm" priority />
+            {tableLabel && <p className="mt-1 text-sm text-odfe-cream/70">Ordering for Table {tableLabel}</p>}
             <p className="mt-1 text-sm text-odfe-cream/70">{customer?.name ?? user?.fullName}</p>
             <p className="text-xs text-odfe-cream/60">{customer?.email ?? user?.email}</p>
             <p className="text-xs text-odfe-gold">Loyalty points: {customer?.loyalty_points ?? 0}</p>
@@ -121,8 +154,8 @@ export default function SelfOrderPage() {
         <CustomerMenu
           cafeId={user?.cafeId ?? customer.cafe_id}
           cafeName={cafeName || "OdFe"}
-          tableId={null}
-          tableLabel={null}
+          tableId={tableId}
+          tableLabel={tableLabel}
           customer={customer}
           menu={menu}
           mode={mode}

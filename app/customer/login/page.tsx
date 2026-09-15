@@ -121,12 +121,6 @@ function CustomerLoginForm() {
             Create account
           </Link>
         </p>
-        <p className="mt-2 text-center text-xs text-gray-400">
-          Staff?{" "}
-          <Link href="/login" className="text-odfe-teal underline underline-offset-2">
-            Staff login
-          </Link>
-        </p>
       </div>
     </div>
   )

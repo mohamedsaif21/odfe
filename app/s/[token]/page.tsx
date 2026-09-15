@@ -16,6 +16,7 @@ import {
 } from "@/lib/services/self-order.service"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { useAuthStore } from "@/store/auth-store"
+import { useSelfOrderStore } from "@/store/self-order-store"
 import { CustomerMenu } from "@/components/self-order/customer-menu"
 import type { Customer } from "@/types/database"
 
@@ -74,6 +75,15 @@ export default function QrSelfOrderPage() {
         setTableId(resolved.tableId)
         setTableLabel(resolved.tableLabel)
 
+        useSelfOrderStore.getState().setSelfOrderContext({
+          token,
+          cafeId: resolved.cafeId,
+          tableId: resolved.tableId,
+          tableLabel: resolved.tableLabel,
+          profileId: profile.id,
+          timestamp: Date.now(),
+        })
+
         const { data: cafe } = await supabase
           .from("cafes")
           .select("name")
@@ -101,6 +111,7 @@ export default function QrSelfOrderPage() {
     const supabase = createClient()
     await supabase.auth.signOut()
     clearUser()
+    useSelfOrderStore.getState().clearSelfOrderContext()
     router.push("/customer/login")
   }
 
