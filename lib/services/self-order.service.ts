@@ -33,6 +33,10 @@ type OrderWithItems = {
     discount: number
     tax_rate: number
   }>
+  payments: Array<{
+    amount: number
+    status: string
+  }>
 }
 
 type TokenResolutionResult = {
@@ -328,6 +332,8 @@ export async function fetchCustomerOrder(
   discountTotal: number
   taxTotal: number
   total: number
+  paidTotal: number
+  remaining: number
   items: Array<{ productName: string; quantity: number; unitPrice: number; discount: number; taxRate: number }>
   createdAt: string
 } | null> {
@@ -335,7 +341,7 @@ export async function fetchCustomerOrder(
 
   const { data, error } = await supabase
     .from("orders")
-    .select("id, order_number, status, table_id, subtotal, discount_total, tax_total, total, created_at, order_items(product_name, quantity, unit_price, discount, tax_rate)")
+    .select("id, order_number, status, table_id, subtotal, discount_total, tax_total, total, created_at, payments(amount, status), order_items(product_name, quantity, unit_price, discount, tax_rate)")
     .eq("id", orderId)
     .eq("customer_id", customerId)
     .eq("cafe_id", cafeId)
@@ -355,6 +361,11 @@ export async function fetchCustomerOrder(
       : Promise.resolve({ data: null, error: null }),
   ])
 
+  const paidTotal = (row.payments ?? [])
+    .filter((payment) => payment.status === "completed")
+    .reduce((sum, payment) => sum + Number(payment.amount), 0)
+  const remaining = Number(row.total) - paidTotal
+
   return {
     id: row.id,
     orderNumber: row.order_number,
@@ -365,6 +376,8 @@ export async function fetchCustomerOrder(
     discountTotal: row.discount_total,
     taxTotal: row.tax_total,
     total: row.total,
+    paidTotal,
+    remaining,
     items: (row.order_items ?? []).map((i) => ({
       productName: i.product_name,
       quantity: i.quantity,
