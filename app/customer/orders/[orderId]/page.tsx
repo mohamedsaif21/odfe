@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { BrandedLoader } from "@/components/branding/branded-loader"
 import { OdfeLogo } from "@/components/branding/odfe-logo"
@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client"
 import { resolveAuthenticatedProfile } from "@/lib/auth/role-mapper"
 import { subscribeToCustomerOrder } from "@/lib/orders/realtime"
 import { fetchCustomerByProfileId, fetchCustomerOrder } from "@/lib/services/self-order.service"
+import { RazorpayCheckoutClosedError, openRazorpayCheckout } from "@/lib/services/razorpay-checkout"
 
 type OrderView = NonNullable<Awaited<ReturnType<typeof fetchCustomerOrder>>>
 const timeline = ["to_cook", "preparing", "completed", "paid"] as const
@@ -18,6 +19,24 @@ function stageReached(order: OrderView, stage: (typeof timeline)[number]) {
   return timeline.indexOf(current as (typeof timeline)[number]) >= timeline.indexOf(stage)
 }
 
+function paymentErrorMessage(status: number): string {
+  switch (status) {
+    case 401:
+      return "Please sign in to continue."
+    case 403:
+      return "You are not authorised to pay for this order."
+    case 404:
+      return "This order could not be found."
+    case 400:
+      return "This order cannot be paid right now."
+    case 502:
+    case 503:
+      return "The payment service is temporarily unavailable. Please try again shortly."
+    default:
+      return "Something went wrong while preparing your payment. Please try again."
+  }
+}
+
 export default function CustomerOrderDetailPage() {
   const params = useParams<{ orderId: string }>()
   const router = useRouter()
@@ -26,6 +45,11 @@ export default function CustomerOrderDetailPage() {
   const [order, setOrder] = useState<OrderView | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [customerPrefill, setCustomerPrefill] = useState<{ name: string; email?: string; contact?: string } | null>(null)
+  const [paying, setPaying] = useState(false)
+  const [payError, setPayError] = useState<string | null>(null)
+  const [payNotice, setPayNotice] = useState<string | null>(null)
+  const paymentInFlight = useRef(false)
 
   const loadOrder = useCallback(async (id: string, activeCafeId: string) => {
     const supabase = createClient()
@@ -53,6 +77,11 @@ export default function CustomerOrderDetailPage() {
         const customer = await fetchCustomerByProfileId(profile.id, supabase)
         setCustomerId(customer.id)
         setCafeId(profile.cafeId)
+        setCustomerPrefill({
+          name: customer.name,
+          ...(customer.email ? { email: customer.email } : {}),
+          ...(customer.phone ? { contact: customer.phone } : {}),
+        })
         await loadOrder(customer.id, profile.cafeId)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load order")
@@ -77,6 +106,68 @@ export default function CustomerOrderDetailPage() {
       void supabase.removeChannel(channel)
     }
   }, [cafeId, customerId, loadOrder, params.orderId])
+
+  async function handlePayOnline() {
+    if (!order || paymentInFlight.current) return
+
+    paymentInFlight.current = true
+    setPaying(true)
+    setPayError(null)
+    setPayNotice(null)
+
+    try {
+      const response = await fetch("/api/payments/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id }),
+      })
+
+      const body = (await response.json().catch(() => null)) as {
+        data?: { order_id?: string; amount?: number; currency?: string; key_id?: string }
+      } | null
+      const checkoutData = body?.data
+
+      if (
+        !response.ok ||
+        !checkoutData ||
+        !checkoutData.order_id ||
+        typeof checkoutData.amount !== "number" ||
+        !checkoutData.currency ||
+        !checkoutData.key_id
+      ) {
+        setPayError(paymentErrorMessage(response.status))
+        return
+      }
+
+      const result = await openRazorpayCheckout({
+        keyId: checkoutData.key_id,
+        amountPaise: Math.round(checkoutData.amount * 100),
+        currency: checkoutData.currency,
+        orderId: checkoutData.order_id,
+        name: "ODFE",
+        description: "Customer Order Payment",
+        prefill: customerPrefill ?? undefined,
+      })
+
+      if (process.env.NODE_ENV === "development") {
+        console.debug("Razorpay checkout response received (not a verified payment):", result)
+      }
+
+      setPayNotice("Payment response received. Payment verification will be handled by the secure server flow.")
+    } catch (err) {
+      if (err instanceof RazorpayCheckoutClosedError) {
+        setPayNotice("Payment window closed. No payment was recorded.")
+      } else {
+        setPayError(err instanceof Error ? err.message : "Unable to open payment. Please try again.")
+      }
+    } finally {
+      paymentInFlight.current = false
+      setPaying(false)
+      if (customerId && cafeId) {
+        loadOrder(customerId, cafeId).catch((err) => setError(err instanceof Error ? err.message : "Failed to refresh order"))
+      }
+    }
+  }
 
   if (loading) {
     return <BrandedLoader fullScreen message="Loading order..." />
@@ -143,6 +234,21 @@ export default function CustomerOrderDetailPage() {
           {order.status === "paid" && (
             <div className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
               Payment completed for ₹{Number(order.total).toFixed(2)}. Reference: {order.orderNumber}
+            </div>
+          )}
+          {order.status !== "cancelled" && order.status !== "paid" && order.remaining > 0 && (
+            <div className="mt-4 rounded-lg bg-odfe-gold/10 px-3 py-3 text-odfe-charcoal">
+              <p className="text-xs">Amount due</p>
+              <p className="text-lg font-semibold">₹{Number(order.remaining).toFixed(2)}</p>
+              <button
+                onClick={handlePayOnline}
+                disabled={paying}
+                className="mt-2 w-full rounded-lg bg-odfe-gold py-3 text-sm font-semibold text-odfe-charcoal disabled:opacity-50"
+              >
+                {paying ? "Preparing payment..." : `Pay Online ₹${Number(order.remaining).toFixed(2)}`}
+              </button>
+              {payError && <p className="mt-2 text-xs text-red-600">{payError}</p>}
+              {payNotice && <p className="mt-2 text-xs">{payNotice}</p>}
             </div>
           )}
         </div>
