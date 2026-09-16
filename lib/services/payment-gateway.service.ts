@@ -197,6 +197,36 @@ export function verifyRazorpaySignature(
   return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(razorpaySignature))
 }
 
+/**
+ * Verify a Razorpay webhook signature.
+ *
+ * Contract: HMAC-SHA256(rawBody, RAZORPAY_WEBHOOK_SECRET)
+ * The signed message is the EXACT raw HTTP request body as received — never
+ * re-parse, re-serialize, reorder, or normalize the payload before hashing.
+ * Compared using a timing-safe comparison. Returns false (never throws) for
+ * empty inputs or malformed/length-mismatched signatures.
+ *
+ * Deliberately separate from verifyRazorpaySignature() (checkout contract) so
+ * the two signing schemes cannot be mixed.
+ */
+export function verifyRazorpayWebhookSignature(
+  rawBody: string,
+  signature: string,
+  webhookSecret: string
+): boolean {
+  if (!rawBody || !signature || !webhookSecret) {
+    return false
+  }
+
+  const expected = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex")
+
+  if (expected.length !== signature.length) {
+    return false
+  }
+
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+}
+
 function extractGatewayMessage(body: Record<string, unknown> | null): string {
   const error = body?.error as Record<string, unknown> | undefined
   const description = error?.description ?? body?.error_description

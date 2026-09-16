@@ -366,6 +366,27 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["razorpay_payment_verifications"]["Insert"]>
         Relationships: []
       }
+      razorpay_webhook_events: {
+        Row: {
+          id: string
+          razorpay_event_id: string
+          event_type: string
+          razorpay_payment_id: string | null
+          razorpay_order_id: string | null
+          order_id: string | null
+          payload: Json
+          status: "received" | "processed" | "ignored" | "failed"
+          error_message: string | null
+          created_at: string
+          processed_at: string | null
+        }
+        Insert: Omit<
+          Database["public"]["Tables"]["razorpay_webhook_events"]["Row"],
+          "id" | "status" | "created_at"
+        >
+        Update: Partial<Database["public"]["Tables"]["razorpay_webhook_events"]["Insert"]>
+        Relationships: []
+      }
       bookings: {
         Row: {
           id: string
@@ -673,6 +694,22 @@ export interface Database {
           order_total: number
         }
       }
+      complete_razorpay_webhook_payment: {
+        Args: {
+          p_order_id: string
+          p_razorpay_payment_id: string
+        }
+        Returns: {
+          order_id: string
+          order_number: string
+          payment_id: string | null
+          amount: number
+          status: string
+          fully_paid: boolean
+          paid_total: number
+          order_total: number
+        }
+      }
       advance_kitchen_ticket: {
         Args: {
           p_ticket_id: string
@@ -757,6 +794,25 @@ export interface Database {
           deducted_count: number
         }
       }
+      webhook_deduct_stock_for_order: {
+        Args: {
+          p_order_id: string
+          p_cafe_id: string
+        }
+        Returns: {
+          skipped_product_ids: string[]
+          deducted_count: number
+        }
+      }
+      webhook_earn_loyalty_points: {
+        Args: {
+          p_customer_id: string
+          p_cafe_id: string
+          p_order_id: string
+          p_amount: number
+        }
+        Returns: undefined
+      }
       restore_stock_for_order: {
         Args: {
           p_order_id: string
@@ -813,6 +869,7 @@ export type Promotion = Tables<"promotions">
 export type PosSession = Tables<"pos_sessions">
 export type SelfOrderToken = Tables<"self_order_tokens">
 export type RazorpayPaymentVerification = Tables<"razorpay_payment_verifications">
+export type RazorpayWebhookEvent = Tables<"razorpay_webhook_events">
 export type Booking = Tables<"bookings">
 export type InventoryItem = Tables<"inventory_items">
 export type StockMovement = Tables<"stock_movements">
