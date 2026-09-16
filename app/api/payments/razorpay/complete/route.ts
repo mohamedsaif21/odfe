@@ -65,14 +65,6 @@ export async function POST(request: NextRequest) {
       )
 
     if (ticketError) {
-      // DEBUG-ONLY: captures the real PostgREST error. Remove once R4 is fixed.
-      console.error("[R4] Verification ticket upsert failed:", {
-        message: ticketError.message,
-        code: ticketError.code,
-        details: ticketError.details,
-        hint: ticketError.hint,
-      })
-
       return errorResponse("Unable to record the verified payment", 500)
     }
 
@@ -86,14 +78,6 @@ export async function POST(request: NextRequest) {
     )
 
     if (rpcError) {
-      // DEBUG-ONLY: captures the real RPC error. Remove once R4 is fixed.
-      console.error("[R4] complete_customer_razorpay_payment RPC failed:", {
-        message: rpcError.message,
-        code: rpcError.code,
-        details: rpcError.details,
-        hint: rpcError.hint,
-      })
-
       return errorResponse("The payment could not be completed. Please try again.", 409)
     }
 
