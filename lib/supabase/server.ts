@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import type { Database } from "@/types/database"
 import { env, serverEnv } from "@/lib/config/env"
@@ -40,28 +41,17 @@ export async function createClient() {
  * Supabase admin client using the service role key.
  * Bypasses RLS — use ONLY in trusted server-side admin operations.
  * Never expose to the browser or return its data raw to clients.
+ *
+ * Uses plain @supabase/supabase-js (not the SSR cookie client) so the
+ * service role key is never overridden by the caller's session JWT — the
+ * session-storage-based _getAccessToken() path would otherwise downgrade
+ * Authorization to the customer's token and re-enable RLS.
  */
 export async function createAdminClient() {
-  const cookieStore = await cookies()
-
-  return createServerClient<Database>(
+  return createSupabaseClient<Database>(
     env.supabaseUrl,
     serverEnv.serviceRoleKey,
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
-          } catch {
-            // no-op in Server Components
-          }
-        },
-      },
       auth: {
         autoRefreshToken: false,
         persistSession: false,
